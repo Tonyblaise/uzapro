@@ -31,7 +31,7 @@ The list rows are in `design/canvas/erp-data.js` › `UZ_MODS` › `sup`. Copy a
 
 ## Phase 1: Setup
 
-- [ ] T001 Create the branch `006-help-centre` from `005-office-people-settings` (`git checkout -b`), and confirm `npm run typecheck && npm run lint && npm run test:unit` pass
+- [X] T001 Create the branch `006-help-centre` from `005-office-people-settings` (`git checkout -b`), and confirm `npm run typecheck && npm run lint && npm run test:unit` pass
 
 ---
 
