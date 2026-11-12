@@ -1,6 +1,15 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.1 → 1.1.0 (MINOR: Principle III materially expanded)
+- Version change: 1.1.0 → 1.2.0 (MINOR: Technology Constraints › Auth materially changed)
+- Modified section: Technology Constraints › Auth. The login now accepts only the demo Owner
+  credentials (demo@uzapro.com / demo@123), checked in the browser; other roles are reached with
+  the account menu's "View as". The login page shows a demo-credentials hint and no longer offers
+  "Create a free account".
+- Reason: user request after the Cloudflare deployment (the demo is publicly reachable).
+- Templates: no changes required.
+- Follow-up: specs/001-dashboard-sales-stock/spec.md › Design deviations records the login hint and
+  the removed sign-up button.
+- Previous (1.1.0): 1.0.1 → 1.1.0 (MINOR: Principle III materially expanded)
 - Modified principles: III. Ephemeral In-Memory Interactivity. Business data is still never
   persisted. The signed-in role (`uzAuth`) and sidebar collapse state (`uzNavClosed`) may now
   be kept in browser storage, matching the design's "Remember me" behaviour. Storage access
@@ -146,8 +155,10 @@ a product.
   Pick one in the first plan and use it everywhere after that.
 - Charts: lightweight SVG components or a single justified chart library, styled to match
   the canvas (bars, lines, area variants).
-- Auth: fake only. The login, forgot-password, and "sent" views accept any input and lead
-  to role selection. No credentials are validated or stored.
+- Auth: a demo gate, not real security. The login accepts only the demo Owner credentials
+  (demo@uzapro.com / demo@123), checked in the browser and shown as a hint on the login page;
+  other roles are reached with the account menu's "View as". Forgot-password and "sent" accept
+  any input. No credentials are stored, and nothing is sent anywhere.
 - Layout: a 240px sidebar and 64px header shell, responsive down to phone width as in the
   canvas.
 - Tooling: ESLint (Next config), Playwright for smoke tests, and npm as the package manager
@@ -187,4 +198,4 @@ a product.
 - Reviews of every feature MUST verify compliance with this document. Complexity beyond it
   MUST be justified in the plan's Complexity Tracking section.
 
-**Version**: 1.1.0 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-12
+**Version**: 1.2.0 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-12

@@ -228,7 +228,7 @@ describe("commands", () => {
 
   it("updates the current user name from the profile", async () => {
     const p = store.getState().profiles.owner;
-    expect(p).toMatchObject({ first: "Tony", last: "Ashiuma", email: "tony@buildbyblaise.co.ke" });
+    expect(p).toMatchObject({ first: "Tony", last: "Ashiuma", email: "demo@uzapro.com" });
     expect((await saveProfile({ ...p, email: "bad" })).message).toBe("Enter a valid email address.");
     await saveProfile({ ...p, first: "Anthony" });
     expect(currentUserName(store.getState())).toBe("Anthony Ashiuma");

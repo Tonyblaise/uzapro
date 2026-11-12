@@ -6,8 +6,15 @@ test.describe("login", () => {
   test("shows the design's validation messages", async ({ page, errors }) => {
     void errors;
     await page.goto("/login");
+    // Only the demo Owner login works; anything else gets the design's message.
+    await expect(page.getByText("Demo login: demo@uzapro.com / demo@123")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Create a free account" })).toHaveCount(0);
+    await page.getByLabel("Email or phone number").fill("demo@uzapro.com");
+    await page.getByLabel("Password", { exact: true }).fill("demo1234");
+    await page.getByRole("button", { name: "Log in" }).click();
+    await expect(page.getByText("Wrong email or password. Check them and try again.")).toBeVisible();
     await page.getByLabel("Email or phone number").fill("tony@buildbyblaise.co.ke");
-    await page.getByLabel("Password", { exact: true }).fill("abc");
+    await page.getByLabel("Password", { exact: true }).fill("demo@123");
     await page.getByRole("button", { name: "Log in" }).click();
     await expect(page.getByText("Wrong email or password. Check them and try again.")).toBeVisible();
 

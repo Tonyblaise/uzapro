@@ -1,20 +1,21 @@
 import { test as base, expect, type Page } from "@playwright/test";
 
-/** Demo logins: the role is picked from the start of the email (research R8). */
-export const LOGINS = {
-  owner: "tony@buildbyblaise.co.ke",
-  accountant: "mary@buildbyblaise.co.ke",
-  cashier: "jane@buildbyblaise.co.ke",
-  store: "grant@buildbyblaise.co.ke",
-} as const;
-export const PASSWORD = "demo1234";
+/** The demo's only login (the Owner); other roles are reached with the account menu's "View as". */
+export const DEMO_EMAIL = "demo@uzapro.com";
+export const DEMO_PASSWORD = "demo@123";
+const VIEW_AS = { owner: "owner", accountant: "accountant", cashier: "cashier", store: "store" } as const;
 
-export async function loginAs(page: Page, role: keyof typeof LOGINS) {
+export async function loginAs(page: Page, role: keyof typeof VIEW_AS) {
   await page.goto("/login");
-  await page.getByLabel("Email or phone number").fill(LOGINS[role]);
-  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
+  await page.getByLabel("Email or phone number").fill(DEMO_EMAIL);
+  await page.getByLabel("Password", { exact: true }).fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Log in" }).click();
   await page.waitForURL("**/dashboard");
+  if (role === "owner") return;
+  await page.getByRole("button", { name: /Tony Ashiuma/ }).click();
+  await page.getByLabel("View as").selectOption(VIEW_AS[role]);
+  await page.waitForURL("**/dashboard");
+  await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Welcome back, Tony Ashiuma");
 }
 
 /** Fails the test on any console error or uncaught page error (constitution quality gate). */

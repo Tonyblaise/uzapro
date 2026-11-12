@@ -1,16 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { ROLES, canSee, roleFromLogin, visibleModules, visibleTabs } from "@/config/roles";
+import { ROLES, canSee, visibleModules, visibleTabs } from "@/config/roles";
 
 const tabs = (r: keyof typeof ROLES, m: Parameters<typeof visibleTabs>[1]) => visibleTabs(ROLES[r], m).map((t) => t.slug);
 
 describe("roles (contracts/routes.md › Role visibility)", () => {
-  it("picks the role from the login email prefix", () => {
-    expect(roleFromLogin("mary@buildbyblaise.co.ke")).toBe("accountant");
-    expect(roleFromLogin("jane@x.co")).toBe("cashier");
-    expect(roleFromLogin("grant@x.co")).toBe("store");
-    expect(roleFromLogin("tony@x.co")).toBe("owner");
-    expect(roleFromLogin("someone@x.co")).toBe("owner");
-  });
   it("owner sees every module and tab", () => {
     expect(visibleModules(ROLES.owner)).toHaveLength(20);
     expect(tabs("owner", "sales")).toHaveLength(7);

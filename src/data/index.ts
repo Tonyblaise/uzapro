@@ -33,5 +33,5 @@ export { HELP_ARTICLES, HELP_CATEGORIES } from "./fixtures/helpcenter";
 export { StoreProvider } from "./store/StoreProvider";
 
 // Reference lists the forms need (read-only copies).
-export { UZ_UNITS, UZ_PAYMETHODS, PAY_LATER, UZ_REFUND, UZ_VOID, UZ_LOC, UZ_BIZ } from "./fixtures/reference";
+export { UZ_UNITS, UZ_PAYMETHODS, PAY_LATER, UZ_REFUND, UZ_VOID, UZ_LOC, UZ_BIZ, DEMO_LOGIN } from "./fixtures/reference";
 export { WALK_IN } from "./fixtures/customers";

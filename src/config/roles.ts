@@ -127,8 +127,3 @@ export function canSee(role: Role, moduleId: ModuleId, tabTitle?: string): boole
   return tabTitle ? tabs.some((t) => t.title === tabTitle) : true;
 }
 
-/** The design picks the role whose first name starts the login id; otherwise the owner. */
-export function roleFromLogin(id: string): RoleId {
-  const who = id.trim().toLowerCase();
-  return ROLE_IDS.find((k) => who.startsWith(ROLES[k].first.toLowerCase())) ?? "owner";
-}

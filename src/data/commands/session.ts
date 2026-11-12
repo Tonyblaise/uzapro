@@ -1,5 +1,6 @@
 /** Session commands — validation and wording from the design's login (`lg`) block, research R8. */
-import { ROLES, isRoleId, roleFromLogin } from "@/config/roles";
+import { ROLES, isRoleId } from "@/config/roles";
+import { DEMO_LOGIN } from "../fixtures/reference";
 import { clearAuth, writeAuth } from "@/lib/storage";
 import { fail, ok, type Result, type Role, type RoleId } from "../types";
 import { getStore, showToast } from "../store";
@@ -13,8 +14,9 @@ export async function login(input: { id: string; password: string; remember: boo
   const id = input.id ?? "";
   if (!id.trim() || !input.password) return fail(!id.trim() ? "Enter your email or phone number." : "Enter your password.");
   if (!okId(id)) return fail("That doesn't look like an email or phone number.");
-  if (input.password.length < 6) return fail("Wrong email or password. Check them and try again.");
-  const role = roleFromLogin(id);
+  // Only the demo Owner login works; same design message for any other email or password.
+  if (id.trim().toLowerCase() !== DEMO_LOGIN.email || input.password !== DEMO_LOGIN.password) return fail("Wrong email or password. Check them and try again.");
+  const role = "owner" as const;
   await sleep(600);
   if (input.remember) writeAuth(role);
   else clearAuth();
@@ -33,12 +35,6 @@ export async function requestPasswordReset(id: string): Promise<Result<void>> {
 export async function resendReset(): Promise<Result<void>> {
   showToast("Reset link sent again.");
   return ok(undefined, "Reset link sent again.");
-}
-
-export async function signUp(): Promise<Result<void>> {
-  const message = "Sign-ups are not open in this prototype yet.";
-  showToast(message);
-  return fail(message);
 }
 
 export async function switchRole(role: RoleId): Promise<Result<Role>> {

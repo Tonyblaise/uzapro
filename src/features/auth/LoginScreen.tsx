@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { login, requestPasswordReset, resendReset, signUp, useSession } from "@/data";
+import { DEMO_LOGIN, login, requestPasswordReset, resendReset, useSession } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Input } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -112,15 +112,11 @@ export function LoginScreen() {
                   <Button type="submit" size="lg" fullWidth disabled={busy}>
                     {busy ? "Logging in…" : "Log in"}
                   </Button>
+                  {/* Design deviation (spec 001 › Design deviations): demo credentials hint. */}
+                  <p className="type-small m-0 rounded-md bg-info-soft px-3 py-2 text-center text-info-text">
+                    Demo login: <span className="font-semibold">{DEMO_LOGIN.email}</span> / <span className="font-semibold">{DEMO_LOGIN.password}</span>
+                  </p>
                 </form>
-                <div className="type-small flex items-center gap-3 text-text-muted">
-                  <span className="h-px flex-1 bg-border" />
-                  New to UzaPro?
-                  <span className="h-px flex-1 bg-border" />
-                </div>
-                <Button variant="secondary" size="lg" fullWidth onClick={() => void signUp()}>
-                  Create a free account
-                </Button>
               </>
             )}
 

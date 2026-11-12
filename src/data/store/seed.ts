@@ -3,6 +3,7 @@
  * No browser storage access here; StoreProvider applies uzAuth / uzNavClosed after mount.
  */
 import { parseAmount } from "@/lib/format";
+import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
 import { CUSTOMER_ROWS } from "../fixtures/customers";
 import { UZ_NONTAX, UZ_UNITS } from "../fixtures/reference";
@@ -477,7 +478,7 @@ function seedProfiles(): Record<RoleId, Profile> {
     ROLE_IDS.map((id) => {
       const r = ROLES[id];
       const [first = "", ...rest] = r.name.split(" ");
-      return [id, { first, last: rest.join(" "), email: (r.first || "you").toLowerCase() + PROFILE_EMAIL_DOMAIN, ...PROFILE_DEFAULTS }];
+      return [id, { first, last: rest.join(" "), email: id === "owner" ? DEMO_LOGIN.email : (r.first || "you").toLowerCase() + PROFILE_EMAIL_DOMAIN, ...PROFILE_DEFAULTS }];
     }),
   ) as Record<RoleId, Profile>;
 }

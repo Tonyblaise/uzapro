@@ -37,3 +37,9 @@ export const UZ_BIZ = {
 
 /** Wastage reasons (design `wReasons`). Default "Damaged". New reasons can be created in the form. */
 export const WASTE_REASONS = ["Damaged", "Expired", "Lost", "Stolen", "Quality reject"];
+
+/**
+ * The demo's only login: the Owner (admin). Checked in the browser; this is a demo gate, not real
+ * security (constitution › Technology Constraints, Auth). Other roles via the account menu's "View as".
+ */
+export const DEMO_LOGIN = { email: "demo@uzapro.com", password: "demo@123" } as const;
