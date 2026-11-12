@@ -9,12 +9,12 @@
 import { useState } from "react";
 import {
   RECURRING_FREQS,
-  UZ_LOC,
   UZ_PAYMETHODS,
   quickAddCategory,
   recordExpenses,
   toast,
   useActiveAccountNames,
+  useBranchNames,
   useExpenseCategoryList,
   type NewExpenseRow,
   type RecurringFreq,
@@ -106,6 +106,7 @@ const grouped = (x: number) => x.toLocaleString("en-US");
 export function ExpenseForm({ onClose }: { onClose: () => void }) {
   const cats = useExpenseCategoryList();
   const accounts = useActiveAccountNames();
+  const branches = useBranchNames();
   const [rows, setRows] = useState<Row[]>(() => [blank()]);
   const [busy, setBusy] = useState(false);
 
@@ -197,7 +198,7 @@ export function ExpenseForm({ onClose }: { onClose: () => void }) {
                   />
                   <SearchSelect label={later ? "Pay from (optional)" : "Payment account"} options={accounts} value={r.acc} onChange={on("acc")} />
                 </Grid>
-                <SearchSelect label="Branch (optional)" options={UZ_LOC.branches} value={r.branch} onChange={on("branch")} />
+                <SearchSelect label="Branch (optional)" options={branches} value={r.branch} onChange={on("branch")} />
                 <Grid min={180}>
                   <Input label="Amount (KES)" type="number" placeholder="0.00" min="0" value={r.gross} onChange={ev("gross")} />
                   <Input label="Tax amount (KES)" type="number" placeholder="0" min="0" value={r.tax} onChange={ev("tax")} />

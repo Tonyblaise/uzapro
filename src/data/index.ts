@@ -11,6 +11,7 @@ export * from "./queries-stock";
 export * from "./queries-purchases";
 export * from "./queries-money";
 export * from "./queries-accounts";
+export * from "./queries-office";
 export * from "./overviews";
 export * from "./commands/session";
 export * from "./commands/catalog";
@@ -22,6 +23,11 @@ export * from "./commands/purchases";
 export * from "./commands/money";
 export * from "./commands/accounts";
 export * from "./commands/expenses";
+export * from "./commands/calendar";
+export * from "./commands/docs";
+export * from "./commands/settings";
+export * from "./commands/profile";
+export * from "./commands/generic";
 export { StoreProvider } from "./store/StoreProvider";
 
 // Reference lists the forms need (read-only copies).

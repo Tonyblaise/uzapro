@@ -5,7 +5,7 @@
  * preview card and the till tip.
  */
 import { useState } from "react";
-import { ACCOUNT_TILLS, ACCOUNT_TYPES_EDIT, UZ_LOC, saveAccount, toast, useAccounts, useBanks, type AccountType } from "@/data";
+import { ACCOUNT_TILLS, ACCOUNT_TYPES_EDIT, saveAccount, toast, useAccounts, useBanks, useBranchNames, type AccountType } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Input } from "@/components/ui/Field";
 import { Drawer } from "@/components/ui/Overlay";
@@ -23,6 +23,7 @@ export function AccountForm({ edit, onClose }: { edit: string; onClose: () => vo
 function AccountFormBody({ edit, onClose }: { edit: string; onClose: () => void }) {
   const accounts = useAccounts();
   const banks = useBanks();
+  const branchNames = useBranchNames();
   const row = edit ? accounts.find((a) => a.name === edit) : undefined;
   // Design `accOpen(row)` defaults.
   const [branch, setBranch] = useState(row?.branch || "Nairobi HQ");
@@ -80,7 +81,7 @@ function AccountFormBody({ edit, onClose }: { edit: string; onClose: () => void 
                 <SearchSelect
                   label="Branch"
                   noun="branch"
-                  options={[...UZ_LOC.branches, ...newBranches]}
+                  options={[...branchNames, ...newBranches]}
                   value={branch}
                   onChange={setBranch}
                   onCreate={(n) => {

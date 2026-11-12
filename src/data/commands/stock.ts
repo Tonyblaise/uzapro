@@ -4,7 +4,7 @@
  * wasteUndo, locSave). The design blocks invalid input by disabling the submit buttons, so the
  * guard messages below are defensive only and never shown by the stock screens.
  */
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { DEMO_TODAY } from "@/lib/demo-clock";
 import { nextRef } from "@/lib/refs";
 import {
@@ -25,7 +25,7 @@ import { getStore, showToast } from "../store";
 import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
-const who = () => ROLES[getStore().getState().session.role].name;
+const who = () => currentUserName(getStore().getState());
 
 /** Defensive guard text (not in the design, which disables the button instead). */
 function shortfallMessage(s: { product: string; store: string; available: number }): string {
@@ -78,7 +78,7 @@ export async function sendStockToPurchases(input: NewStockIn): Promise<Result<Go
     dn: "",
     inv: "",
     notes: input.notes ?? "",
-    who: ROLES[store.getState().session.role].name,
+    who: currentUserName(store.getState()),
     lines: items.map((i) => ({ key: `${i.product} · ${i.variant}`, unit: i.unit, ordered: i.qty, recv: 0, acc: 0, rej: 0, cost: 0 })),
     lineCount: items.length,
     status: { label: "Waiting", tone: "warning" },
@@ -275,6 +275,44 @@ export function addStoreQuick(name: string): string {
   return n;
 }
 
+/**
+ * Pure store save shared by Stock › Warehouses and Settings › Storage locations. Renaming carries
+ * the store's levels, movements, POS flag and terminals over (design `locSave` and the Settings
+ * store dialog). `pos` sets the POS flag; left undefined it is kept (or off for a new store).
+ */
+export function storeSaveState(s: AppState, saved: Store, editName?: string, pos?: boolean): Pick<AppState, "stock" | "settings"> {
+  const name = saved.name;
+  const renamed = !!editName && editName !== name;
+  const rename = (v: string) => (v === editName ? name : v);
+  const flags = { ...s.settings.pos };
+  const was = editName ? !!flags[editName] : false;
+  if (renamed) delete flags[editName!];
+  flags[name] = pos ?? was;
+  if (!flags[name]) delete flags[name];
+  return {
+    stock: !editName
+      ? { ...s.stock, stores: [...s.stock.stores, saved] }
+      : {
+          ...s.stock,
+          stores: s.stock.stores.map((x) => (x.name === editName ? saved : x)),
+          levels: renamed ? s.stock.levels.map((l) => ({ ...l, store: rename(l.store) })) : s.stock.levels,
+          movements: renamed ? s.stock.movements.map((m) => ({ ...m, store: rename(m.store) })) : s.stock.movements,
+        },
+    settings: {
+      ...s.settings,
+      pos: flags,
+      terminals: renamed ? { ...s.settings.terminals, list: s.settings.terminals.list.map((t) => (t.store === editName ? { ...t, store: name } : t)) } : s.settings.terminals,
+    },
+  };
+}
+
+/** Why a store can't be deleted, or "" (it holds stock, or a terminal sells from it). */
+export function storeDeleteBlock(s: AppState, name: string): string {
+  if (s.stock.levels.some((l) => l.store === name && l.quantity > 0)) return "Move its stock to another store first.";
+  if (s.settings.terminals.list.some((t) => t.store === name)) return "Move or delete its terminal first.";
+  return "";
+}
+
 /** Warehouse form Save (design `locSave`). Renaming carries the store's levels and movements over. */
 export async function saveStore(input: NewStore, editName?: string): Promise<Result<Store>> {
   const name = input.name.trim();
@@ -287,29 +325,29 @@ export async function saveStore(input: NewStore, editName?: string): Promise<Res
     return fail(message);
   }
   const saved: Store = { name, branch: input.branch, type: input.type };
-  store.setState((s) => {
-    if (!editName) return { stock: { ...s.stock, stores: [...s.stock.stores, saved] } };
-    const rename = (v: string) => (v === editName ? name : v);
-    return {
-      stock: {
-        ...s.stock,
-        stores: s.stock.stores.map((x) => (x.name === editName ? saved : x)),
-        levels: name === editName ? s.stock.levels : s.stock.levels.map((l) => ({ ...l, store: rename(l.store) })),
-        movements: name === editName ? s.stock.movements : s.stock.movements.map((m) => ({ ...m, store: rename(m.store) })),
-      },
-    };
-  });
+  store.setState((s) => storeSaveState(s, saved, editName));
   const message = editName ? "Changes saved." : `${name} added.`;
   showToast(message);
   return ok(saved, message);
 }
 
-/** Row action "Delete" (owner only, disabled while the store holds stock). */
+/**
+ * Row action "Delete" (owner only). Blocked while the store holds stock (the design disables the
+ * action) or while a terminal uses it (Settings rule; shown as a toast where the action is enabled).
+ */
 export async function deleteStore(name: string): Promise<Result<void>> {
   const store = getStore();
-  const held = store.getState().stock.levels.some((l) => l.store === name && l.quantity > 0);
-  if (held) return fail("Move its stock to another store first.");
-  store.setState((s) => ({ stock: { ...s.stock, stores: s.stock.stores.filter((x) => x.name !== name) } }));
+  const state = store.getState();
+  const block = storeDeleteBlock(state, name);
+  if (block) {
+    if (!state.stock.levels.some((l) => l.store === name && l.quantity > 0)) showToast(block);
+    return fail(block);
+  }
+  store.setState((s) => {
+    const pos = { ...s.settings.pos };
+    delete pos[name];
+    return { stock: { ...s.stock, stores: s.stock.stores.filter((x) => x.name !== name) }, settings: { ...s.settings, pos } };
+  });
   const message = `${name} deleted.`;
   showToast(message);
   return ok(undefined, message);

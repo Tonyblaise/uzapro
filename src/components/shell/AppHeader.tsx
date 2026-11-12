@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { hrefFor } from "@/config/modules";
 import { ROLE_IDS, ROLES } from "@/config/roles";
-import { accountManager, setSearch, signOut, switchRole, useRole, useSearch, type RoleId } from "@/data";
+import { accountManager, nameInitials, setSearch, signOut, switchRole, useCurrentUserName, useProfile, useRole, useSearch, type RoleId } from "@/data";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
@@ -12,17 +12,14 @@ import { Input } from "@/components/ui/Field";
 /** The canvas AppHeader: search, help, bell (with dot), divider, user chip + account menu. */
 export function AppHeader({ onMenu }: { onMenu: () => void }) {
   const role = useRole();
+  const name = useCurrentUserName();
+  const profile = useProfile();
   const router = useRouter();
   const q = useSearch();
   const [open, setOpen] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
   const chip = useRef<HTMLButtonElement>(null);
-  const initials = role.name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const initials = nameInitials(name);
 
   useEffect(() => {
     if (!open) return;
@@ -71,7 +68,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
       >
         <span className="grid size-8 place-items-center rounded-full bg-green-100 text-[13px] font-semibold leading-none text-green-700">{initials}</span>
         <span className="hidden flex-col sm:flex">
-          <span className="type-label font-semibold text-text">{role.name}</span>
+          <span className="type-label font-semibold text-text">{name}</span>
           <span className="type-caption text-text-muted">{role.role}</span>
         </span>
         <span className="text-text-muted">
@@ -91,11 +88,11 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
             <div className="flex items-center gap-3 rounded-md border border-green-200 bg-green-50 p-3">
               <div className="type-title grid size-[52px] flex-none place-items-center rounded-md bg-green-100 font-bold text-green-800">{initials}</div>
               <div className="min-w-0 flex-1">
-                <div className="type-title text-text">{role.name}</div>
+                <div className="type-title text-text">{name}</div>
                 <span className="type-caption mt-0.5 inline-block rounded-pill border border-green-200 bg-surface px-2 py-px font-bold uppercase tracking-[.03em] text-green-700">
                   {role.id === "owner" ? "Business admin" : role.role}
                 </span>
-                <div className="type-small mt-1 truncate text-text-secondary">{role.first.toLowerCase()}@buildbyblaise.co.ke</div>
+                <div className="type-small mt-1 truncate text-text-secondary">{profile.email || `${role.first.toLowerCase()}@buildbyblaise.co.ke`}</div>
               </div>
             </div>
             <button

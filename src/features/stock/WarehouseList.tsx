@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UZ_LOC, deleteStore, saveStore, useStores, useWarehouseRows, type Store } from "@/data";
+import { UZ_LOC_TYPES, addBranchQuick, deleteStore, saveStore, useBranchNames, useStores, useWarehouseRows, type Store } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/Field";
@@ -55,8 +55,8 @@ function WarehouseForm({ edit, onClose }: { edit?: Store; onClose: () => void })
   const [name, setName] = useState(edit?.name ?? "");
   const [branch, setBranch] = useState(edit?.branch ?? "");
   const [type, setType] = useState(edit?.type ?? "");
-  const [branches, setBranches] = useState<string[]>(UZ_LOC.branches);
-  const [types, setTypes] = useState<string[]>(UZ_LOC.types);
+  const branches = useBranchNames();
+  const [types, setTypes] = useState<string[]>([...UZ_LOC_TYPES]);
   const blocked = !name.trim() || !branch || !type;
 
   return (
@@ -69,10 +69,7 @@ function WarehouseForm({ edit, onClose }: { edit?: Store; onClose: () => void })
           options={branches}
           value={branch}
           onChange={setBranch}
-          onCreate={(n) => {
-            setBranches((b) => [...b, n]);
-            return n;
-          }}
+          onCreate={addBranchQuick}
         />
         <SearchSelect
           label="Type"

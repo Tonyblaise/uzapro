@@ -3,6 +3,7 @@ import { ROLES, isRoleId, roleFromLogin } from "@/config/roles";
 import { clearAuth, writeAuth } from "@/lib/storage";
 import { fail, ok, type Result, type Role, type RoleId } from "../types";
 import { getStore, showToast } from "../store";
+import { currentUserFirst } from "../profile";
 
 const okId = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) || /^\+?[0-9][0-9\s]{8,13}$/.test(v.trim());
 
@@ -18,7 +19,7 @@ export async function login(input: { id: string; password: string; remember: boo
   if (input.remember) writeAuth(role);
   else clearAuth();
   getStore().setState((s) => ({ session: { ...s.session, authed: true, role, remember: input.remember }, ui: { ...s.ui, search: "" } }));
-  const message = `Welcome back, ${ROLES[role].first || "there"}.`;
+  const message = `Welcome back, ${currentUserFirst(getStore().getState()) || "there"}.`;
   showToast(message);
   return ok(ROLES[role], message);
 }

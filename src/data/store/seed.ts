@@ -31,6 +31,14 @@ import type { AccountsState, AppState, ExpensesState, MoneyState, PurchasesState
 import { ACCOUNT_ROWS, DEPOSIT_ROWS, TRANSFER_ROWS as MONEY_TRANSFER_ROWS, UZ_ACCDETAIL, UZ_BANKS, UZ_DEPDETAIL, UZ_LEDGER, UZ_TRDETAIL, UZ_WDDETAIL, WITHDRAWAL_ROWS } from "../fixtures/accounts";
 import { EXPENSE_ROWS, RECURRING_ROWS, UZ_EXPCAT, UZ_EXPDETAIL, UZ_RECDETAIL, VOIDED_ROWS } from "../fixtures/expenses";
 import type { AccountType, ExpenseStatus, LedgerKind } from "../types";
+import { ROLE_IDS, ROLES } from "@/config/roles";
+import { CAL_TYPES, EVENT_ROWS } from "../fixtures/calendar";
+import { FILE_ROWS, FOLDER_ROWS } from "../fixtures/docs";
+import { GENERIC_ROWS } from "../fixtures/generic";
+import { PROFILE_DEFAULTS, PROFILE_EMAIL_DOMAIN, UZ_BIZ_FULL, UZ_BRANCHES, UZ_GROUPS, UZ_LOC_BRANCHES, UZ_LOC_TYPES, UZ_LOCPOS, UZ_TERMS } from "../fixtures/settings";
+import { nextCode } from "../settings";
+import type { Branch, Profile, RoleId } from "../types";
+import type { CalendarState, DocsState, SettingsState } from "./state";
 
 const MONTHS: Record<string, string> = {
   Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
@@ -221,6 +229,11 @@ export function createSeed(): AppState {
     money: seedMoney(),
     accounts: seedAccounts(),
     expenses: seedExpenses(),
+    calendar: seedCalendar(),
+    docs: seedDocs(),
+    settings: seedSettings(),
+    profiles: seedProfiles(),
+    generic: Object.fromEntries(Object.entries(GENERIC_ROWS).map(([k, rows]) => [k, rows.map((r) => r.map((c) => (typeof c === "string" ? c : { ...c })))])),
     ui: { toast: null, search: "" },
   };
 }
@@ -423,4 +436,48 @@ function seedExpenses(): ExpensesState {
     }),
     categories: Object.entries(UZ_EXPCAT).map(([name, c]) => ({ name, ...c })),
   };
+}
+
+function seedCalendar(): CalendarState {
+  return {
+    events: EVENT_ROWS.map(([date, time, title, type, notes], i) => ({ id: `e${i}`, date, time, endDate: "", endTime: "", address: "", title, type, notes })),
+    types: [...CAL_TYPES],
+  };
+}
+
+function seedDocs(): DocsState {
+  return {
+    folders: FOLDER_ROWS.map(([id, name, parent, access]) => ({ id, name, parent, access, notes: "" })),
+    files: FILE_ROWS.map(([name, folder, size, modified, owner, linked], i) => ({ id: `f${i}`, name, folder, size, modified, owner, linked, notes: "" })),
+    starred: [],
+  };
+}
+
+/** Branches are `UZ_BRANCHES` plus any `UZ_LOC.branches` missing from it (design `setSync`). */
+function seedSettings(): SettingsState {
+  const branches: Branch[] = UZ_BRANCHES.map((b) => ({ ...b }));
+  for (const n of UZ_LOC_BRANCHES) {
+    if (!branches.some((b) => b.name === n)) {
+      branches.push({ name: n, code: nextCode("BRN", branches), group: UZ_GROUPS[0]?.name ?? "", phone: "", email: "", city: "", address: "", hq: false });
+    }
+  }
+  return {
+    biz: { ...UZ_BIZ_FULL },
+    groups: UZ_GROUPS.map((g) => ({ ...g })),
+    branches,
+    pos: { ...UZ_LOCPOS },
+    terminals: { ...UZ_TERMS, list: UZ_TERMS.list.map((t) => ({ ...t })) },
+    locTypes: [...UZ_LOC_TYPES],
+  };
+}
+
+/** The design's `_profiles` seed: the role name split into first and last, plus the defaults. */
+function seedProfiles(): Record<RoleId, Profile> {
+  return Object.fromEntries(
+    ROLE_IDS.map((id) => {
+      const r = ROLES[id];
+      const [first = "", ...rest] = r.name.split(" ");
+      return [id, { first, last: rest.join(" "), email: (r.first || "you").toLowerCase() + PROFILE_EMAIL_DOMAIN, ...PROFILE_DEFAULTS }];
+    }),
+  ) as Record<RoleId, Profile>;
 }

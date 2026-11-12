@@ -25,6 +25,12 @@ const PAGES = [
   "/accounts/transactions",
   "/expenses/overview",
   "/expenses/expenses",
+  "/calendar/calendar",
+  "/file-manager/all-documents",
+  "/settings/business-profile",
+  "/settings/terminals",
+  "/profile/profile",
+  "/reports/popular",
 ];
 
 test("in-scope screens fit a 390px phone without horizontal page scroll", async ({ page, errors }) => {

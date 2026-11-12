@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { getModule, hrefFor } from "@/config/modules";
-import { setSearch, useRole, useVisibleTabs, type ModuleId } from "@/data";
+import { setSearch, useCurrentUserName, useVisibleTabs, type ModuleId } from "@/data";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { screenFor } from "@/features/screens";
@@ -14,7 +14,7 @@ import { ModulePlaceholder } from "./ModulePlaceholder";
  */
 export function ModuleScreen({ moduleId, tabSlug }: { moduleId: ModuleId; tabSlug: string }) {
   const m = getModule(moduleId);
-  const role = useRole();
+  const userName = useCurrentUserName();
   const tabs = useVisibleTabs(moduleId);
   const isHome = moduleId === "home";
   const screen = m.inScope ? screenFor(moduleId, tabSlug) : undefined;
@@ -30,7 +30,7 @@ export function ModuleScreen({ moduleId, tabSlug }: { moduleId: ModuleId; tabSlu
     <>
       <PageHeader
         eyebrow={isHome || m.section === m.name ? undefined : m.section}
-        title={isHome ? `Welcome back, ${role.name || role.first}` : m.name}
+        title={isHome ? `Welcome back, ${userName}` : m.name}
         subtitle={isHome ? "Here's what's happening with your store" : m.subtitle}
         actions={Actions ? <Actions /> : undefined}
       />

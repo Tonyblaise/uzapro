@@ -1,4 +1,13 @@
 import type {
+  BusinessProfile,
+  Branch,
+  CalEvent,
+  DocFile,
+  Folder,
+  GenericRow,
+  Group,
+  Profile,
+  TerminalsState,
   Account,
   Deposit,
   Expense,
@@ -118,6 +127,30 @@ export interface ExpensesState {
   categories: ExpenseCategory[];
 }
 
+export interface CalendarState {
+  events: CalEvent[];
+  /** The four seed types plus any added from the form. */
+  types: string[];
+}
+
+export interface DocsState {
+  folders: Folder[];
+  files: DocFile[];
+  /** Ids of starred files and folders. */
+  starred: string[];
+}
+
+export interface SettingsState {
+  biz: BusinessProfile;
+  groups: Group[];
+  branches: Branch[];
+  /** POS sales on/off per storage location (`stock.stores` name). Missing = storage only. */
+  pos: Record<string, boolean>;
+  terminals: TerminalsState;
+  /** Storage location types (`UZ_LOC.types`, can grow from the dialogs). */
+  locTypes: string[];
+}
+
 export interface AppState {
   session: SessionState;
   catalog: CatalogState;
@@ -129,5 +162,12 @@ export interface AppState {
   money: MoneyState;
   accounts: AccountsState;
   expenses: ExpensesState;
+  calendar: CalendarState;
+  docs: DocsState;
+  settings: SettingsState;
+  /** Per-role profile (design `_profiles`); the session role's profile is the current user. */
+  profiles: Record<RoleId, Profile>;
+  /** Generic table rows keyed "{moduleId}/{tabSlug}". */
+  generic: Record<string, GenericRow[]>;
   ui: UiState;
 }

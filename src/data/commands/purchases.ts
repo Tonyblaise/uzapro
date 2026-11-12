@@ -6,7 +6,7 @@
  * The design blocks invalid input by disabling its buttons, so the guard messages below are
  * defensive only and never shown by the purchases screens.
  */
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
@@ -31,7 +31,7 @@ import { addPayable, peekRef } from "./money";
 import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
-const who = () => ROLES[getStore().getState().session.role].name;
+const who = () => currentUserName(getStore().getState());
 const n = (x: number) => Math.max(0, Number(x) || 0);
 const split = (key: string) => {
   const cut = key.indexOf(" · ");

@@ -1,5 +1,5 @@
 /** Sales commands (FR-017–FR-023). Messages copied from the design's script (`showToast` calls). */
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate, kes } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
@@ -29,7 +29,7 @@ import { post } from "../ledger";
 import { addCustomerCredit, addReceivable, closeReceivableFor } from "./money";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
-const who = () => ROLES[getStore().getState().session.role].name;
+const who = () => currentUserName(getStore().getState());
 
 /** "10 Nov 2026, 14:05" — the design's stamp for approvals and raised credit notes. */
 const stamp = () => `${fmtDate(DEMO_TODAY)}, ${demoTime()}`;

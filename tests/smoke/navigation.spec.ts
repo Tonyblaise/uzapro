@@ -70,3 +70,22 @@ test("reload keeps the session and role; sign out returns to login", async ({ pa
   await page.getByRole("menuitem", { name: "Sign out" }).click();
   await page.waitForURL("**/login");
 });
+
+/** Feature 005 · quickstart 13: Office, People and Account modules per role (design UZ_ROLES). */
+const OFFICE = ["Reports", "Team", "Permissions", "Calendar", "Messages", "File Manager", "Profile", "Settings"];
+const SEES: Record<RoleId, string[]> = {
+  owner: OFFICE,
+  accountant: ["Reports", "Team", "Calendar", "File Manager"],
+  store: ["Calendar", "File Manager"],
+  cashier: ["Calendar"],
+};
+for (const roleId of ROLE_LIST) {
+  test(`${ROLES[roleId].label}: sees exactly the design's office, people and account modules`, async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, roleId);
+    const nav = page.getByRole("complementary", { name: "Main" });
+    for (const name of OFFICE) {
+      await expect(nav.getByRole("link", { name, exact: true })).toHaveCount(SEES[roleId].includes(name) ? 1 : 0);
+    }
+  });
+}

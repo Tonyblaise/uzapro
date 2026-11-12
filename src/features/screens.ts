@@ -4,6 +4,11 @@
  */
 import type { ModuleId } from "@/data";
 import { accountsScreens } from "./accounts/screens";
+import { calendarScreens } from "./calendar/screens";
+import { filesScreens } from "./files/screens";
+import { genericSettingsScreens, messagesScreens, permissionsScreens, reportsScreens, teamScreens } from "./generic/screens";
+import { profileScreens } from "./profile/screens";
+import { settingsScreens } from "./settings/screens";
 import { customersScreens } from "./customers/screens";
 import { dashboardScreens } from "./dashboard/screens";
 import { expensesScreens } from "./expenses/screens";
@@ -28,6 +33,14 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   pay: payablesScreens,
   fin: accountsScreens,
   exp: expensesScreens,
+  rep: reportsScreens,
+  ppl: teamScreens,
+  perm: permissionsScreens,
+  cal: calendarScreens,
+  comm: messagesScreens,
+  docs: filesScreens,
+  prof: profileScreens,
+  set: { ...genericSettingsScreens, ...settingsScreens },
 };
 
 export function screenFor(moduleId: ModuleId, tabSlug: string): ScreenDef | undefined {

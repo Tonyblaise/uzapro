@@ -2,7 +2,7 @@
  * Accounts commands (feature 004, US1–US2). Behaviour and wording from the design's `accEdit`
  * save and the `isFinModal` deposit / withdrawal / transfer save (research R1–R2).
  */
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
@@ -13,7 +13,7 @@ import { fail, ok, type Account, type Deposit, type LedgerEntry, type MoneyTrans
 /** The design's money-movement modal dates new deposits, withdrawals and transfers 1 Nov 2026. */
 export const FIN_TODAY = "2026-11-01";
 
-const who = () => ROLES[getStore().getState().session.role].name;
+const who = () => currentUserName(getStore().getState());
 
 /** Add or edit an account (the shared `accEdit` drawer). */
 export async function saveAccount(input: NewAccount, edit = ""): Promise<Result<Account>> {

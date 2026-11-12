@@ -4,7 +4,7 @@
  */
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { num } from "@/lib/format";
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { fail, ok, type Category, type NewCategory, type NewProduct, type Product, type Result } from "../types";
 import { UZ_UNITS } from "../fixtures/reference";
 import { getStore, showToast } from "../store";
@@ -62,7 +62,7 @@ export async function createProduct(input: NewProduct): Promise<Result<Product>>
     ...(input.tax ? { tax: input.tax } : {}),
     hasVariants: input.hasVariants !== false,
     addedAt: `${DEMO_TODAY}T${demoTime()}`,
-    addedBy: ROLES[state.session.role].name,
+    addedBy: currentUserName(state),
     variants,
   };
   store.setState((s) => ({ catalog: { ...s.catalog, products: [product, ...s.catalog.products] } }));

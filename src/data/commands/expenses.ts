@@ -3,7 +3,7 @@
  * `expPost`, expense form save, row actions (Approve / Void / Record now / Pause / Delete),
  * `recSave` and the category form (research R3–R6).
  */
-import { ROLES } from "@/config/roles";
+import { currentUserName } from "../profile";
 import { DEMO_TODAY, addDays } from "@/lib/demo-clock";
 import { nextRef } from "@/lib/refs";
 import { expenseEntries, postAll, recNext, recStep, repeatsLabel } from "../ledger";
@@ -12,7 +12,7 @@ import type { AppState } from "../store/state";
 import { fail, ok, type Expense, type ExpenseCategory, type NewExpenseRow, type NewRecurring, type RecurringExpense, type Result } from "../types";
 import { addPayable } from "./money";
 
-const who = () => ROLES[getStore().getState().session.role].name;
+const who = () => currentUserName(getStore().getState());
 
 interface AddInput {
   category: string;

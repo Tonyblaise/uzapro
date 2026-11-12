@@ -6,3 +6,4 @@ export * from "./sales";
 export * from "./purchases";
 export * from "./money";
 export * from "./accounts";
+export * from "./office";
