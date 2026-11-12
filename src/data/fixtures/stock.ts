@@ -28,7 +28,7 @@ export const STOCK_LINES: [string, string, number][] = [
 /** UZ_STOCK.moves: [date, product, variant, kind, store, change, left, by, ref] */
 export const STOCK_MOVES = [
   ["9 Nov 2026", "Carbon Road Frame", "56cm", P("Sold", "info"), "Main Store", "−2", "15", "Jane Smith", "SAL-001182"],
-  ["6 Nov 2026", "Carbon Road Frame", "54cm", P("Sold", "info"), "Main Store", "−1", "18", "Tony Ashiuma", "INV-0362"],
+  ["6 Nov 2026", "Carbon Road Frame", "54cm", P("Sold", "info"), "Main Store", "−1", "18", "Tony Blaise", "INV-0362"],
   ["2 Nov 2026", "Carbon Road Frame", "54cm", P("Sold", "info"), "Finished Goods", "−3", "127", "Jane Smith", "SAL-001171"],
   ["31 Oct 2026", "Bike Pump", "Standard", P("Sold", "info"), "Point of Sale", "−2", "58", "Jane Smith", "SAL-001168"],
   ["31 Oct 2026", "Carbon Road Frame", "54cm", P("Moved out", "mut"), "Finished Goods", "−8", "135", "Grant Jensen", "TRF-0032"],

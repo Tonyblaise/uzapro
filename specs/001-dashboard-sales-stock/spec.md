@@ -429,6 +429,7 @@ Required by Constitution Principle I. These are the only intended differences fr
 | Deviation | Reason | Reference |
 |---|---|---|
 | ~~Modules outside this feature open a plain page reading "Not built yet in this prototype." instead of their designed screens~~ | **Superseded by features 002–006**: every module is now built; the placeholder remains only as a code fallback | Clarification Q1, FR-029 |
+| The demo Owner is named "Tony Blaise" instead of the design's "Tony Ashiuma", everywhere the name appears (header, greeting, team lists, "by" columns, file owners) | User request (2026-11-12) | Data fixtures |
 | The login accepts only demo@uzapro.com / demo@123 (the Owner) and shows that as a hint under the form; "Create a free account" and its divider are removed | User request after deployment (constitution 1.2.0 › Auth); the design accepts any input | FR-001, US1 |
 | A "View as" role select in the account menu | The canvas has role data (`roleOptions`) but no visible switcher; US2 needs one for demos. Logging in as mary@, jane@ or grant@ also picks the role, as the design does | US2, FR-003 |
 | Product record drawer (`?view=<name>`: overview, variants, stock history, Edit) | In the canvas a product row opens "Edit product" and stock history opens only from Stock; FR-011 asks for a product record | FR-011 |

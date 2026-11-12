@@ -263,7 +263,7 @@ function seedPurchases(): PurchasesState {
       total: t,
       received: { ...received },
       status: { ...status },
-      activity: [["Order created", "Tony Ashiuma · 28 Oct 2026"] as [string, string]].concat(draft ? [] : [["Sent to supplier", "Tony Ashiuma"]]),
+      activity: [["Order created", "Tony Blaise · 28 Oct 2026"] as [string, string]].concat(draft ? [] : [["Sent to supplier", "Tony Blaise"]]),
       grns: GRN_ROWS.filter((g) => g[1] === ref).map((g) => g[0]),
     };
   });

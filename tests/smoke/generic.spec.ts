@@ -113,7 +113,7 @@ test("the Accountant is not offered Delete on Reports or Team", async ({ page, e
   await loginAs(page, "accountant");
   for (const [path, row] of [
     ["/reports/sent-automatically", "Daily sales"],
-    ["/team/team", "Tony Ashiuma"],
+    ["/team/team", "Tony Blaise"],
   ] as const) {
     await page.goto(path);
     await page.getByRole("row").filter({ hasText: row }).getByRole("button", { name: "Actions" }).click();

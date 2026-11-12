@@ -51,7 +51,7 @@ for (const roleId of ROLE_LIST) {
 test("role switch from the account menu changes the sidebar and lands on the dashboard", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await page.getByRole("button", { name: /Tony Ashiuma/ }).click();
+  await page.getByRole("button", { name: /Tony Blaise/ }).click();
   await page.getByLabel("View as").selectOption("cashier");
   await page.waitForURL("**/dashboard");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back, Jane Smith");

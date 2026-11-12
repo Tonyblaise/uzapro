@@ -44,12 +44,12 @@ export const EXTRA_UNITS: [string, [string, number][]][] = [
 
 /** UZ_PRODADDED: product → [display, by, iso] */
 export const UZ_PRODADDED: Record<string, [string, string, string]> = {
-  Groupset: ["31 Oct 2026, 13:43", "Tony Ashiuma", "2026-10-31T13:43"],
+  Groupset: ["31 Oct 2026, 13:43", "Tony Blaise", "2026-10-31T13:43"],
   Helmet: ["24 Oct 2026, 10:12", "Grant Jensen", "2026-10-24T10:12"],
   "Bike Pump": ["18 Oct 2026, 16:05", "Grant Jensen", "2026-10-18T16:05"],
-  "Muthokinju Paint": ["12 Oct 2026, 09:30", "Tony Ashiuma", "2026-10-12T09:30"],
+  "Muthokinju Paint": ["12 Oct 2026, 09:30", "Tony Blaise", "2026-10-12T09:30"],
   "Racing Wheelset": ["2 Oct 2026, 11:20", "Grant Jensen", "2026-10-02T11:20"],
   "Carbon Sole Shoes": ["21 Sep 2026, 15:02", "Grant Jensen", "2026-09-21T15:02"],
-  "Aluminium Frame": ["8 Sep 2026, 10:40", "Tony Ashiuma", "2026-09-08T10:40"],
-  "Carbon Road Frame": ["1 Sep 2026, 09:05", "Tony Ashiuma", "2026-09-01T09:05"],
+  "Aluminium Frame": ["8 Sep 2026, 10:40", "Tony Blaise", "2026-09-08T10:40"],
+  "Carbon Road Frame": ["1 Sep 2026, 09:05", "Tony Blaise", "2026-09-01T09:05"],
 };

@@ -55,20 +55,20 @@ export const UZ_BANKS = ["Equity Bank", "KCB Bank", "Co-operative Bank", "NCBA B
 type MoveDetail = { time: string; fee: number; bankRef: string; notes: string; who: string };
 
 export const UZ_DEPDETAIL: Record<string, MoveDetail> = {
-  "DEP-0218": { time: "10:42", fee: 0, bankRef: "FT26305XK81", notes: "Payment for invoice INV-0412.", who: "Tony Ashiuma" },
+  "DEP-0218": { time: "10:42", fee: 0, bankRef: "FT26305XK81", notes: "Payment for invoice INV-0412.", who: "Tony Blaise" },
   "DEP-0217": { time: "18:05", fee: 0, bankRef: "", notes: "", who: "Mercy Wanjiru" },
   "DEP-0216": { time: "17:30", fee: 0, bankRef: "", notes: "End of day cash.", who: "Mercy Wanjiru" },
 };
 
 export const UZ_WDDETAIL: Record<string, MoveDetail> = {
-  "WDL-0104": { time: "09:20", fee: 105, bankRef: "FT26305RNT1", notes: "November rent.", who: "Tony Ashiuma" },
+  "WDL-0104": { time: "09:20", fee: 105, bankRef: "FT26305RNT1", notes: "November rent.", who: "Tony Blaise" },
   "WDL-0103": { time: "15:40", fee: 0, bankRef: "SKB2QX81LM", notes: "", who: "Mary Achieng" },
   "WDL-0102": { time: "08:10", fee: 0, bankRef: "", notes: "Fuel for the delivery van.", who: "Grant Jensen" },
 };
 
 export const UZ_TRDETAIL: Record<string, MoveDetail> = {
   "TRN-0031": { time: "17:45", fee: 33, bankRef: "SKN8Q2TR31", notes: "Weekly M-Pesa sweep to the bank.", who: "Mary Achieng" },
-  "TRN-0030": { time: "16:10", fee: 0, bankRef: "", notes: "", who: "Tony Ashiuma" },
+  "TRN-0030": { time: "16:10", fee: 0, bankRef: "", notes: "", who: "Tony Blaise" },
 };
 
 /** Account types offered by the edit form (`aTypes`) and the new-account modal (`fTypes`). */

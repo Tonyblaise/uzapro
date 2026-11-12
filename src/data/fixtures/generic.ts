@@ -13,7 +13,7 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
     ["Weekly P&L", "Mon 8am", "Finance", P("Active", "good")],
   ],
   "ppl/team": [
-    ["Tony Ashiuma", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
+    ["Tony Blaise", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
     ["Grant Jensen", "Store keeper", "Nairobi HQ", P("Active", "good")],
     ["Mary Achieng", "Accountant", "Nairobi HQ", P("Active", "good")],
     ["Jane Smith", "Cashier", "New Jersey", P("Active", "good")],
@@ -42,7 +42,7 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
     ["01 Nov 09:00", "Email", "Statement reminder", P("Queued", "warn")],
   ],
   "set/staff-logins": [
-    ["Tony Ashiuma", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
+    ["Tony Blaise", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
     ["Grant Jensen", "Store keeper", "Nairobi HQ", P("Active", "good")],
     ["Mary Achieng", "Accountant", "Nairobi HQ", P("Active", "good")],
     ["Jane Smith", "Cashier", "New Jersey", P("Active", "good")],

@@ -20,7 +20,7 @@ export const RECURRING_ROWS = [
 ] as const;
 
 /** exp › Voided: [Ref, Date, Category, Payee, Amount, Voided on, Voided by, Reason] */
-export const VOIDED_ROWS = [["EXP-0039", "25 Oct 2026", "Office supplies", "Text Book Centre", "3,200", "26 Oct 2026", "Tony Ashiuma", "Recorded twice"]] as const;
+export const VOIDED_ROWS = [["EXP-0039", "25 Oct 2026", "Office supplies", "Text Book Centre", "3,200", "26 Oct 2026", "Tony Blaise", "Recorded twice"]] as const;
 
 export const UZ_EXPCAT: Record<string, { color: string; parent: string; desc: string; budget: number; approval: boolean; active: boolean }> = {
   Rent: { color: "#2563EB", parent: "", desc: "Shop, office and store rent", budget: 200000, approval: false, active: true },

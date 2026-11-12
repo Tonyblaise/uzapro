@@ -29,7 +29,7 @@ test("Rename to Anthony updates the header and the greeting; password rules gate
   const first = page.getByLabel("First name", { exact: true });
   const email = page.getByLabel("Email", { exact: true });
   await expect(first).toHaveValue("Tony");
-  await expect(chip(page, "TA Tony Ashiuma")).toBeVisible();
+  await expect(chip(page, "TB Tony Blaise")).toBeVisible();
   await expect(undo).toBeDisabled();
   await expect(save).toBeDisabled();
 
@@ -53,7 +53,7 @@ test("Rename to Anthony updates the header and the greeting; password rules gate
   await save.click();
   await expect(toast(page)).toContainText("Profile saved.");
   await expect(save).toBeDisabled();
-  await expect(chip(page, "AA Anthony Ashiuma")).toBeVisible();
+  await expect(chip(page, "AB Anthony Blaise")).toBeVisible();
 
   // Password: the five rule chips, the mismatch text and "Show passwords".
   const update = page.getByRole("button", { name: "Update password" });
@@ -87,7 +87,7 @@ test("Rename to Anthony updates the header and the greeting; password rules gate
   // The dashboard greets the new name.
   await nav(page).getByRole("link", { name: "Dashboard" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("heading", { name: "Welcome back, Anthony Ashiuma" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome back, Anthony Blaise" })).toBeVisible();
 });
 
 test("Photo: JPG or PNG only, then Remove", async ({ page, errors }) => {

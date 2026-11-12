@@ -126,7 +126,7 @@ function deriveDoc(sale: Sale, catalogue: ProductLite[], stocked: Set<string>): 
     vat: Math.round((total - sub) * 100) / 100,
     total,
     pays: paid ? [{ method: "M-Pesa", ref: "—", date: "1 Nov 2026, 10:16", amount: total }] : [],
-    who: "Tony Ashiuma",
+    who: "Tony Blaise",
     closedAt: paid ? "1 Nov 2026, 10:16" : "",
     status: sale.status,
   };

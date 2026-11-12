@@ -27,7 +27,7 @@ export const ROLES: Record<RoleId, Role> = {
   owner: {
     id: "owner",
     label: "Owner",
-    name: "Tony Ashiuma",
+    name: "Tony Blaise",
     role: "Owner",
     first: "Tony",
     tasks: [

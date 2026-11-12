@@ -12,10 +12,10 @@ export async function loginAs(page: Page, role: keyof typeof VIEW_AS) {
   await page.getByRole("button", { name: "Log in" }).click();
   await page.waitForURL("**/dashboard");
   if (role === "owner") return;
-  await page.getByRole("button", { name: /Tony Ashiuma/ }).click();
+  await page.getByRole("button", { name: /Tony Blaise/ }).click();
   await page.getByLabel("View as").selectOption(VIEW_AS[role]);
   await page.waitForURL("**/dashboard");
-  await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Welcome back, Tony Ashiuma");
+  await expect(page.getByRole("heading", { level: 1 })).not.toHaveText("Welcome back, Tony Blaise");
 }
 
 /** Fails the test on any console error or uncaught page error (constitution quality gate). */

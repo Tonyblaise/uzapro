@@ -32,7 +32,7 @@ export const CREDIT_NOTE_ROWS = [
 ] as const;
 
 /** "Voided items": [Void ref, Original sale, Customer, Voided on, Reason, Voided by, Amount (KES)] */
-export const VOID_ROWS = [["VOID-0001", "INV-0333", "Alpha Systems", "22 Oct 2026", "Entered by mistake", "Tony Ashiuma", "12,400"]] as const;
+export const VOID_ROWS = [["VOID-0001", "INV-0333", "Alpha Systems", "22 Oct 2026", "Entered by mistake", "Tony Blaise", "12,400"]] as const;
 
 /** UZ_TARGETS */
 export const UZ_TARGETS = [

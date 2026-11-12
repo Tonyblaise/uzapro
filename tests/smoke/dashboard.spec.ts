@@ -42,7 +42,7 @@ test.describe("dashboard", () => {
   test("shows the design's figures", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back, Tony Ashiuma");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Welcome back, Tony Blaise");
     await expect(page.getByText("KES 184K", { exact: true })).toBeVisible();
     const pending = page.locator(".uz-kpi8 > div").filter({ hasText: "Pending invoices" });
     await expect(pending).toContainText("2");

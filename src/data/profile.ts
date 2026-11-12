@@ -13,7 +13,7 @@ export function currentUserFirst(s: Pick<AppState, "session" | "profiles">): str
   return s.profiles[s.session.role]?.first.trim() || ROLES[s.session.role].first;
 }
 
-/** "TA" from a full name (header chip and menu, design `um.initials`). */
+/** "TB" from a full name (header chip and menu, design `um.initials`). */
 export function nameInitials(name: string): string {
   return name
     .split(/\s+/)

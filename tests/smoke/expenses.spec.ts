@@ -115,7 +115,7 @@ test("Void EXP-0040 with a reason (quickstart 8)", async ({ page, errors }) => {
   const v = row(page, "EXP-0040");
   await expect(v).toContainText("Transport");
   await expect(v).toContainText("18,650");
-  await expect(v).toContainText("Tony Ashiuma");
+  await expect(v).toContainText("Tony Blaise");
   await expect(v).toContainText("Wrong amount");
 });
 

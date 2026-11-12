@@ -207,7 +207,7 @@ describe("commands", () => {
     expect(f.ok && f.value.access).toBe("Owner only");
     const u = await uploadFile({ name: "Till slip", fileName: "IMG_1.jpg", bytes: 2048, folder: id, notes: "" });
     expect(u.message).toBe("Till slip.jpg added to Receipts.");
-    expect(u.ok && u.value.owner).toBe("Tony Ashiuma");
+    expect(u.ok && u.value.owner).toBe("Tony Blaise");
     const fileId = u.ok ? u.value.id : "";
     await renameDoc("file", fileId, "Slip", "");
     expect(store.getState().docs.files.find((x) => x.id === fileId)?.name).toBe("Slip.jpg");
@@ -228,10 +228,10 @@ describe("commands", () => {
 
   it("updates the current user name from the profile", async () => {
     const p = store.getState().profiles.owner;
-    expect(p).toMatchObject({ first: "Tony", last: "Ashiuma", email: "demo@uzapro.com" });
+    expect(p).toMatchObject({ first: "Tony", last: "Blaise", email: "demo@uzapro.com" });
     expect((await saveProfile({ ...p, email: "bad" })).message).toBe("Enter a valid email address.");
     await saveProfile({ ...p, first: "Anthony" });
-    expect(currentUserName(store.getState())).toBe("Anthony Ashiuma");
+    expect(currentUserName(store.getState())).toBe("Anthony Blaise");
     expect(currentUserFirst(store.getState())).toBe("Anthony");
     expect((await setPhoto("data:x", { name: "a.gif", size: 10 })).message).toBe("Use a JPG or PNG image.");
     expect((await setPhoto("")).message).toBe("Photo removed.");
