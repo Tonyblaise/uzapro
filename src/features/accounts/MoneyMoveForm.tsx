@@ -60,7 +60,8 @@ export function MoneyMoveForm({ kind, account = "", onClose }: { kind: MoveKind;
     else toast(r.message);
   };
 
-  const two = "grid grid-cols-2 gap-4";
+  // Two fields per row, one per row on phones (labels and hints were wrapping and cut short).
+  const two = "grid grid-cols-1 gap-4 min-[420px]:grid-cols-2";
   const amountFields = (
     <div className={two}>
       <Input label={t.amt} type="number" min="0" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} />

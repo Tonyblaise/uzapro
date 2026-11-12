@@ -90,7 +90,7 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
                 </Chip>
               </div>
               <div className="overflow-x-auto">
-                <div className="min-w-[560px]" role="table" aria-label="Products in this sale">
+                <div className="min-w-[680px]" role="table" aria-label="Products in this sale">
                   <div role="row" className="type-eyebrow grid gap-3 bg-canvas px-5 py-2 text-text-muted" style={GRID_ITEMS}>
                     <span role="columnheader">Product</span>
                     <span role="columnheader">SKU</span>
@@ -135,7 +135,8 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
               {pn === 0 ? (
                 <div className="type-body border-t border-border p-5 text-center text-text-muted">No payments yet. This sale was made on credit and is in Receivables.</div>
               ) : (
-                <div role="table" aria-label="Payments">
+                <div className="overflow-x-auto">
+                <div className="min-w-[560px]" role="table" aria-label="Payments">
                   <div role="row" className="type-eyebrow grid gap-3 bg-canvas px-5 py-2 text-text-muted" style={GRID_PAYS}>
                     <span role="columnheader">Method</span>
                     <span role="columnheader">Reference</span>
@@ -158,6 +159,7 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
                       </span>
                     </div>
                   ))}
+                </div>
                 </div>
               )}
             </Panel>

@@ -451,7 +451,7 @@ export function RecordView({
                 <Chip>{c.count}</Chip>
               </div>
               <div className="overflow-x-auto">
-                <div className="min-w-[620px]" role="table" aria-label={c.itemsTitle}>
+                <div className="min-w-[720px]" role="table" aria-label={c.itemsTitle}>
                   <div role="row" className="type-eyebrow grid gap-3 bg-canvas px-5 py-2 text-text-muted" style={GRID}>
                     <span role="columnheader">Product</span>
                     <span role="columnheader" className="text-right">Qty</span>

@@ -68,7 +68,7 @@ export function StockInForm({ onClose }: { onClose: () => void }) {
     <StockDrawer title="Stock in" onClose={onClose} wide>
       <div className="flex flex-col gap-4">
         <div className="type-title text-text">Storage details</div>
-        <div className="grid gap-4" style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) 130px" }}>
+        <div className="grid gap-4 sm:[grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_130px]">
           <SearchSelect
             label="Supplier"
             noun="supplier"

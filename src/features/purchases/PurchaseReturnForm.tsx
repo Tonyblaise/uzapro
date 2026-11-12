@@ -137,7 +137,7 @@ export function PurchaseReturnForm({ onClose }: { onClose: () => void }) {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <div className="min-w-[560px]">
+                  <div className="min-w-[680px]">
                     <div className="type-eyebrow grid items-center gap-3 bg-canvas px-5 py-2 text-text-muted" style={{ gridTemplateColumns: COLS }}>
                       <span />
                       <span>Product</span>
