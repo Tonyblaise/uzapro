@@ -13,6 +13,7 @@ export type ScreenKind =
   | "calendar"
   | "docs"
   | "chat"
+  | "helpcenter"
   | "profile"
   | "bizprofile"
   | "terminals";

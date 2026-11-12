@@ -71,7 +71,7 @@ export const ROLES: Record<RoleId, Role> = {
       cust: ["Customers"],
       sales: ["All sales", "Refunds (credit notes)"],
       inv: ["Stock management"],
-      sup: ["Ask UzaPro", "How-to guides"],
+      sup: ["Help Center"], // feature 007: replaces the design's Ask UzaPro and How-to guides (spec › Design deviations)
     },
     tasks: [
       T("New sale", "Record a sale", "shopping-cart", "sales", "All sales", "new"),
@@ -91,7 +91,7 @@ export const ROLES: Record<RoleId, Role> = {
     tabs: {
       home: ["Overview"],
       buy: ["Purchase orders", "Goods receipts", "Purchase returns", "Rejected items"],
-      sup: ["Ask UzaPro", "How-to guides"],
+      sup: ["Help Center"], // feature 007: replaces the design's Ask UzaPro and How-to guides (spec › Design deviations)
     },
     tasks: [
       T("Stock in", "Record a delivery", "truck", "inv", "Stock management", "stock"),

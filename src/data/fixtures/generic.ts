@@ -8,21 +8,6 @@ import { P } from "./_helpers";
 
 /** Table rows, cells in column order (the columns live in src/config/modules.ts). */
 export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
-  "sup/how-to-guides": [
-    ["Setting up a POS terminal", "Getting started", "1,240", P("Published", "good")],
-    ["How to give a refund", "Sales", "860", P("Published", "good")],
-    ["Reconciling a bank feed", "Finance", "540", P("Not finished", "mut")],
-  ],
-  "sup/help-requests": [
-    ["TKT-1042", "POS printer not connecting", P("High", "bad"), P("Open", "info")],
-    ["TKT-1041", "Stock count mismatch", P("Medium", "warn"), P("In progress", "info")],
-    ["TKT-1038", "Invoice email not sending", P("Low", "mut"), P("Resolved", "good")],
-  ],
-  "sup/response-times": [
-    ["High", "1 hour", "4 hours", "88%"],
-    ["Medium", "4 hours", "1 day", "94%"],
-    ["Low", "1 day", "3 days", "97%"],
-  ],
   "rep/sent-automatically": [
     ["Daily sales", "Daily 6pm", "Owner", P("Active", "good")],
     ["Weekly P&L", "Mon 8am", "Finance", P("Active", "good")],

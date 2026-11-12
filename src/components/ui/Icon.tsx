@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, ArrowLeftRight, ArrowRight, Ban, Banknote, Bell, Boxes, Calculator, Calendar, Camera, ChartColumn, Check, ChevronDown, ChevronLeft,
+  ArrowLeft, ArrowLeftRight, ArrowRight, Ban, Banknote, Bell, BookOpen, Boxes, Calculator, Calendar, Camera, ChartColumn, Check, ChevronDown, ChevronLeft,
   ChevronRight, ChevronUp, CircleAlert, CircleCheck, CircleHelp, ClipboardList, Clock, Copy, Download, Ellipsis, Eye, EyeOff, FileText, Filter, Folder, House,
   Image, Info, Landmark, LayoutGrid, List, Lock, LogOut, Mail, MapPin, Menu, Minus, Package, PackageX, Pencil, Phone, Plus, Printer, Receipt, RefreshCw, Ruler, Search, Settings,
   Sheet, ShoppingCart, Smartphone, SlidersHorizontal, Store, Tag, Trash2, TrendingUp, Truck, Undo2, Upload, User, Users, Wallet, Warehouse, X,
@@ -16,7 +16,7 @@ const ICONS: Record<string, LucideIcon> = {
   mail: Mail, "map-pin": MapPin, menu: Menu, minus: Minus, package: Package, "package-x": PackageX, pencil: Pencil, phone: Phone, plus: Plus, printer: Printer,
   receipt: Receipt, "refresh-cw": RefreshCw, ruler: Ruler, search: Search, settings: Settings, "shopping-cart": ShoppingCart,
   "sliders-horizontal": SlidersHorizontal, store: Store, tag: Tag, "trash-2": Trash2, "trending-up": TrendingUp, truck: Truck,
-  smartphone: Smartphone, sheet: Sheet, "layout-grid": LayoutGrid, "undo-2": Undo2, upload: Upload, user: User, users: Users, wallet: Wallet, warehouse: Warehouse, x: X,
+  smartphone: Smartphone, "book-open": BookOpen, sheet: Sheet, "layout-grid": LayoutGrid, "undo-2": Undo2, upload: Upload, user: User, users: Users, wallet: Wallet, warehouse: Warehouse, x: X,
 };
 
 export type IconName = keyof typeof ICONS | (string & {});

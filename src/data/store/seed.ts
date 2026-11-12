@@ -27,7 +27,6 @@ import {
   UZ_SCDETAIL,
 } from "../fixtures/money";
 import type { Credit, MoneyPayment, Payable, Plan, Priority, Receivable } from "../types";
-import { CHAT_SEED } from "../fixtures/help";
 import type { AccountsState, AppState, ExpensesState, MoneyState, PurchasesState } from "./state";
 import { ACCOUNT_ROWS, DEPOSIT_ROWS, TRANSFER_ROWS as MONEY_TRANSFER_ROWS, UZ_ACCDETAIL, UZ_BANKS, UZ_DEPDETAIL, UZ_LEDGER, UZ_TRDETAIL, UZ_WDDETAIL, WITHDRAWAL_ROWS } from "../fixtures/accounts";
 import { EXPENSE_ROWS, RECURRING_ROWS, UZ_EXPCAT, UZ_EXPDETAIL, UZ_RECDETAIL, VOIDED_ROWS } from "../fixtures/expenses";
@@ -234,7 +233,6 @@ export function createSeed(): AppState {
     docs: seedDocs(),
     settings: seedSettings(),
     profiles: seedProfiles(),
-    help: { messages: CHAT_SEED.map((m) => ({ ...m })) },
     generic: Object.fromEntries(Object.entries(GENERIC_ROWS).map(([k, rows]) => [k, rows.map((r) => r.map((c) => (typeof c === "string" ? c : { ...c })))])),
     ui: { toast: null, search: "" },
   };

@@ -31,8 +31,8 @@ const PAGES = [
   "/settings/terminals",
   "/profile/profile",
   "/reports/popular",
-  "/help/ask-uzapro",
-  "/help/help-requests",
+  "/help/help-center",
+  "/help/help-center?article=how-to-give-a-refund",
 ];
 
 test("in-scope screens fit a 390px phone without horizontal page scroll", async ({ page, errors }) => {

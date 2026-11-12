@@ -3,7 +3,7 @@
  * Field names follow the design's records (`UZ_EVENTS`, `UZ_DOCS`, `UZ_BIZ`, `UZ_GROUPS`,
  * `UZ_BRANCHES`, `UZ_TERMS`, `_profiles`, `UZ_MODS`).
  */
-import type { Pill } from "./common";
+import type { ModuleId, Pill } from "./common";
 import type { Store } from "./stock";
 
 // ---- Calendar ---------------------------------------------------------------------------------
@@ -307,8 +307,67 @@ export interface ReportCard {
   desc: string;
 }
 
-/** Ask UzaPro chat message (feature 006). `me` = sent by the user. */
-export interface ChatMessage {
-  me: boolean;
+// ---- Help Center (feature 007, specs/007-help-center-articles/data-model.md) ------------------
+
+export interface HelpCategory {
+  id: string;
+  name: string;
+  /** Parent category id, or null for a top-level category. */
+  parent: string | null;
+  order: number;
+}
+
+/** A link to an app screen. `tab` is the tab slug; the role check uses that tab's title. */
+export interface HelpScreenLink {
+  label: string;
+  module: ModuleId;
+  tab: string;
+}
+
+export type HelpBlock =
+  | { kind: "p"; text: string }
+  | { kind: "ul" | "ol"; items: string[] }
+  | { kind: "table"; head: string[]; rows: string[][] }
+  | { kind: "note"; tone: "info" | "warning"; text: string }
+  | { kind: "faq"; q: string; a: string[] }
+  | { kind: "links"; screens?: HelpScreenLink[]; articles?: string[] };
+
+export interface HelpSection {
+  heading: string;
+  level: 2 | 3;
+  blocks: HelpBlock[];
+}
+
+export interface HelpArticle {
+  /** Slug used in `?article=`. */
+  id: string;
+  title: string;
+  /** HelpCategory id (top-level or sub-category). */
+  category: string;
+  /** ISO date; "Updated … ago" is relative to the demo date. */
+  updated: string;
+  /** Introduction paragraphs ("**bold**" allowed). */
+  intro: string[];
+  sections: HelpSection[];
+  related?: string[];
+}
+
+export interface HelpTreeNode {
+  category: HelpCategory;
+  children: HelpTreeNode[];
+  articles: HelpArticle[];
+}
+
+export interface HelpOutlineEntry {
+  id: string;
   text: string;
+  level: 2 | 3;
+}
+
+export interface HelpSearchResult {
+  article: HelpArticle;
+  path: HelpCategory[];
+  snippet: string;
+  /** 0 = title match, 1 = heading match, 2 = body match. */
+  rank: 0 | 1 | 2;
 }

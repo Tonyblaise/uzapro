@@ -1,5 +1,8 @@
 # Feature Specification: Help Centre
 
+> **Superseded by feature 007** (`specs/007-help-center-articles/`): at the user's request, Help became a
+> documentation-style Help Center, and the Ask UzaPro chat and the three Help lists were removed.
+
 **Feature Branch**: `006-help-centre`
 
 **Created**: 2026-11-12

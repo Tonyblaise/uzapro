@@ -23,12 +23,13 @@ export * from "./commands/purchases";
 export * from "./commands/money";
 export * from "./commands/accounts";
 export * from "./commands/expenses";
-export * from "./commands/help";
 export * from "./commands/calendar";
 export * from "./commands/docs";
 export * from "./commands/settings";
 export * from "./commands/profile";
 export * from "./commands/generic";
+export * from "./helpcenter";
+export { HELP_ARTICLES, HELP_CATEGORIES } from "./fixtures/helpcenter";
 export { StoreProvider } from "./store/StoreProvider";
 
 // Reference lists the forms need (read-only copies).

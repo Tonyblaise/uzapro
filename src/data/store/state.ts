@@ -1,5 +1,4 @@
 import type {
-  ChatMessage,
   BusinessProfile,
   Branch,
   CalEvent,
@@ -170,7 +169,5 @@ export interface AppState {
   profiles: Record<RoleId, Profile>;
   /** Generic table rows keyed "{moduleId}/{tabSlug}". */
   generic: Record<string, GenericRow[]>;
-  /** Ask UzaPro conversation (feature 006); lasts for the session. */
-  help: { messages: ChatMessage[] };
   ui: UiState;
 }
