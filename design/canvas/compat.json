@@ -1,0 +1,40 @@
+{
+  "v": 1,
+  "mode": "omelette",
+  "root": "project/",
+  "title": "Uzapoint ERP dashboard rebuild",
+  "entry": "Uzapoint ERP.dc.html",
+  "pages": [
+    {
+      "path": "Uzapoint ERP.dc.html",
+      "title": "Uzapoint ERP",
+      "kind": "page"
+    },
+    {
+      "path": "uploads/Unified ERP Prototype.html",
+      "title": "Unified ERP Prototype",
+      "kind": "plain"
+    }
+  ],
+  "migratorVersion": "artifact-migrator (claude-design-backend ed667f7ac9c1)",
+  "createdAt": "2026-11-06T09:11:40.593Z",
+  "source": {
+    "v": 1,
+    "app": "claude-design",
+    "url": "https://claude.ai/design/p/ea854fec-549a-47a8-ab59-44aaab73e8de",
+    "projectId": "ea854fec-549a-47a8-ab59-44aaab73e8de",
+    "exportedAt": "2026-11-06T09:11:40.593Z"
+  },
+  "report": {
+    "itemsVersion": 2,
+    "pages": {
+      "total": 2,
+      "ok": 2,
+      "partial": 0,
+      "notMigrated": 0
+    },
+    "items": [],
+    "truncated": 0,
+    "truncatedLeftOut": 0
+  }
+}

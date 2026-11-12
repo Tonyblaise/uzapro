@@ -1,0 +1,21 @@
+:root{
+--font-sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+--size-display:32px;--size-h1:24px;--size-kpi:22px;--size-h2:18px;--size-card-title:16px;--size-title:15px;--size-body:14px;--size-label:14px;--size-small:13px;--size-caption:12px;--size-micro:11px;
+--lh-display:40px;--lh-h1:32px;--lh-kpi:28px;--lh-h2:26px;--lh-card-title:24px;--lh-title:22px;--lh-body:20px;--lh-small:18px;--lh-caption:16px;--lh-micro:14px;
+--tracking-tight:-0.02em;--tracking-normal:0;--tracking-caps:0.06em;
+/* Composite styles */
+--type-display:700 32px/40px var(--font-sans);
+--type-h1:600 24px/32px var(--font-sans);
+--type-kpi:600 22px/28px var(--font-sans);
+--type-h2:600 18px/26px var(--font-sans);
+--type-card-title:600 16px/24px var(--font-sans);
+--type-title:600 15px/22px var(--font-sans);
+--type-body:400 14px/20px var(--font-sans);
+--type-label:500 14px/20px var(--font-sans);
+--type-small:400 13px/18px var(--font-sans);
+--type-caption:400 12px/16px var(--font-sans);
+--type-micro:500 11px/14px var(--font-sans);
+--type-eyebrow:600 11px/14px var(--font-sans);
+--type-table-head:600 11px/14px var(--font-sans);
+}

@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Map Uzapoint design tokens into Tailwind (research R2). Utilities are generated from tokens only. */
+@theme inline {
+  --font-sans: var(--font-sans);
+
+  --color-white: var(--white);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-selected: var(--surface-selected);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-action: var(--text-on-action);
+  --color-link: var(--text-link);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-soft: var(--action-soft);
+  --color-action-soft-hover: var(--action-soft-hover);
+  --color-overlay: var(--overlay);
+  --color-banner-orange: var(--banner-orange);
+
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-200: var(--green-200);
+  --color-green-500: var(--green-500);
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+  --color-green-800: var(--green-800);
+  --color-grey-50: var(--grey-50);
+  --color-grey-100: var(--grey-100);
+  --color-grey-150: var(--grey-150);
+  --color-grey-200: var(--grey-200);
+  --color-grey-400: var(--grey-400);
+  --color-grey-500: var(--grey-500);
+  --color-grey-700: var(--grey-700);
+  --color-grey-900: var(--grey-900);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-text: var(--warning-text);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-text: var(--info-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
+  --color-neutral: var(--status-neutral);
+  --color-neutral-soft: var(--status-neutral-soft);
+  --color-neutral-text: var(--status-neutral-text);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+  --radius-shell: var(--radius-shell);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-lg: var(--shadow-lg);
+
+  --ease-standard: var(--ease-standard);
+}
+
+/* Composite type styles from tokens/typography.css */
+@layer components {
+  .type-display { font: var(--type-display); letter-spacing: var(--tracking-tight); }
+  .type-h1 { font: var(--type-h1); letter-spacing: var(--tracking-tight); }
+  .type-kpi { font: var(--type-kpi); font-variant-numeric: tabular-nums; }
+  .type-h2 { font: var(--type-h2); }
+  .type-card-title { font: var(--type-card-title); }
+  .type-title { font: var(--type-title); }
+  .type-body { font: var(--type-body); }
+  .type-label { font: var(--type-label); }
+  .type-small { font: var(--type-small); }
+  .type-caption { font: var(--type-caption); }
+  .type-micro { font: var(--type-micro); }
+  .type-eyebrow { font: var(--type-eyebrow); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+  .type-table-head { font: var(--type-table-head); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+  .u-num { font-variant-numeric: tabular-nums; }
+}
+
+/* Design layout helpers (from the canvas <style> block) */
+@layer components {
+  .uz-kpi8 { display: grid; gap: var(--space-3); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (min-width: 1700px) { .uz-kpi8 { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+  @media (max-width: 760px) { .uz-kpi8 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .uz-c4 { display: grid; gap: var(--space-4); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .uz-c4.uz-c4-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1100px) { .uz-c4.uz-c4-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 960px) { .uz-c4 { grid-template-columns: minmax(0, 1fr); } }
+}
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }

@@ -1,0 +1,433 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Unified ERP Prototype</title>
+<style>
+  /* Layout: fixed app shell — left module rail, top bar, routed content panel with sub-nav + per-tab sample screen. */
+  :root{
+    --bg:#f3f6f4; --panel:#ffffff; --panel-2:#eef2ef; --fg:#15211b; --muted:#5f6d66; --border:#e3eae5; --border-strong:#d2ddd6;
+    --rail:#ffffff; --rail-2:#eef3f0; --rail-fg:#3a473f; --rail-fg-dim:#8a978f;
+    --accent:#12a860; --accent-2:#0c7b47; --accent-soft:#e2f5ea; --on-accent:#ffffff;
+    --good:#12a860; --good-soft:#e2f5ea; --warn:#b4720a; --warn-soft:#f8efdc; --bad:#d2344f; --bad-soft:#fbe7eb; --info:#2f5fd0; --info-soft:#e8eefb;
+    --shadow:0 1px 2px rgba(18,33,27,.05),0 1px 0 rgba(18,33,27,.02);
+    --fd:"Bricolage Grotesque","Trebuchet MS",sans-serif; --fb:"Hanken Grotesk",system-ui,sans-serif; --fm:"IBM Plex Mono",monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0c0d10; --panel:#15171b; --panel-2:#1d2026; --fg:#e8eaee; --muted:#99a1ad; --border:#262a31; --border-strong:#353a43;
+    --rail:#101216; --rail-2:#1d2026; --rail-fg:#c3c9d3; --rail-fg-dim:#79818e;
+    --accent:#2bd58c; --accent-2:#1f9d66; --accent-soft:#143328; --on-accent:#06241a;
+    --good:#2bd58c; --good-soft:#11291f; --warn:#e3a94a; --warn-soft:#2b2310; --bad:#ef6a82; --bad-soft:#2d141a; --info:#6f93ef; --info-soft:#18203a;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 1px 0 rgba(0,0,0,.2); color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0c0d10; --panel:#15171b; --panel-2:#1d2026; --fg:#e8eaee; --muted:#99a1ad; --border:#262a31; --border-strong:#353a43;
+    --rail:#101216; --rail-2:#1d2026; --rail-fg:#c3c9d3; --rail-fg-dim:#79818e;
+    --accent:#2bd58c; --accent-2:#1f9d66; --accent-soft:#143328; --on-accent:#06241a;
+    --good:#2bd58c; --good-soft:#11291f; --warn:#e3a94a; --warn-soft:#2b2310; --bad:#ef6a82; --bad-soft:#2d141a; --info:#6f93ef; --info-soft:#18203a;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 1px 0 rgba(0,0,0,.2); color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--fg);font-family:var(--fb);display:flex;overflow:hidden}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--rail);z-index:60}
+  .rail{width:234px;flex:0 0 234px;background:var(--rail);color:var(--rail-fg);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);height:100%;border-right:1px solid var(--border)}
+  .brand{display:flex;align-items:center;gap:10px;padding:16px 16px 14px;padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .logo{width:30px;height:30px;border-radius:10px;background:linear-gradient(145deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--fd);font-weight:700;font-size:1rem;flex:0 0 auto;box-shadow:0 3px 10px -2px color-mix(in srgb,var(--accent) 55%,transparent)}
+  .brand b{font-family:var(--fd);font-weight:600;font-size:1.04rem;color:var(--fg);letter-spacing:-.01em}
+  .brand span{display:block;font-size:.66rem;color:var(--rail-fg-dim);font-family:var(--fm);letter-spacing:.08em;text-transform:uppercase}
+  .nav{flex:1 1 auto;overflow-y:auto;padding:6px 10px 18px;display:flex;flex-direction:column;gap:1px}
+  .nav::-webkit-scrollbar{width:7px}.nav::-webkit-scrollbar-thumb{background:var(--rail-2);border-radius:4px}
+  .nav-sec{font-size:.63rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rail-fg-dim);font-family:var(--fm);padding:12px 10px 5px}
+  .nitem{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:8px;color:var(--rail-fg);cursor:pointer;font-size:.88rem;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:inherit;line-height:1.2}
+  .nitem svg{width:17px;height:17px;flex:0 0 auto;opacity:.85}
+  .nitem:hover{background:var(--rail-2);color:var(--fg)}
+  .nitem.active{background:var(--accent);color:var(--on-accent)}.nitem.active svg{opacity:1}
+  .main{flex:1 1 auto;min-width:0;height:100%;display:flex;flex-direction:column}
+  .topbar{display:flex;align-items:center;gap:12px;padding:11px 20px;padding-right:max(20px,env(safe-area-inset-right,0px));padding-top:calc(11px + env(safe-area-inset-top,0px));background:var(--panel);border-bottom:1px solid var(--border);flex:0 0 auto}
+  .hamb{display:none;background:none;border:1px solid var(--border-strong);border-radius:8px;padding:7px;cursor:pointer;color:var(--fg)}
+  .search{flex:1 1 auto;min-width:0;max-width:420px;display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;color:var(--muted);font-size:.86rem}
+  .search svg{width:15px;height:15px;flex:0 0 auto}
+  .top-sp{flex:1 1 auto}
+  .top-btn{background:none;border:1px solid var(--border-strong);border-radius:9px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted)}
+  .avatar{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,var(--accent),var(--accent-2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;font-family:var(--fd);flex:0 0 auto}
+  .content{flex:1 1 auto;overflow-y:auto;padding:22px 20px 40px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+  .crumb{font-size:.78rem;color:var(--muted);font-family:var(--fm);margin:0 0 6px}
+  .ptitle{font-family:var(--fd);font-weight:600;font-size:1.5rem;letter-spacing:-.015em;margin:0}
+  .psub{color:var(--muted);margin:5px 0 0;font-size:.9rem}
+  .phead{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+  .phead .psp{flex:1 1 auto}
+  .btn-primary{background:linear-gradient(145deg,var(--accent),var(--accent-2));color:var(--on-accent);border:none;border-radius:11px;padding:9px 16px;font-weight:600;font-size:.86rem;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px -4px color-mix(in srgb,var(--accent) 60%,transparent)}
+  .btn-primary:hover{filter:brightness(1.04)}
+  .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--border)}
+  .subtab{font-size:.84rem;font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px 8px 0 0;cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .subtab:hover{color:var(--fg)}
+  .subtab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .note{font-size:.76rem;color:var(--muted);background:var(--panel-2);border:1px dashed var(--border-strong);border-radius:8px;padding:7px 11px;display:inline-block;margin-bottom:16px;font-family:var(--fm)}
+  .tabtitle{font-family:var(--fd);font-weight:600;font-size:1.05rem;margin:0 0 12px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+  .stat{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:15px 16px;box-shadow:var(--shadow)}
+  .stat .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:var(--fm)}
+  .stat .v{font-family:var(--fd);font-weight:600;font-size:1.5rem;margin-top:6px;font-variant-numeric:tabular-nums}
+  .stat .d{font-size:.76rem;margin-top:3px}
+  .up{color:var(--good)} .down{color:var(--bad)}
+  .cards2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.cards2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:16px;box-shadow:var(--shadow)}
+  .card h3{font-family:var(--fd);font-weight:600;font-size:1rem;margin:0 0 12px}
+  .bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:10px}
+  .bar{flex:1;background:linear-gradient(180deg,var(--accent),var(--accent-2));border-radius:7px 7px 2px 2px;min-width:0;position:relative}
+  .bar span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-size:.64rem;color:var(--muted);font-family:var(--fm)}
+  .bars.alt .bar{background:color-mix(in srgb,var(--accent) 38%,var(--panel))}
+  .tablewrap{border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
+  .toverflow{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;min-width:560px}
+  thead th{text-align:left;font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-family:var(--fm);padding:11px 14px;background:var(--panel-2);border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--border)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--panel-2)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--fm)}
+  .pill{display:inline-block;font-size:.72rem;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .pill.good{background:var(--good-soft);color:var(--good)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--info-soft);color:var(--info)} .pill.mut{background:var(--panel-2);color:var(--muted)}
+  .kan{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  @media(max-width:860px){.kan{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:480px){.kan{grid-template-columns:1fr}}
+  .kcol{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:120px}
+  .kcol h4{margin:4px 6px 10px;font-size:.82rem;display:flex;align-items:center;gap:7px}
+  .kdot{width:8px;height:8px;border-radius:50%}
+  .kcard{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 11px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .kcard b{font-size:.84rem;font-weight:600}.kcard small{display:block;color:var(--muted);font-size:.74rem;margin-top:3px;font-family:var(--fm)}
+  .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:760px}
+  @media(max-width:600px){.formgrid{grid-template-columns:1fr}}
+  .field label{display:block;font-size:.76rem;color:var(--muted);font-weight:600;margin-bottom:5px}
+  .field .inp{background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;font-size:.88rem;color:var(--fg)}
+  .field .inp.ph{color:var(--muted)}
+  .formactions{display:flex;gap:10px;margin-top:18px}
+  .ghost{border:1px solid var(--border-strong);background:transparent;color:var(--fg);border-radius:9px;padding:9px 15px;font-weight:600;font-size:.86rem;cursor:pointer;font-family:inherit}
+  .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .rcard{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:15px;box-shadow:var(--shadow)}
+  .rcard .ico{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .rcard b{font-size:.92rem}.rcard p{margin:4px 0 0;font-size:.78rem;color:var(--muted)}
+  .pos{display:grid;grid-template-columns:1fr 300px;gap:16px}
+  @media(max-width:760px){.pos{grid-template-columns:1fr}}
+  .posgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+  .pitem{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px;text-align:center;cursor:pointer;box-shadow:var(--shadow)}
+  .pitem:hover{border-color:var(--accent)}
+  .pitem b{display:block;font-size:.82rem}.pitem small{color:var(--muted);font-family:var(--fm);font-size:.74rem}
+  .cart{background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:15px;box-shadow:var(--shadow);align-self:start}
+  .cart h3{font-family:var(--fd);margin:0 0 10px;font-size:1rem}
+  .cline{display:flex;justify-content:space-between;font-size:.85rem;padding:7px 0;border-bottom:1px solid var(--border)}
+  .cart .tot{display:flex;justify-content:space-between;font-weight:700;margin-top:10px;font-size:1.05rem}
+  .chat{max-width:620px;display:flex;flex-direction:column;gap:12px}
+  .ai-hero{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:16px;margin-bottom:4px;box-shadow:var(--shadow)}
+  .ai-orb{width:46px;height:46px;border-radius:50%;flex:0 0 auto;background:radial-gradient(circle at 32% 30%,#5df0ad,var(--accent) 45%,var(--accent-2));box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 14%,transparent),0 8px 22px -6px color-mix(in srgb,var(--accent) 60%,transparent)}
+  .ai-hero b{font-family:var(--fd);font-weight:600;font-size:1.02rem;display:block}
+  .ai-hero small{color:var(--muted);font-size:.8rem}
+  .msg{padding:11px 14px;border-radius:13px;font-size:.88rem;max-width:80%}
+  .msg.bot{background:var(--panel);border:1px solid var(--border);align-self:flex-start}
+  .msg.me{background:var(--accent);color:var(--on-accent);align-self:flex-end}
+  .chatbar{display:flex;gap:8px;margin-top:4px}
+  .chatbar .inp{flex:1 1 auto;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--muted);font-size:.88rem}
+  .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tsearch{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:8px 12px;color:var(--muted);font-size:.85rem;min-width:200px;flex:1 1 200px;max-width:320px}
+  .tsearch svg{width:14px;height:14px;flex:0 0 auto}
+  .tbtn{border:1px solid var(--border-strong);background:var(--panel);color:var(--fg);border-radius:9px;padding:8px 12px;font-weight:600;font-size:.82rem;cursor:pointer;font-family:inherit}
+  .tbtn:hover{border-color:var(--fg)}
+  .tbtn.sm{padding:5px 10px;min-width:32px}
+  .tbtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+  .tsp{flex:1 1 auto}
+  .listfoot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:.8rem;color:var(--muted);font-family:var(--fm);flex-wrap:wrap;gap:8px}
+  .pager{display:flex;gap:6px}
+  tbody tr[data-r]{cursor:pointer}
+  tbody tr[data-r] td:first-child{position:relative}
+  .drawer-scrim{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+  .drawer-scrim.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:460px;max-width:92vw;background:var(--bg);border-left:1px solid var(--border);z-index:81;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;box-shadow:-20px 0 50px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .drawer.open{transform:translateX(0)}
+  .drawer-h{display:flex;align-items:flex-start;gap:12px;padding:18px;border-bottom:1px solid var(--border)}
+  .drawer-h h3{font-family:var(--fd);font-weight:700;font-size:1.2rem;margin:0;letter-spacing:-.01em}
+  .drawer-h .crumb{font-family:var(--fm);font-size:.72rem;color:var(--muted);margin:0 0 5px}
+  .drawer-x{margin-left:auto;border:none;background:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1;width:30px;height:30px;border-radius:8px;flex:0 0 auto}
+  .drawer-x:hover{background:var(--panel-2)}
+  .drawer-b{flex:1 1 auto;overflow-y:auto;padding:18px}
+  .dcard{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:4px 16px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .dcard h4{font-family:var(--fd);font-weight:600;font-size:.95rem;margin:13px 0 2px}
+  .drow{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-top:1px solid var(--border);font-size:.88rem}
+  .drow:first-of-type{border-top:none}
+  .drow .dl{color:var(--muted);font-family:var(--fm);font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;padding-top:3px;flex:0 0 auto}
+  .drow .dv{text-align:right;font-weight:500;min-width:0}
+  .drawer-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .tsearch input{border:none;background:none;outline:none;color:var(--fg);font-size:.85rem;width:100%;min-width:0;font-family:inherit}
+  .tsearch input::placeholder{color:var(--muted)}
+  .inp2{width:100%;background:var(--panel-2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:.88rem;color:var(--fg);font-family:inherit}
+  .inp2:focus{outline:none;border-color:var(--accent)}
+  .dcard textarea.inp2{min-height:70px;resize:vertical}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);background:var(--accent);color:var(--on-accent);padding:10px 16px;border-radius:10px;font-size:.86rem;font-weight:600;z-index:90;opacity:0;transition:opacity .2s,transform .2s;box-shadow:0 10px 30px rgba(0,0,0,.3);pointer-events:none}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .scrim{display:none}
+  @media(max-width:820px){
+    .rail{position:fixed;z-index:70;left:0;top:0;transform:translateX(-100%);transition:transform .22s;box-shadow:0 0 40px rgba(0,0,0,.4)}
+    body.navopen .rail{transform:translateX(0)}
+    .hamb{display:flex}
+    body.navopen .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:65}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<aside class="rail" id="rail">
+  <div class="brand"><div class="logo">U</div><div><b>Unified ERP</b><span>Working name</span></div></div>
+  <nav class="nav" id="nav"></nav>
+</aside>
+<div class="scrim" id="scrim"></div>
+<div class="main">
+  <div class="topbar">
+    <button class="hamb" id="hamb" aria-label="Menu"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    <div class="search"><svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Search or type a command</div>
+    <span class="top-sp"></span>
+    <button class="top-btn" id="themeBtn" aria-label="Theme"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 9a5 5 0 1 1-6-6 4 4 0 0 0 6 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+    <button class="top-btn" aria-label="Notifications"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a3 3 0 0 0-3 3v2.5L3.5 10h9L11 7.5V5a3 3 0 0 0-3-3zM6.5 12a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></button>
+    <div class="avatar">TA</div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+const I={home:'<path d="M3 7l6-4 6 4v7a1 1 0 0 1-1 1h-3v-4H7v4H4a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/>',box:'<path d="M9 2l6 3v6l-6 3-6-3V5z M3 5l6 3 6-3 M9 8v7" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',ware:'<path d="M2 7l7-4 7 4v8H2z M6 15v-5h6v5" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',mfg:'<path d="M3 15V8l4 2V8l4 2V6l4-2v11z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',cart:'<path d="M2 3h2l1.5 8h7L15 6H5 M7 14.5a1 1 0 1 0 0-.1 M12 14.5a1 1 0 1 0 0-.1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',buy:'<path d="M4 4h10l-1 7H5z M5 4L4 2H2 M6.5 14.5a1 1 0 1 0 0-.1 M11.5 14.5a1 1 0 1 0 0-.1" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',fin:'<path d="M2 14h14 M5 14V8 M9 14V4 M13 14v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>',crm:'<path d="M6 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2 15c0-2.5 2-4 4-4s4 1.5 4 4 M12 7l2 2 M14 4l-2 2" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',ppl:'<path d="M7 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M2 15c0-2.5 2-4 5-4 M12 8.5a2 2 0 1 0 0-4 M11 11c2 0 3 1.4 3 4" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',comm:'<path d="M3 4h12v8H8l-3 3v-3H3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',proj:'<path d="M3 3h12v12H3z M6 7h6 M6 10h4" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',rep:'<path d="M4 3h7l3 3v9H4z M11 3v3h3 M6 9h6 M6 12h4" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',sup:'<path d="M3 9a5 5 0 0 1 10 0 M3 9v2a1.5 1.5 0 0 0 3 0V9 M13 9v2a1.5 1.5 0 0 1-3 0V9" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/>',set:'<path d="M9 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M9 2v2 M9 14v2 M2 9h2 M14 9h2 M4 4l1.5 1.5 M12.5 12.5L14 14 M14 4l-1.5 1.5 M5.5 12.5L4 14" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>'};
+
+/* helpers (return HTML strings) */
+const P=(t,c)=>`<span class="pill ${c}">${t}</span>`;
+let TABLES=[];
+function TBL(cols,rows){const ti=TABLES.length;TABLES.push({cols,rows});return `<div class="tablewrap" data-tbl="${ti}"><div class="toverflow"><table><thead><tr>${cols.map(c=>`<th${c.num?' style="text-align:right"':''}>${c.t}</th>`).join('')}</tr></thead><tbody>${rows.map((r,ri)=>`<tr data-r="${ri}" tabindex="0">${r.map((cell,i)=>`<td class="${cols[i].num?'num':''}">${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`}
+function LISTVIEW(cols,rows){return `<div class="listview"><div class="toolbar"><label class="tsearch"><svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><input class="js-search" placeholder="Search…" aria-label="Search this list"></label><span class="tsp"></span><button class="tbtn js-export">Export CSV</button></div>`+TBL(cols,rows)+`<div class="listfoot"><span class="js-count">Showing ${rows.length} of ${rows.length}</span><span>Page 1 of 1</span></div></div>`}
+function STAT(items){return `<div class="stats">${items.map(s=>`<div class="stat"><div class="k">${s[0]}</div><div class="v">${s[1]}</div><div class="d ${s[3]||''}">${s[2]||''}</div></div>`).join('')}</div>`}
+function BARS(v,l,alt){return `<div class="bars ${alt?'alt':''}">${v.map((x,i)=>`<div class="bar" style="height:${x}%"><span>${l[i]}</span></div>`).join('')}</div>`}
+function FORM(fields){return `<div class="formgrid">${fields.map(f=>`<div class="field" ${f[3]?'style="grid-column:1/-1"':''}><label>${f[0]}</label><div class="inp ${f[2]?'ph':''}" ${f[3]?'style="min-height:72px"':''}>${f[1]}</div></div>`).join('')}</div><div class="formactions"><button class="btn-primary">Save</button><button class="ghost">Cancel</button></div>`}
+function CARDS(items){return `<div class="rgrid">${items.map(r=>`<div class="rcard"><div class="ico"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V7 M8 13V3 M13 13v-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div><b>${r[0]}</b><p>${r[1]||'Run · schedule · export'}</p></div>`).join('')}</div>`}
+function KCOL(title,color,cards){return `<div class="kcol"><h4><span class="kdot" style="background:${color}"></span>${title}</h4>${cards.map(c=>`<div class="kcard"><b>${c[0]}</b><small>${c[1]}</small></div>`).join('')}</div>`}
+function KANBAN(cols){return `<div class="kan">${cols.map(c=>KCOL(c[0],c[1],c[2])).join('')}</div>`}
+function render(spec){
+  if(spec.k==='stats'){let h=STAT(spec.items);if(spec.charts)h+=`<div class="cards2">${spec.charts.map(c=>`<div class="card"><h3>${c.t}</h3>${BARS(c.v,c.l,c.alt)}</div>`).join('')}</div>`;if(spec.table)h+='<div style="height:16px"></div>'+TBL(spec.table.cols,spec.table.rows);return h;}
+  if(spec.k==='table')return LISTVIEW(spec.cols,spec.rows);
+  if(spec.k==='form')return FORM(spec.fields);
+  if(spec.k==='cards')return CARDS(spec.items);
+  if(spec.k==='kanban')return KANBAN(spec.cols);
+  if(spec.k==='pos')return spec.html;
+  if(spec.k==='chat')return spec.html;
+  return '';
+}
+function renderBody(spec){TABLES=[];return render(spec);}
+/* record drawer */
+const DW=document.createElement('div');DW.className='drawer';
+const SC=document.createElement('div');SC.className='drawer-scrim';
+document.body.appendChild(SC);document.body.appendChild(DW);
+SC.addEventListener('click',closeDrawer);
+function closeDrawer(){DW.classList.remove('open');SC.classList.remove('open');}
+function openDrawer(cols,row,crumb){
+  let statusHTML='';
+  row.forEach(cell=>{if(typeof cell==='string'&&cell.indexOf('class="pill')>-1&&!statusHTML)statusHTML=cell;});
+  const title=String(row[0]).replace(/<[^>]+>/g,'');
+  const fields=row.map((cell,i)=>`<div class="drow"><span class="dl">${cols[i].t}</span><span class="dv">${cell}</span></div>`).join('');
+  DW.innerHTML=`<div class="drawer-h"><div><p class="crumb">${crumb}</p><h3>${title}</h3></div><button class="drawer-x" aria-label="Close">×</button></div>
+    <div class="drawer-b">
+      ${statusHTML?`<div style="margin-bottom:14px">${statusHTML}</div>`:''}
+      <div class="dcard"><h4>Overview</h4>${fields}</div>
+      <div class="dcard"><h4>Actions</h4><div class="drawer-acts"><button class="btn-primary">Edit</button><button class="tbtn">Duplicate</button><button class="tbtn">Print</button></div></div>
+    </div>`;
+  DW.querySelector('.drawer-x').addEventListener('click',closeDrawer);
+  DW.classList.add('open');SC.classList.add('open');
+}
+addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),260);},1600);}
+function openCreate(m){
+  DW.innerHTML=`<div class="drawer-h"><div><p class="crumb">${m.n}</p><h3>New record</h3></div><button class="drawer-x" aria-label="Close">×</button></div>
+    <div class="drawer-b"><div class="dcard"><h4>Details</h4>
+      <div class="field"><label>Name</label><input class="inp2" placeholder="Enter a name…"></div>
+      <div class="field"><label>Status</label><select class="inp2"><option>Draft</option><option>Active</option></select></div>
+      <div class="field"><label>Notes</label><textarea class="inp2" placeholder="Optional…"></textarea></div></div>
+      <div class="drawer-acts"><button class="btn-primary js-create">Create</button><button class="tbtn js-cancel">Cancel</button></div>
+    </div>`;
+  DW.querySelector('.drawer-x').addEventListener('click',closeDrawer);
+  DW.querySelector('.js-cancel').addEventListener('click',closeDrawer);
+  DW.querySelector('.js-create').addEventListener('click',()=>{closeDrawer();toast('Created (demo)');});
+  DW.classList.add('open');SC.classList.add('open');
+}
+document.addEventListener('input',e=>{
+  if(!e.target.classList||!e.target.classList.contains('js-search'))return;
+  const lv=e.target.closest('.listview');if(!lv)return;
+  const q=e.target.value.toLowerCase();const trs=lv.querySelectorAll('tbody tr[data-r]');let n=0;
+  trs.forEach(tr=>{const match=tr.textContent.toLowerCase().includes(q);tr.style.display=match?'':'none';if(match)n++;});
+  const c=lv.querySelector('.js-count');if(c)c.textContent='Showing '+n+' of '+trs.length;
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('.js-export')){const lv=e.target.closest('.listview');const w=lv&&lv.querySelector('[data-tbl]');const t=w&&TABLES[+w.dataset.tbl];if(t){const head=t.cols.map(c=>c.t).join(',');const body=t.rows.map(r=>r.map(c=>JSON.stringify(String(c).replace(/<[^>]+>/g,'').trim())).join(','));const csv=[head].concat(body).join(String.fromCharCode(10));(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(csv):Promise.reject()).then(()=>toast('Copied as CSV')).catch(()=>toast('Copy unavailable here'));}return;}
+  if(e.target.closest('.js-new')){const id=(location.hash.slice(1).split('-')[0])||'home';openCreate(MODS.find(x=>x.id===id)||MODS[0]);return;}
+  const tr=e.target.closest('tr[data-r]');if(!tr)return;
+  const wrap=tr.closest('[data-tbl]');if(!wrap)return;
+  const t=TABLES[+wrap.dataset.tbl];if(!t)return;
+  const id=(location.hash.slice(1).split('-')[0])||'home';
+  openDrawer(t.cols,t.rows[+tr.dataset.r],(MODS.find(x=>x.id===id)||MODS[0]).n);
+});
+
+/* column shorthands */
+const C=(...names)=>names.map(n=>({t:n}));
+const CN=(...names)=>names.map((n,i)=>({t:n,num:i>0}));   // first text, rest numeric
+function cols(spec){return spec.map(s=>typeof s==='string'?{t:s}:s)}
+const N=t=>({t,num:true});
+
+/* POS + chat views (static html) */
+const POS_HTML=`<div class="pos"><div><div class="posgrid">
+  ${[['Carbon Frame','34,500'],['Alu Frame','31,050'],['Bike Pump','345'],['Sole Shoes','4,140'],['Wheelset','13,800'],['Helmet','1,639'],['Groupset','8,452'],['Paint','467']].map(p=>`<div class="pitem"><b>${p[0]}</b><small>KES ${p[1]}</small></div>`).join('')}
+</div></div><div class="cart"><h3>Current sale</h3><div class="cline"><span>Bike Pump ×2</span><span>690</span></div><div class="cline"><span>Helmet ×1</span><span>1,639</span></div><div class="cline"><span>VAT 16%</span><span>372</span></div><div class="tot"><span>Total</span><span>KES 2,701</span></div><button class="btn-primary" style="width:100%;margin-top:14px">Take payment</button></div></div>`;
+const CHAT_HTML=`<div class="chat"><div class="ai-hero"><div class="ai-orb"></div><div><b>Fynix Assistant</b><small>AI copilot — ask anything about your business</small></div></div><div class="msg bot">Hi! I'm your Unified assistant. Ask about stock, an invoice, or how to do something.</div><div class="msg me">How do I issue a credit note?</div><div class="msg bot">Go to Sales &rarr; Credit notes &rarr; New, pick the original invoice, choose the lines to return, and save. Returned items restock automatically. Want me to open it?</div><div class="chatbar"><div class="inp">Type a message…</div><button class="btn-primary">Send</button></div></div>`;
+
+/* ---------- MODULES with per-tab content ---------- */
+const MODS=[
+ {id:'home',sec:'Overview',ic:I.home,n:'Home & Dashboards',sub:'Role-based overview, KPIs and search',tabs:[
+   {t:'Executive',s:{k:'stats',items:[['Revenue (MTD)','KES 4.82M','▲ 12.4% vs last month','up'],['Net profit','KES 1.31M','▲ 8.1%','up'],['Open invoices','37','KES 2.9M awaiting'],['Low-stock items','14','needs reorder','down']],charts:[{t:'Sales vs purchases',v:[40,62,55,78,48,90,70,84],l:['Mar','Apr','May','Jun','Jul','Aug','Sep','Oct']},{t:'Cash flow',v:[55,38,70,44,82,60,48,66],l:['Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'],alt:1}]}},
+   {t:'Sales',s:{k:'stats',items:[['Sales today','KES 184K','42 transactions','up'],['Quotations','8 open','KES 420K'],['Overdue','KES 3.2M','9 customers','down'],['Avg basket','KES 4,380','▲ 3%','up']],charts:[{t:'Daily sales',v:[50,62,48,70,55,82,60],l:['Mon','Tue','Wed','Thu','Fri','Sat','Sun']}]}},
+   {t:'Finance',s:{k:'stats',items:[['Income (YR)','$ 10.00M','','up'],['Expense','$ 6.20M',''],['Profit','$ 3.80M','▲','up'],['Unreconciled','18 txns','bank feed','warn']],charts:[{t:'Income vs expense',v:[90,62,38],l:['Income','Expense','Profit'],alt:1}]}},
+   {t:'Inventory',s:{k:'stats',items:[['Stock value','KES 2.65M','live'],['SKUs tracked','248','6 stores'],['In transit','12','3 POs'],['Reorder alerts','14','','down']]}},
+   {t:'CRM',s:{k:'stats',items:[['Open opps','23','KES 4.1M pipeline'],['Won (MTD)','7','KES 1.2M','up'],['Win rate','31%','▲ 4%','up'],['Leads','48','new this week']],charts:[{t:'Pipeline by stage',v:[90,64,40,28,15],l:['Lead','Qual','Prop','Neg','Won']}]}},
+   {t:'Support',s:{k:'stats',items:[['Unresolved','197','','down'],['SLA met','92%','last 30 days','up'],['Avg response','2.4h',''],['Open tickets','23','']]}},
+ ]},
+ {id:'prod',sec:'Operations',ic:I.box,n:'Products & Catalog',sub:'Master item data, variants, pricing and BOM',tabs:[
+   {t:'All products',s:{k:'table',cols:[{t:'Code'},{t:'Product'},{t:'Category'},N('Price'),N('On hand'),{t:'Status'}],rows:[['CARBO-001','Carbon Road Frame','Parts','34,500','135',P('Active','good')],['ALUMIN-001','Aluminium Frame','Parts','31,050','165',P('Active','good')],['CARBON-001','Carbon Sole Shoes','Apparel','4,140','68',P('Low stock','warn')],['RACING-001','Racing Wheelset','Parts','13,800','16',P('Low stock','warn')],['MUTHOKINJU','Muthokinju Paint','Acrylic','467','0',P('Out','bad')]]}},
+   {t:'SKUs & variants',s:{k:'table',cols:[{t:'Product · variant'},{t:'SKU'},{t:'Barcode'},N('Cost'),N('Price'),N('Margin')],rows:[['Carbon Frame · 54cm','CARBO-54','8901-2201','19,642','34,500','+43%'],['Carbon Frame · 56cm','CARBO-56','8901-2202','19,642','34,500','+43%'],['Sole Shoes · 42','SHOE-42','8901-3301','2,219','4,140','+46%'],['Sole Shoes · 43','SHOE-43','8901-3302','2,219','4,140','+46%']]}},
+   {t:'Categories',s:{k:'table',cols:[{t:'Category'},{t:'Parent'},N('Items'),{t:'Sales GL'},{t:'Tax'}],rows:[['Parts','—','86','Sales — Parts',P('VAT 16%','info')],['Apparel','—','54','Sales — Apparel',P('VAT 16%','info')],['Acrylic Paints','—','12','Sales — Paints',P('VAT 16%','info')],['Services','—','9','Service Revenue',P('Exempt','mut')]]}},
+   {t:'Price rules',s:{k:'table',cols:[{t:'Rule'},{t:'Applies to'},{t:'Type'},N('Value'),{t:'Valid'},{t:'Status'}],rows:[['Black Friday','3 items','Price','−20%','24–30 Nov',P('Scheduled','info')],['Wholesale tier','Customer group','Discount','−12%','Always',P('Active','good')],['Clearance','Apparel','Price','−35%','Expired',P('Inactive','mut')]]}},
+   {t:'Bill of materials',s:{k:'table',cols:[{t:'Finished item'},N('Qty'),{t:'Components'},{t:'Operations'},{t:'Status'}],rows:[['Custom Jersey','1','4 materials','Cut · Print · Sew',P('Active','good')],['Mountain Bike','1','9 parts','Assemble · QC',P('Active','good')],['Gift Box','1','3 items','Pack',P('Draft','mut')]]}},
+   {t:'Barcodes',s:{k:'table',cols:[{t:'Item'},{t:'Barcode'},{t:'Symbology'},{t:'Printed'}],rows:[['Carbon Frame 54cm','8901-2201','EAN-13',P('Yes','good')],['Sole Shoes 42','8901-3301','EAN-13',P('Yes','good')],['Bike Pump','8901-4410','EAN-13',P('Pending','warn')]]}},
+ ]},
+ {id:'inv',sec:'Operations',ic:I.ware,n:'Inventory & Warehouse',sub:'Stock levels, movements and counts',tabs:[
+   {t:'Stock summary',s:{k:'stats',items:[['Stock value','KES 2.65M','live valuation'],['SKUs','248','6 stores'],['In transit','12','3 POs'],['Reorder','14','','down']],table:{cols:[{t:'Item'},{t:'Warehouse'},N('On hand'),N('Reorder'),{t:'Status'}],rows:[['Carbon Frame','Finished Goods','135','40',P('Healthy','good')],['Skateboard','Stores','35','50',P('Low','warn')],['Knee pads','Stores','0','10',P('Reorder','warn')],['Laser Printer','Office','0','5',P('Out','bad')]]}}},
+   {t:'Warehouses',s:{k:'table',cols:[{t:'Warehouse'},{t:'Branch'},{t:'Type'},N('Items'),N('Value')],rows:[['Finished Goods','Nairobi HQ','Manufacturing','98','1,840,200'],['Stores','Nairobi HQ','Manufacturing','112','620,500'],['Point of Sale','New Jersey','Retail','31','145,000'],['Goods in Transit','Import','Transfer','12','52,300']]}},
+   {t:'Receive stock',s:{k:'form',fields:[['Destination store','Finished Goods — Nairobi'],['Reference / notes','GRN from PO-0409','ph'],['Supplier','Eastside Bicycle Supplies'],['Expected date','31 Oct 2026'],['Items to receive','Carbon Frame ×50, Bike Pump ×100','ph',1]]}},
+   {t:'Transfers',s:{k:'table',cols:[{t:'Ref'},{t:'From'},{t:'To'},N('Items'),{t:'Status'}],rows:[['TRF-0032','Finished Goods','Point of Sale','8',P('In transit','info')],['TRF-0031','Stores','Finished Goods','20',P('Received','good')],['TRF-0030','Import','Stores','5',P('Draft','mut')]]}},
+   {t:'Stock takes',s:{k:'table',cols:[{t:'Ref'},{t:'Warehouse'},{t:'Date'},N('Variance'),{t:'Status'}],rows:[['CNT-0014','Stores','28 Oct','−3',P('Posted','good')],['CNT-0013','Finished Goods','21 Oct','0',P('Posted','good')],['CNT-0015','Point of Sale','31 Oct','—',P('In progress','warn')]]}},
+   {t:'Wastage',s:{k:'table',cols:[{t:'Ref'},{t:'Item'},N('Qty'),{t:'Reason'},N('Value')],rows:[['WST-0008','Acrylic Paint','4','Expired','1,868'],['WST-0007','Sole Shoes','1','Damaged','2,219'],['WST-0006','Jersey','2','QC reject','3,100']]}},
+ ]},
+ {id:'mfg',sec:'Operations',ic:I.mfg,n:'Manufacturing & Production',sub:'Work orders, shop floor and packaging',tabs:[
+   {t:'Work orders',s:{k:'table',cols:[{t:'Ref'},{t:'Finished item'},N('Qty'),{t:'BOM'},{t:'Status'}],rows:[['MFG-WO-0008','Custom Jersey','100','Jersey v2',P('In progress','info')],['MFG-WO-0006','Mountain Bike','20','MTB v1',P('Material req','warn')],['MFG-WO-0003','Gift Box','50','Box v1',P('Completed','good')]]}},
+   {t:'Shop floor',s:{k:'kanban',cols:[['Open','var(--muted)',[['Packing','MFG-WO-0008 · Packing'],['Cutting','MFG-WO-0008 · Cutting']]],['In progress','var(--info)',[['Cutting','MFG-WO-0003 · Cutting'],['Labelling','MFG-WO-0005 · Labelling']]],['Material transferred','var(--warn)',[['Dyeing','MFG-WO-0006 · Dye line']]],['Completed','var(--good)',[['Sewing','MFG-WO-0003 · Sewing']]]]}},
+   {t:'Workstations',s:{k:'table',cols:[{t:'Workstation'},N('Capacity/hr'),N('Cost/hr'),{t:'Status'}],rows:[['Fabric Cutting','40','250',P('Running','good')],['Sewing Line','25','400',P('Running','good')],['Packing Station','60','150',P('Idle','mut')]]}},
+   {t:'Packaging',s:{k:'table',cols:[{t:'Ref'},{t:'Work order'},N('Units'),{t:'Status'}],rows:[['PKG-0012','MFG-WO-0003','50',P('Done','good')],['PKG-0013','MFG-WO-0008','100',P('Queued','warn')]]}},
+   {t:'Subcontracting',s:{k:'table',cols:[{t:'Ref'},{t:'Supplier'},{t:'Service'},{t:'Status'}],rows:[['SUB-0004','Fine Yarn & More','Dyeing',P('Sent','info')],['SUB-0003','Magic Needles','Embroidery',P('Received','good')]]}},
+ ]},
+ {id:'sales',sec:'Commercial',ic:I.cart,n:'Sales & POS',sub:'POS, quotes, orders, invoices and channels',tabs:[
+   {t:'All sales',s:{k:'table',cols:[{t:'Customer'},{t:'Type'},{t:'Channel'},N('Total'),{t:'Status'}],rows:[['Morningview Bicycles','Tax invoice','In-store','45,600',P('Paid','good')],['Apex Solutions','Sales order','Shopify','158,996',P('Draft','info')],['Alpha Systems','Invoice','Amazon','53,976',P('Overdue','bad')],['Mountain Goats','Quotation','POS','9,576',P('Pending','warn')]]}},
+   {t:'POS',s:{k:'pos',html:POS_HTML}},
+   {t:'Quotations',s:{k:'table',cols:[{t:'Ref'},{t:'Customer'},{t:'Valid till'},N('Total'),{t:'Status'}],rows:[['SAL-QTN-0002','Atlas Services','12 Jan','424',P('Draft','mut')],['SAL-QTN-0001','Tech Innovators','30 Nov','48,499',P('Sent','info')]]}},
+   {t:'Sales orders',s:{k:'table',cols:[{t:'Ref'},{t:'Customer'},{t:'Delivery'},N('Total'),{t:'Status'}],rows:[['SAL-ORD-0115','Apex Solutions','29 Aug','158,996',P('To deliver','warn')],['SAL-ORD-0110','Alpha Systems','31 Aug','53,976',P('Overdue','bad')],['SAL-ORD-0098','Apex Solutions','03 Aug','1,008,000',P('Completed','good')]]}},
+   {t:'Invoices',s:{k:'table',cols:[{t:'Ref'},{t:'Customer'},{t:'Due'},N('Total'),{t:'Status'}],rows:[['INV-0355','Blazing Cycle Trails','31 May','1,026',P('Overdue','bad')],['INV-0351','Morningview','27 Feb','45,600',P('Unpaid','warn')],['INV-0340','Stateside Cycle','31 Jan','21,432',P('Paid','good')]]}},
+   {t:'Credit notes',s:{k:'table',cols:[{t:'Ref'},{t:'Invoice'},{t:'Reason'},N('Amount'),{t:'Status'}],rows:[['CRN-0007','INV-0351','Returned goods','4,560',P('Posted','good')],['CRN-0006','INV-0320','Price adjustment','1,200',P('Draft','mut')]]}},
+   {t:'Channels',s:{k:'table',cols:[{t:'Channel'},{t:'Status'},N('Orders (30d)'),N('Revenue')],rows:[['Shopify',P('Connected','good'),'128','1,840,000'],['Amazon',P('Connected','good'),'64','920,500'],['Website',P('Connected','good'),'212','2,410,000'],['WhatsApp',P('Setup','warn'),'—','—']]}},
+ ]},
+ {id:'buy',sec:'Commercial',ic:I.buy,n:'Purchasing & Procurement',sub:'Requisitions, orders, receipts and bills',tabs:[
+   {t:'Requisitions',s:{k:'table',cols:[{t:'Ref'},{t:'Requested by'},{t:'Destination'},N('Items'),{t:'Status'}],rows:[['REQ-0022','Store clerk','Stores','5',P('Pending approval','warn')],['REQ-0021','Production','Finished Goods','9',P('Approved','good')]]}},
+   {t:'RFQs',s:{k:'table',cols:[{t:'Ref'},{t:'Suppliers'},{t:'Item'},{t:'Status'}],rows:[['RFQ-0009','3 invited','Carbon tubing',P('Awaiting quotes','info')],['RFQ-0008','2 invited','Jersey fabric',P('Quoted','good')]]}},
+   {t:'Purchase orders',s:{k:'table',cols:[{t:'Supplier'},{t:'Ref'},N('Total'),{t:'Received'},{t:'Status'}],rows:[['Eastside Bicycle','PUR-ORD-0409','1,368',P('Full','good'),P('Completed','good')],['Magaliesburg Wheels','PUR-ORD-0408','228',P('Partial','warn'),P('To receive','info')],['Croma','PUR-ORD-0372','640,000',P('Full','good'),P('Approved','good')]]}},
+   {t:'Goods receipts',s:{k:'table',cols:[{t:'Ref'},{t:'PO'},{t:'Warehouse'},N('Lines'),{t:'Status'}],rows:[['GRN-0041','PUR-ORD-0409','Finished Goods','1',P('Posted','good')],['GRN-0040','PUR-ORD-0408','Stores','2',P('Partial','warn')]]}},
+   {t:'Supplier bills',s:{k:'table',cols:[{t:'Supplier'},{t:'Ref'},{t:'Due'},N('Total'),{t:'Status'}],rows:[['Eastside Bicycle','SIV-0409','31 Dec','1,368',P('Unpaid','warn')],['Road & Travel Tyres','SIV-0405','31 Oct','1,918',P('Overdue','bad')],['Croma','SIV-0372','01 May','640,000',P('Paid','good')]]}},
+   {t:'Returns',s:{k:'table',cols:[{t:'Ref'},{t:'Supplier'},{t:'Reason'},N('Qty'),{t:'Status'}],rows:[['PRT-0005','Magaliesburg Wheels','Damaged','3',P('Posted','good')],['PRT-0004','Pure Silk','Wrong item','2',P('Draft','mut')]]}},
+ ]},
+ {id:'fin',sec:'Commercial',ic:I.fin,n:'Accounting & Finance',sub:'Ledger, banking, tax and statements',tabs:[
+   {t:'Chart of accounts',s:{k:'table',cols:[{t:'Code'},{t:'Account'},{t:'Type'},N('Balance')],rows:[['10201','Build by Blaise — Main','Asset','2,421,296'],['40100','Sales','Income','2,827,943'],['50100','Cost of Goods Sold','Expense','1,755,182'],['60200','Advertising','Expense','1,089,431']]}},
+   {t:'General ledger',s:{k:'table',cols:[{t:'Posting'},{t:'Account'},{t:'Voucher'},N('Debit'),N('Credit'),N('Balance')],rows:[['30-01','Debtors — USD','SINV-25-00006','106.00','0.00','106.00'],['30-01','Sales — SI','SINV-25-00006','0.00','100.00','0.00'],['30-01','ST 6% — SI','SINV-25-00006','0.00','6.00','100.00'],['—','Closing','','906.00','906.00','0.00']]}},
+   {t:'Journals',s:{k:'table',cols:[{t:'Ref'},{t:'Date'},{t:'Narration'},N('Amount'),{t:'Status'}],rows:[['JRN-0044','30 Jan','Depreciation — Oct','12,500',P('Posted','good')],['JRN-0043','30 Jan','Payroll accrual','185,000',P('Draft','mut')]]}},
+   {t:'Banking',s:{k:'stats',items:[['Bank balance','KES 5.35M','National Bank'],['Unreconciled','18','to review','warn'],['Inflows (30d)','KES 2.1M','','up'],['Outflows (30d)','KES 1.4M','']],table:{cols:[{t:'Date'},{t:'Payee'},{t:'Reference'},N('Amount'),{t:'Rec.'}],rows:[['07-03','Eskom','CHQ001','−1,129,152',P('No','warn')],['10-03','Municipality','CHQ002','−565,288',P('No','warn')],['30-03','National Bank','REC001','5,015,642',P('Yes','good')]]}}},
+   {t:'Receivables',s:{k:'table',cols:[{t:'Customer'},N('Current'),N('30d'),N('60d+'),N('Total')],rows:[['Roadbikes Unlimited','1,200,000','800,000','3,358,239','5,358,239'],['Morningview','45,600','228,000','2,926,338','3,199,938'],['Grasslands Bicycles','669,781','0','3,000,000','3,669,781']]}},
+   {t:'Payables',s:{k:'table',cols:[{t:'Supplier'},N('Current'),N('Overdue'),N('Total')],rows:[['Eastside Bicycle','1,921,482','10,000,000','11,921,482'],['WholeCycle Wholesales','992,525','19,000,000','19,992,525'],['Road & Travel Tyres','333,973','2,000,000','2,333,973']]}},
+   {t:'VAT',s:{k:'stats',items:[['Output VAT','KES 452K','on sales'],['Input VAT','KES 288K','on purchases'],['Net payable','KES 164K','due 20 Nov','warn'],['Period','Oct 2026','monthly']]}},
+   {t:'Statements',s:{k:'cards',items:[['Profit & Loss','Income, expenses, net profit'],['Balance Sheet','Assets, liabilities, equity'],['Trial Balance','All account balances'],['Cash Flow','Operating, investing, financing']]}},
+ ]},
+ {id:'crm',sec:'Relationships',ic:I.crm,n:'CRM',sub:'Leads, opportunities and campaigns',tabs:[
+   {t:'Leads',s:{k:'table',cols:[{t:'Lead'},{t:'Source'},{t:'Territory'},{t:'Status'}],rows:[['Nairobi Cycles Ltd','Website','Kenya',P('New','info')],['Coast Sports','Campaign','Kenya',P('Qualified','good')],['Kampala Gear','Referral','Uganda',P('Contacted','warn')]]}},
+   {t:'Opportunities',s:{k:'stats',items:[['Pipeline','KES 4.1M','23 open'],['Weighted','KES 1.6M','forecast'],['Win rate','31%','','up'],['Avg deal','KES 178K','']],charts:[{t:'Pipeline by stage',v:[90,64,40,28,15],l:['Lead','Qual','Prop','Neg','Won']}],table:{cols:[{t:'Opportunity'},{t:'Customer'},{t:'Stage'},N('Value')],rows:[['Q4 fleet order','Apex Solutions',P('Proposal','info'),'1,200,000'],['Retail expansion','Tech Innovators',P('Negotiation','warn'),'680,000']]}}},
+   {t:'Campaigns',s:{k:'table',cols:[{t:'Campaign'},{t:'Channel'},N('Reach'),N('Responses'),{t:'Status'}],rows:[['Back to school','Email + SMS','4,200','312',P('Active','good')],['Black Friday','Multi','12,000','—',P('Scheduled','info')]]}},
+   {t:'Territories',s:{k:'table',cols:[{t:'Territory'},N('Opps'),N('Target'),N('Actual'),{t:'Status'}],rows:[['Kenya','14','2.0M','1.6M',P('On track','good')],['Uganda','5','800K','420K',P('Behind','warn')],['Tanzania','4','600K','610K',P('Ahead','good')]]}},
+ ]},
+ {id:'ppl',sec:'Relationships',ic:I.ppl,n:'Contacts & People',sub:'Customers, suppliers, staff and roles',tabs:[
+   {t:'Customers',s:{k:'table',cols:[{t:'Name'},{t:'Group'},N('Balance'),{t:'Status'}],rows:[['Morningview Bicycles','General Distributors','3,199,938',P('Active','good')],['Mountain Goats','MTB Distributors','−455,703',P('Active','good')],['Walk-in Customer','Retail','0',P('Active','good')]]}},
+   {t:'Suppliers',s:{k:'table',cols:[{t:'Name'},{t:'Category'},N('Balance'),{t:'Status'}],rows:[['Eastside Bicycle Supplies','National','11,921,482',P('Active','good')],['Magaliesburg Wheels','National','1,584,859',P('Active','good')],['Road & Travel Tyres','Local','2,333,973',P('Active','good')]]}},
+   {t:'Staff',s:{k:'table',cols:[{t:'Name'},{t:'Role'},{t:'Branch'},{t:'Status'}],rows:[['Tony Ashiuma','Owner / Admin','Nairobi HQ',P('Active','good')],['Grant Jensen','Procurement Officer','Nairobi HQ',P('Active','good')],['Jane Smith','Cashier','New Jersey',P('Active','good')]]}},
+   {t:'Groups',s:{k:'table',cols:[{t:'Group'},{t:'Applies to'},{t:'Default pricing'},N('Members')],rows:[['General Distributors','Customer','List price','18'],['MTB Distributors','Customer','−8% tier','11'],['Retail','Customer','List price','1,204'],['National','Supplier','—','5']]}},
+   {t:'Loyalty',s:{k:'table',cols:[{t:'Customer'},{t:'Tier'},N('Points'),N('Value'),{t:'Status'}],rows:[['Morningview Bicycles','Gold','12,400','KES 6,200',P('Active','good')],['Mountain Goats','Silver','4,800','KES 2,400',P('Active','good')],['Roadies Haven','Bronze','1,200','KES 600',P('Active','good')]]}},
+   {t:'Commissions',s:{k:'table',cols:[{t:'Sales rep'},{t:'Rule'},N('Sales (MTD)'),N('Commission'),{t:'Status'}],rows:[['Jane Smith','5% of net','840,000','42,000',P('Pending','warn')],['Peter Roadie','3% tiered','1,210,000','36,300',P('Approved','good')]]}},
+   {t:'User roles',s:{k:'table',cols:[{t:'Role'},N('Users'),{t:'Modules'},{t:'Scope'}],rows:[['Owner / Admin','1','All 14',P('Full','good')],['Accountant','2','Finance + reports',P('Edit','info')],['Cashier','4','Sales (POS) + customers',P('Limited','warn')],['Store / Inventory','3','Inventory + products',P('Edit','info')]]}},
+ ]},
+ {id:'comm',sec:'Relationships',ic:I.comm,n:'Communications',sub:'Messaging, templates and analytics',tabs:[
+   {t:'Send message',s:{k:'form',fields:[['Channel','SMS'],['Audience','Customers · 248 recipients'],['Template','Order ready'],['Send','Now'],['Message','Hi {{name}}, your order {{ref}} is ready for pickup.','ph',1]]}},
+   {t:'Templates',s:{k:'table',cols:[{t:'Template'},{t:'Channel'},{t:'Variables'},{t:'Status'}],rows:[['Order ready','SMS','name, ref',P('Active','good')],['Invoice due','Email','name, amount, due',P('Active','good')],['Welcome','WhatsApp','name',P('Draft','mut')]]}},
+   {t:'Campaigns',s:{k:'table',cols:[{t:'Campaign'},{t:'Segment'},N('Sent'),N('Clicks'),{t:'Status'}],rows:[['Back to school','All customers','4,200','312',P('Done','good')],['Black Friday','Gold + Silver','—','—',P('Scheduled','info')]]}},
+   {t:'History',s:{k:'table',cols:[{t:'Sent'},{t:'Channel'},{t:'Audience'},N('Delivered'),{t:'Status'}],rows:[['31 Oct 09:12','SMS','248','242',P('Delivered','good')],['30 Oct 16:40','Email','1,204','1,180',P('Delivered','good')]]}},
+   {t:'Scheduled',s:{k:'table',cols:[{t:'Scheduled for'},{t:'Channel'},{t:'Template'},{t:'Status'}],rows:[['24 Nov 08:00','SMS','Black Friday',P('Queued','warn')],['01 Nov 09:00','Email','Statement reminder',P('Queued','warn')]]}},
+ ]},
+ {id:'proj',sec:'Work',ic:I.proj,n:'Projects',sub:'Projects, tasks and timesheets',tabs:[
+   {t:'Projects',s:{k:'table',cols:[{t:'Project'},{t:'Customer'},N('Budget'),{t:'Status'}],rows:[['Store launch','Internal','1,200,000',P('In progress','info')],['Website rebuild','Internal','600,000',P('Planning','warn')]]}},
+   {t:'Tasks',s:{k:'table',cols:[{t:'Task'},{t:'Project'},{t:'Assignee'},{t:'Due'},{t:'Status'}],rows:[['Map budget','Store launch','Finance','05 Nov',P('Completed','good')],['Purchase machinery','Store launch','Procurement','18 Nov',P('Overdue','bad')],['Plan launch event','Store launch','Marketing','25 Nov',P('In progress','info')]]}},
+   {t:'Timesheets',s:{k:'table',cols:[{t:'User'},{t:'Task'},N('Hours'),{t:'Billable'}],rows:[['Grant Jensen','Purchase machinery','6.5',P('Yes','good')],['Jane Smith','Plan launch event','4.0',P('No','mut')]]}},
+   {t:'Costing',s:{k:'stats',items:[['Budget','KES 1.2M','Store launch'],['Spent','KES 740K','62%','warn'],['Labour','KES 180K',''],['Margin','KES 460K','forecast','up']]}},
+ ]},
+ {id:'rep',sec:'Work',ic:I.rep,n:'Reports & Analytics',sub:'Report center and custom builder',tabs:[
+   {t:'Overview',s:{k:'cards',items:[['Sales summary'],['Profit & loss'],['Balance sheet'],['Stock valuation'],['VAT return'],['Customer statements'],['Purchase analysis'],['Production yield']]}},
+   {t:'Sales',s:{k:'cards',items:[['Sales summary'],['Sales by product'],['Sales by customer'],['Sales by channel'],['Returns & refunds'],['Sales targets']]}},
+   {t:'Finance',s:{k:'cards',items:[['Profit & loss'],['Balance sheet'],['Trial balance'],['Cash flow'],['VAT return'],['Aged receivables']]}},
+   {t:'Inventory',s:{k:'cards',items:[['Stock valuation'],['Stock movement'],['Low stock'],['Wastage'],['Reorder forecast']]}},
+   {t:'Custom builder',s:{k:'form',fields:[['Report name','Weekly sales by rep','ph'],['Data source','Sales'],['Columns','Rep, Net sales, Orders, Margin','ph',1],['Group by','Sales rep'],['Date range','This month'],['Schedule','Every Monday 8am']]}},
+   {t:'Scheduled',s:{k:'table',cols:[{t:'Report'},{t:'Cadence'},{t:'Recipients'},{t:'Status'}],rows:[['Daily sales','Daily 6pm','Owner',P('Active','good')],['Weekly P&L','Mon 8am','Finance',P('Active','good')]]}},
+ ]},
+ {id:'sup',sec:'Work',ic:I.sup,n:'Support & Helpdesk',sub:'Tickets, SLAs and knowledge base',tabs:[
+   {t:'Tickets',s:{k:'table',cols:[{t:'Ticket'},{t:'Subject'},{t:'Priority'},{t:'Status'}],rows:[['TKT-1042','POS printer not connecting',P('High','bad'),P('Open','info')],['TKT-1041','Stock count mismatch',P('Medium','warn'),P('In progress','info')],['TKT-1038','Invoice email not sending',P('Low','mut'),P('Resolved','good')]]}},
+   {t:'SLAs',s:{k:'table',cols:[{t:'Priority'},{t:'Respond in'},{t:'Resolve in'},N('Met')],rows:[['High','1 hour','4 hours','88%'],['Medium','4 hours','1 day','94%'],['Low','1 day','3 days','97%']]}},
+   {t:'Knowledge base',s:{k:'table',cols:[{t:'Article'},{t:'Category'},N('Views'),{t:'Status'}],rows:[['Setting up a POS terminal','Getting started','1,240',P('Published','good')],['How to issue a credit note','Sales','860',P('Published','good')],['Reconciling a bank feed','Finance','540',P('Draft','mut')]]}},
+   {t:'AI assistant',s:{k:'chat',html:CHAT_HTML}},
+ ]},
+ {id:'set',sec:'System',ic:I.set,n:'Settings & Administration',sub:'Company, users, taxes and integrations',tabs:[
+   {t:'Business profile',s:{k:'form',fields:[['Legal business name','Build by Blaise'],['Trading name','e.g. Canteen','ph'],['Base currency','KES — Kenyan Shilling'],['Secondary currencies','USD, EUR, INR'],['Default tax','VAT 16%'],['Fiscal year start','1 January']]}},
+   {t:'Branches',s:{k:'table',cols:[{t:'Branch'},{t:'Type'},N('Terminals'),{t:'Status'}],rows:[['Nairobi HQ','Head office','2',P('Active','good')],['New Jersey','Retail','1',P('Active','good')],['New York','Retail','1',P('Active','good')]]}},
+   {t:'Users & roles',s:{k:'table',cols:[{t:'User'},{t:'Role'},{t:'Branch'},{t:'Status'}],rows:[['Tony Ashiuma','Owner / Admin','Nairobi HQ',P('Active','good')],['Grant Jensen','Procurement','Nairobi HQ',P('Active','good')],['Jane Smith','Cashier','New Jersey',P('Active','good')]]}},
+   {t:'Taxes',s:{k:'table',cols:[{t:'Tax'},N('Rate'),{t:'Type'},{t:'Status'}],rows:[['VAT','16%','Sales + purchase',P('Active','good')],['Zero-rated','0%','Sales',P('Active','good')],['Exempt','—','Sales',P('Active','good')]]}},
+   {t:'Integrations',s:{k:'table',cols:[{t:'Integration'},{t:'Type'},{t:'Status'}],rows:[['M-Pesa','Payments',P('Connected','good')],['Shopify','Sales channel',P('Connected','good')],['SMS gateway','Messaging',P('Connected','good')],['Amazon','Sales channel',P('Connected','good')]]}},
+   {t:'Data I/O',s:{k:'form',fields:[['Action','Import'],['Record type','Products'],['File','products.csv','ph'],['Mapping','Auto-detected'],['Mode','Create & update'],['Notes','Dry run first','ph',1]]}},
+ ]},
+];
+
+/* ---------- render ---------- */
+const nav=document.getElementById('nav'),content=document.getElementById('content');
+let lastSec=null;
+MODS.forEach(m=>{
+  if(m.sec!==lastSec){const s=document.createElement('div');s.className='nav-sec';s.textContent=m.sec;nav.appendChild(s);lastSec=m.sec;}
+  const b=document.createElement('button');b.className='nitem';b.dataset.id=m.id;
+  b.innerHTML=`<svg viewBox="0 0 18 18">${m.ic}</svg>${m.n}`;
+  b.onclick=()=>{route(m.id,0);document.body.classList.remove('navopen');};
+  nav.appendChild(b);
+});
+function route(id,tabIdx){
+  const m=MODS.find(x=>x.id===id)||MODS[0];
+  tabIdx=tabIdx||0;
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.toggle('active',n.dataset.id===m.id));
+  const tabsHtml=m.tabs.map((t,i)=>`<button class="subtab ${i===tabIdx?'active':''}" data-i="${i}">${t.t}</button>`).join('');
+  content.innerHTML=`
+    <div class="phead"><div class="psp"><p class="crumb">${m.sec} / ${m.n}</p><h1 class="ptitle">${m.n}</h1><p class="psub">${m.sub}</p></div><button class="btn-primary js-new">+ New</button></div>
+    <div class="subtabs">${tabsHtml}</div>
+    <h2 class="tabtitle">${m.tabs[tabIdx].t}</h2>
+    <div class="note">Example data · click any row to open the record</div>
+    <div id="viewbody">${renderBody(m.tabs[tabIdx].s)}</div>`;
+  content.querySelectorAll('.subtab').forEach(tb=>tb.onclick=()=>{
+    const i=+tb.dataset.i;
+    content.querySelectorAll('.subtab').forEach(x=>x.classList.remove('active'));tb.classList.add('active');
+    document.querySelector('.tabtitle').textContent=m.tabs[i].t;
+    document.getElementById('viewbody').innerHTML=renderBody(m.tabs[i].s);
+    if(location.hash.slice(1)!==m.id+'-'+i) history.replaceState(null,'',`#${m.id}-${i}`);
+  });
+  content.scrollTop=0;
+  if(location.hash.slice(1)!==m.id+'-'+tabIdx) history.replaceState(null,'',`#${m.id}-${tabIdx}`);
+}
+document.getElementById('hamb').onclick=()=>document.body.classList.toggle('navopen');
+document.getElementById('scrim').onclick=()=>document.body.classList.remove('navopen');
+document.getElementById('themeBtn').onclick=()=>{const r=document.documentElement;const cur=r.getAttribute('data-theme');const dark=cur?cur==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.setAttribute('data-theme',dark?'light':'dark');};
+function parseHash(){const h=location.hash.slice(1);if(!h)return['home',0];const[id,i]=h.split('-');if(MODS.some(m=>m.id===id))return[id,+i||0];return['home',0];}
+const [sid,sidx]=parseHash();route(sid,sidx);
+addEventListener('hashchange',()=>{const[id,i]=parseHash();route(id,i);});
+</script>
+
+</body></html>

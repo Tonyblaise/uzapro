@@ -1,0 +1,27 @@
+import {
+  ArrowLeft, ArrowLeftRight, ArrowRight, Ban, Banknote, Bell, Boxes, Calculator, Calendar, Camera, ChartColumn, Check, ChevronDown, ChevronLeft,
+  ChevronRight, ChevronUp, CircleAlert, CircleCheck, CircleHelp, Copy, Download, Ellipsis, Eye, EyeOff, FileText, Filter, Folder, House,
+  Image, Info, Landmark, List, Lock, LogOut, Mail, Menu, Minus, Package, PackageX, Pencil, Plus, Printer, Receipt, RefreshCw, Ruler, Search, Settings,
+  ShoppingCart, SlidersHorizontal, Store, Tag, Trash2, TrendingUp, Truck, Undo2, Upload, User, Users, Wallet, Warehouse, X,
+  type LucideIcon,
+} from "lucide-react";
+
+/** Design icon names (Lucide names used in the canvas and erp-data.js) → components (research R4). */
+const ICONS: Record<string, LucideIcon> = {
+  "arrow-left": ArrowLeft, "arrow-left-right": ArrowLeftRight, "arrow-right": ArrowRight, ban: Ban, banknote: Banknote, bell: Bell, boxes: Boxes,
+  calculator: Calculator, calendar: Calendar, camera: Camera, "chart-column": ChartColumn, check: Check, "chevron-down": ChevronDown,
+  "chevron-left": ChevronLeft, "chevron-right": ChevronRight, "chevron-up": ChevronUp, "circle-alert": CircleAlert,
+  "circle-check": CircleCheck, "circle-help": CircleHelp, copy: Copy, download: Download, ellipsis: Ellipsis, eye: Eye, "eye-off": EyeOff,
+  "file-text": FileText, filter: Filter, folder: Folder, house: House, image: Image, info: Info, landmark: Landmark, list: List, lock: Lock, "log-out": LogOut,
+  mail: Mail, menu: Menu, minus: Minus, package: Package, "package-x": PackageX, pencil: Pencil, plus: Plus, printer: Printer,
+  receipt: Receipt, "refresh-cw": RefreshCw, ruler: Ruler, search: Search, settings: Settings, "shopping-cart": ShoppingCart,
+  "sliders-horizontal": SlidersHorizontal, store: Store, tag: Tag, "trash-2": Trash2, "trending-up": TrendingUp, truck: Truck,
+  "undo-2": Undo2, upload: Upload, user: User, users: Users, wallet: Wallet, warehouse: Warehouse, x: X,
+};
+
+export type IconName = keyof typeof ICONS | (string & {});
+
+export function Icon({ name, size = 16, stroke = 1.5, className }: { name: IconName; size?: number; stroke?: number; className?: string }) {
+  const C = ICONS[name] ?? CircleHelp;
+  return <C size={size} strokeWidth={stroke} absoluteStrokeWidth className={className} aria-hidden="true" focusable="false" />;
+}
