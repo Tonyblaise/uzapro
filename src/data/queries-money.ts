@@ -2,12 +2,10 @@
 /** Receivables and Payables read hooks (specs/003-receivables-payables/contracts/data-access.md). */
 import { useMemo } from "react";
 import { date as fmtDate } from "@/lib/format";
-import { MONEY_ACCOUNTS } from "./fixtures/money";
 import { ageing, balance, creditLeft, creditStatus, creditUsable, payStatus, planNextDue, rcvStatus } from "./money";
 import { useAppStore } from "./store/StoreProvider";
 import type { AgeingRow, Credit, CreditRow, MoneyPayment, PayableRow, Plan, PlanRow, ReceivableRow, Side } from "./types";
 
-export { MONEY_ACCOUNTS };
 export { PLAN_FREQS, planEach, planStep } from "./money";
 
 export function useReceivables(): ReceivableRow[] {

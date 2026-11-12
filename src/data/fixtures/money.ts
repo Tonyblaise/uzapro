@@ -77,5 +77,3 @@ export const UZ_PLANDETAIL: Record<string, { count: number; paid: number; freq: 
   "PPL-0001": { count: 2, paid: 0, freq: "Monthly", start: "2026-11-20" },
 };
 
-/** Accounts shown in "Paid into" / "Paid from" (Accounts › Bank accounts; balances out of scope, FR-019). */
-export const MONEY_ACCOUNTS = ["Equity Bank — Main", "M-Pesa Till", "Cash drawer"];

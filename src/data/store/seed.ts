@@ -27,7 +27,10 @@ import {
   UZ_SCDETAIL,
 } from "../fixtures/money";
 import type { Credit, MoneyPayment, Payable, Plan, Priority, Receivable } from "../types";
-import type { AppState, MoneyState, PurchasesState } from "./state";
+import type { AccountsState, AppState, ExpensesState, MoneyState, PurchasesState } from "./state";
+import { ACCOUNT_ROWS, DEPOSIT_ROWS, TRANSFER_ROWS as MONEY_TRANSFER_ROWS, UZ_ACCDETAIL, UZ_BANKS, UZ_DEPDETAIL, UZ_LEDGER, UZ_TRDETAIL, UZ_WDDETAIL, WITHDRAWAL_ROWS } from "../fixtures/accounts";
+import { EXPENSE_ROWS, RECURRING_ROWS, UZ_EXPCAT, UZ_EXPDETAIL, UZ_RECDETAIL, VOIDED_ROWS } from "../fixtures/expenses";
+import type { AccountType, ExpenseStatus, LedgerKind } from "../types";
 
 const MONTHS: Record<string, string> = {
   Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
@@ -216,6 +219,8 @@ export function createSeed(): AppState {
     ),
     purchases: seedPurchases(),
     money: seedMoney(),
+    accounts: seedAccounts(),
+    expenses: seedExpenses(),
     ui: { toast: null, search: "" },
   };
 }
@@ -362,5 +367,60 @@ function seedMoney(): MoneyState {
     customerCredits: credits(CUSTOMER_CREDIT_ROWS),
     supplierCredits: credits(SUPPLIER_CREDIT_ROWS),
     statement: { from: "2026-01-01", to: "2026-11-10", customer: "All customers" },
+  };
+}
+
+const NO_DETAIL = { time: "", fee: 0, bankRef: "", notes: "", who: "" };
+
+function seedAccounts(): AccountsState {
+  return {
+    accounts: ACCOUNT_ROWS.map(([name, provider, number, type, bal]) => {
+      const d = UZ_ACCDETAIL[name];
+      return {
+        name,
+        provider,
+        number,
+        type: type as AccountType,
+        balance: parseAmount(bal),
+        branch: d?.branch ?? "Nairobi HQ",
+        till: d?.till ?? "All tills",
+        opening: d?.opening ?? 0,
+        bankBranch: d?.branchName ?? "",
+        swift: d?.swift ?? "",
+        iban: d?.iban ?? "",
+        active: d?.active !== false,
+      };
+    }),
+    ledger: UZ_LEDGER.map((e) => ({ ...e, kind: e.kind as LedgerKind })),
+    deposits: DEPOSIT_ROWS.map(([ref, d, account, method, description, amount, status]) => ({
+      ref, date: parseDisplayDate(d), account, method, description, amount: parseAmount(amount), status: { ...status }, ...(UZ_DEPDETAIL[ref] ?? NO_DETAIL),
+    })),
+    withdrawals: WITHDRAWAL_ROWS.map(([ref, d, account, method, purpose, description, amount, status]) => ({
+      ref, date: parseDisplayDate(d), account, method, purpose, description, amount: parseAmount(amount), status: { ...status }, ...(UZ_WDDETAIL[ref] ?? NO_DETAIL),
+    })),
+    transfers: MONEY_TRANSFER_ROWS.map(([ref, d, from, to, description, amount, status]) => ({
+      ref, date: parseDisplayDate(d), from, to, description, amount: parseAmount(amount), status: { ...status }, ...(UZ_TRDETAIL[ref] ?? NO_DETAIL),
+    })),
+    banks: [...UZ_BANKS],
+  };
+}
+
+function seedExpenses(): ExpensesState {
+  return {
+    expenses: EXPENSE_ROWS.map(([ref, d, category, payee, account, reason, tax, amount, status]) => {
+      const x = UZ_EXPDETAIL[ref];
+      return {
+        ref, date: parseDisplayDate(d), category, payee, account, reason, tax: parseAmount(tax), amount: parseAmount(amount),
+        status: status.label as ExpenseStatus, branch: x?.branch ?? "", method: x?.method ?? "Cash", payRef: x?.payRef ?? "", fee: 0,
+      };
+    }),
+    voided: VOIDED_ROWS.map(([ref, d, category, payee, amount, on, by, reason]) => ({
+      ref, date: parseDisplayDate(d), category, payee, amount: parseAmount(amount), voidedOn: parseDisplayDate(on), voidedBy: by, reason, voidAccount: "—", branch: "", method: "Cash", payRef: "", fee: 0,
+    })),
+    recurring: RECURRING_ROWS.map(([ref, name, category, account, amount, , , status]) => {
+      const d = UZ_RECDETAIL[ref] ?? { freq: "Monthly" as const, interval: 1, day: "", start: "2026-11-10", end: "", max: "", auto: false, made: 0, payee: "", method: "Cash", tax: 0, reason: "" };
+      return { ref, name, category, account, amount: parseAmount(amount), ...d, notes: "", payRef: "", next: "", paused: status.label === "Paused" };
+    }),
+    categories: Object.entries(UZ_EXPCAT).map(([name, c]) => ({ name, ...c })),
   };
 }

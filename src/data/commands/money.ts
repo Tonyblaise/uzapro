@@ -1,11 +1,13 @@
 /**
  * Receivables and Payables commands (feature 003). Behaviour and wording from the design's
  * rcvPay/payPay, rcvPlan/payPlan, rcvCredit/payCredit, row actions and statement (research R2–R7).
- * Accounts is out of scope: payments store their account but no balances change (FR-019).
+ * Feature 004 (FR-013, FR-014): non-credit payments post to their account through `post()`, and
+ * fully paying a bill raised from an expense (doc `EXP-…`) marks that expense Paid.
  */
 import { DEMO_TODAY } from "@/lib/demo-clock";
 import { date as fmtDate, num } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
+import { post } from "../ledger";
 import { balance, creditLeft, creditUsable, planEach } from "../money";
 import { getStore, showToast } from "../store";
 import type { AppState } from "../store/state";
@@ -117,13 +119,31 @@ export async function recordPayment(side: Side, input: NewPayment): Promise<Resu
         });
       }
     }
-    return {
+    const payables = side === "pay" ? applyPaid(m.payables) : m.payables;
+    // FR-014: a bill raised from an expense, now fully paid, marks the expense Paid (account set unless paid with credit).
+    const settled = side === "pay" ? payables.filter((p) => alloc[p.ref] && p.doc.startsWith("EXP-") && balance(p) <= 0).map((p) => p.doc) : [];
+    const expenses = settled.length
+      ? { ...st.expenses, expenses: st.expenses.expenses.map((e) => (settled.includes(e.ref) ? { ...e, status: "Paid" as const, ...(isCredit ? {} : { account: input.account }) } : e)) }
+      : st.expenses;
+    const next: AppState = {
+      ...st,
       money:
         side === "rcv"
           ? { ...m, receivables: applyPaid(m.receivables), rcvPayments: [payment, ...m.rcvPayments], customerCredits: credits, rcvPlans: bumpPlan(m.rcvPlans) }
-          : { ...m, payables: applyPaid(m.payables), payPayments: [payment, ...m.payPayments], supplierCredits: credits, payPlans: bumpPlan(m.payPlans) },
+          : { ...m, payables, payPayments: [payment, ...m.payPayments], supplierCredits: credits, payPlans: bumpPlan(m.payPlans) },
       sales: { ...st.sales, invoices },
+      expenses,
     };
+    // FR-013: money moves only for non-credit payments.
+    if (isCredit) return next;
+    return post(next, {
+      date: input.date,
+      account: input.account,
+      ref,
+      desc: side === "rcv" ? `Payment from ${input.party}` : `Payment to ${input.party}`,
+      kind: side === "rcv" ? "Customer payment" : "Supplier payment",
+      amt: side === "rcv" ? amt : -amt,
+    });
   });
   const message = side === "rcv" ? `${ref} saved. KES ${fmt(amt)} applied to ${refs.join(", ")}.` : `${ref} saved. KES ${fmt(amt)} paid to ${input.party}.`;
   showToast(message);

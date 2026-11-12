@@ -1,4 +1,13 @@
 import type {
+  Account,
+  Deposit,
+  Expense,
+  ExpenseCategory,
+  LedgerEntry,
+  MoneyTransfer,
+  RecurringExpense,
+  VoidedExpense,
+  Withdrawal,
   Credit,
   Payable,
   MoneyPayment,
@@ -91,6 +100,24 @@ export interface MoneyState {
   statement: StatementFilter;
 }
 
+export interface AccountsState {
+  accounts: Account[];
+  /** Newest first. */
+  ledger: LedgerEntry[];
+  deposits: Deposit[];
+  withdrawals: Withdrawal[];
+  transfers: MoneyTransfer[];
+  /** Bank or provider options (UZ_BANKS, can grow from the account form). */
+  banks: string[];
+}
+
+export interface ExpensesState {
+  expenses: Expense[];
+  voided: VoidedExpense[];
+  recurring: RecurringExpense[];
+  categories: ExpenseCategory[];
+}
+
 export interface AppState {
   session: SessionState;
   catalog: CatalogState;
@@ -100,5 +127,7 @@ export interface AppState {
   suppliers: Supplier[];
   purchases: PurchasesState;
   money: MoneyState;
+  accounts: AccountsState;
+  expenses: ExpensesState;
   ui: UiState;
 }

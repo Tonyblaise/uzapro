@@ -4,7 +4,7 @@
  * supplier payments (`payPay`). Single, bulk (`bulk`) and instalment (`plan`) payments.
  */
 import { useState } from "react";
-import { MONEY_ACCOUNTS, UZ_PAYMETHODS, WALK_IN, recordPayment, toast, useMoneyParties, useOpenItems, usePayables, useUsableCredit, type Side } from "@/data";
+import { UZ_PAYMETHODS, useAccounts, useActiveAccountNames, WALK_IN, recordPayment, toast, useMoneyParties, useOpenItems, usePayables, useUsableCredit, type Side } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { Modal } from "@/components/ui/Overlay";
@@ -79,6 +79,11 @@ function PaymentFormBody({ side, onClose, initial = {} }: Omit<PaymentFormProps,
           ? `This customer only has KES ${fmt(avail)} credit to use.`
           : `This supplier only owes you KES ${fmt(avail)} in credit.`
         : "";
+  // Design `soft`: a supplier payment larger than the paying account's balance warns but still saves.
+  const accounts = useAccounts();
+  const accountNames = useActiveAccountNames();
+  const accBal = accounts.find((a) => a.name === account)?.balance;
+  const soft = !rcv && !warn && !isCredit && accBal !== undefined && amt > accBal ? `This is more than the KES ${fmt(accBal)} in ${account}. You can still save it.` : "";
   const blocked = !party || !chosen.length || !(amt > 0) || !!warn || (!isCredit && !account) || !date;
 
   const title = initial.bulk ? "New bulk payment" : rcv ? "Record payment" : "Pay supplier";
@@ -196,9 +201,10 @@ function PaymentFormBody({ side, onClose, initial = {} }: Omit<PaymentFormProps,
             {warn}
           </div>
         )}
+        {soft && <div className="type-small text-warning-text">{soft}</div>}
         <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
           <SearchSelect label="Payment method" options={[...UZ_PAYMETHODS, credit]} value={method} onChange={setMethod} />
-          {!isCredit && <SearchSelect label={rcv ? "Paid into" : "Paid from"} options={MONEY_ACCOUNTS} value={account} onChange={setAccount} />}
+          {!isCredit && <SearchSelect label={rcv ? "Paid into" : "Paid from"} options={accountNames} value={account} onChange={setAccount} />}
           {isCredit && <div className="type-small self-end rounded-md bg-canvas px-3 py-2 text-text-secondary">{creditText}</div>}
         </div>
         <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>

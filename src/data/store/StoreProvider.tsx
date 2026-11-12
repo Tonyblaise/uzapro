@@ -10,11 +10,10 @@ import type { AppState } from "./state";
 const StoreContext = createContext<AppStore | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [store] = useState(() => {
-    const s = createAppStore();
-    registerStore(s);
-    return s;
-  });
+  // Register the store React actually keeps. In dev Strict Mode the initializer runs twice and one
+  // result is discarded, so registering inside it could leave commands writing to the dropped store.
+  const [store] = useState(createAppStore);
+  registerStore(store);
 
   // Apply browser-only UI settings after mount so server and first client render match (R1 fix).
   useEffect(() => {

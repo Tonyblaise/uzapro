@@ -306,8 +306,8 @@ Required by Constitution Principle I.
 | Deviation | Reason | Reference |
 |---|---|---|
 | Voiding a credit sale or invoice closes its receivable (balance 0, "Voided") | The design leaves a debt for a voided sale; closing it keeps the demo consistent | Clarification Q2, FR-016b |
-| Payment methods and accounts are stored on payments but account balances do not change | Accounts is out of scope for this feature | FR-019 |
-| The supplier payment form omits the design's soft warning about paying more than an account holds | Account balances are out of scope (FR-019) | FR-007, FR-019 |
+| ~~Payment methods and accounts are stored on payments but account balances do not change~~ | **Superseded by feature 004** (FR-013): payments now post to their account and Transactions | FR-019 |
+| ~~The supplier payment form omits the design's soft warning about paying more than an account holds~~ | **Superseded by feature 004**: the warning is shown and saving is still allowed | FR-007, FR-019 |
 | Payment, plan and credit forms use the shared Modal (h2 heading, no header rule) rather than the design's card-title header | Reuses the feature 001 primitive; content and order are unchanged | SC-001 |
 
 ## Assumptions

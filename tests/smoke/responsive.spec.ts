@@ -21,6 +21,10 @@ const PAGES = [
   "/receivables/payments",
   "/payables/payables",
   "/payables/supplier-ageing",
+  "/accounts/bank-accounts",
+  "/accounts/transactions",
+  "/expenses/overview",
+  "/expenses/expenses",
 ];
 
 test("in-scope screens fit a 390px phone without horizontal page scroll", async ({ page, errors }) => {

@@ -3,8 +3,10 @@
  * placeholder until their story phase fills them; out-of-scope modules always use the placeholder.
  */
 import type { ModuleId } from "@/data";
+import { accountsScreens } from "./accounts/screens";
 import { customersScreens } from "./customers/screens";
 import { dashboardScreens } from "./dashboard/screens";
+import { expensesScreens } from "./expenses/screens";
 import { productsScreens } from "./products/screens";
 import { payablesScreens } from "./payables/screens";
 import { purchasesScreens } from "./purchases/screens";
@@ -24,6 +26,8 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   vend: suppliersScreens,
   rcv: receivablesScreens,
   pay: payablesScreens,
+  fin: accountsScreens,
+  exp: expensesScreens,
 };
 
 export function screenFor(moduleId: ModuleId, tabSlug: string): ScreenDef | undefined {

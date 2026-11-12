@@ -25,6 +25,7 @@ import {
   type VoidRecord,
 } from "../types";
 import { getStore, showToast } from "../store";
+import { post } from "../ledger";
 import { addCustomerCredit, addReceivable, closeReceivableFor } from "./money";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
@@ -386,6 +387,12 @@ export async function approveCreditNote(number: string): Promise<Result<CreditNo
   // FR-016c: money back as store credit (credit notes raised from a sale) becomes a customer credit.
   if (cn.moneyBack === "credit" && cn.source.startsWith("SAL-") && cn.status.label !== "Approved") {
     store.setState((s) => ({ money: addCustomerCredit(s, cn.customer, number, cn.amount).money }));
+  }
+  // FR-013a (design `cnMoney`): a cash or original-method refund on a sale's credit note leaves the refund account.
+  if (cn.moneyBack !== "credit" && cn.source.startsWith("SAL-") && cn.status.label !== "Approved") {
+    const original = cn.moneyBack === "original";
+    const account = original && /M-Pesa/i.test(cn.refundMethod) ? "M-Pesa Till" : original && /Card|Bank/i.test(cn.refundMethod) ? "Equity Bank — Main" : "Cash drawer";
+    store.setState((s) => post(s, { date: DEMO_TODAY, account, ref: number, desc: `Refund to ${cn.customer}`, kind: "Refund", amt: -cn.amount }));
   }
   const message = `${number} approved.`;
   showToast(message);
