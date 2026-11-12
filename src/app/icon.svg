@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>UzaPro</title>
+  <!-- The header logo tile: green-500 (#11A851) with a white "U" (src/components/ui/Logo.tsx). -->
+  <rect width="32" height="32" rx="7" fill="#11A851"/>
+  <path d="M10.5 8.5v8.25a5.5 5.5 0 0 0 11 0V8.5" fill="none" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round"/>
+</svg>
