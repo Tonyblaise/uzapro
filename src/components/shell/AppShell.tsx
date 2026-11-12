@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { findModuleBySlug } from "@/config/modules";
-import { usePos } from "@/data";
 import { AppHeader } from "./AppHeader";
 import { Sidebar } from "./Sidebar";
 import { UzaAi } from "@/features/uzaai/UzaAi";
@@ -12,8 +11,6 @@ import { UzaAi } from "@/features/uzaai/UzaAi";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  // The point-of-sale till covers the app; Uza AI hides while it is open (feature 010).
-  const tillOpen = usePos().ui.open;
   const slug = pathname.split("/")[1] ?? "";
   const activeId = slug === "dashboard" ? "home" : (findModuleBySlug(slug)?.id ?? null);
 
@@ -25,7 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AppHeader onMenu={() => setMenuOpen(true)} />
         <main className="mx-auto flex w-full max-w-[1360px] flex-col gap-5 p-4 pb-[88px] md:p-6 md:pb-[88px]">{children}</main>
       </div>
-      {!tillOpen && <UzaAi />}
+      <UzaAi />
     </div>
   );
 }

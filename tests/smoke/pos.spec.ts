@@ -3,7 +3,8 @@ import { expect, loginAs, test } from "./fixtures";
 
 /**
  * Feature 010 · Point of Sale (quickstart 1–9). Store data resets on a full page load, so each flow
- * logs in once and moves with in-app links (the till itself is `?till=1` on the Terminals tab).
+ * logs in once and moves with in-app links. "Continue selling" opens the till in a new tab
+ * (`?till=1&tab=1`) that shares the main tab's data, so its sales show up back in the main tab.
  */
 
 const nav = (page: Page) => page.getByRole("complementary", { name: "Main" });
@@ -13,13 +14,21 @@ const dialog = (page: Page, name: string | RegExp) => page.getByRole("dialog", {
 const toast = (page: Page) => page.getByRole("status").filter({ hasText: /\S/ });
 const card = (page: Page) => page.getByRole("list", { name: "Terminals" }).getByRole("listitem").first();
 
-async function openTill(page: Page) {
-  await nav(page).getByRole("link", { name: "Point of sale" }).click();
-  await page.waitForURL("**/point-of-sale/terminals");
-  await card(page).getByRole("button", { name: "Continue selling" }).click();
+/** Click a terminal's button and return the till tab it opens. */
+async function popTill(main: Page, button: string): Promise<Page> {
+  const [till] = await Promise.all([main.waitForEvent("popup"), card(main).getByRole("button", { name: button }).click()]);
+  return till;
+}
+
+/** Open Terminal 1 in its tab and log in with the demo PIN; returns the till tab. */
+async function openTill(main: Page): Promise<Page> {
+  await nav(main).getByRole("link", { name: "Point of sale" }).click();
+  await main.waitForURL("**/point-of-sale/terminals");
+  const page = await popTill(main, "Continue selling");
   await expect(page.getByRole("group", { name: "Enter your PIN" })).toBeFocused();
   for (const k of "1234") await page.keyboard.press(k);
   await expect(rail(page)).toBeVisible();
+  return page;
 }
 
 async function addPumpAndHelmet(page: Page) {
@@ -39,15 +48,32 @@ test("terminal card, PIN, and a cash sale with change and receipt (quickstart 1�
   await expect(card(page)).toContainText("6 · KES 17,918");
   await expect(page.getByRole("button", { name: "Open Uza AI" })).toBeVisible();
 
-  await card(page).getByRole("button", { name: "Continue selling" }).click();
-  await expect(page).toHaveURL(/till=1/);
-  await expect(page.getByRole("button", { name: "Open Uza AI" })).toHaveCount(0);
+  const main = page;
+  page = await popTill(main, "Continue selling");
+  await expect(toast(main)).toHaveText("Terminal 1 opened in a new tab.");
+  await expect(page).toHaveURL(/till=1&tab=1/);
+  await expect(page).toHaveTitle("UzaPro POS · Terminal 1");
+  await expect(page.getByRole("button", { name: "Close POS tab" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Uza AI" })).toBeHidden();
+  await expect(main.getByRole("button", { name: "Open Uza AI" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Tony Blaise.*opened this shift/ })).toHaveAttribute("aria-pressed", "true");
+  // Count tones played: a successful PIN plays the login chime (two notes).
+  await page.evaluate(() => {
+    const w = window as unknown as { __tones: number };
+    w.__tones = 0;
+    const orig = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function (this: AudioContext) {
+      w.__tones++;
+      return orig.call(this);
+    };
+  });
   for (const k of "1111") await page.getByRole("button", { name: k, exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Terminal 1 till" }).getByRole("alert")).toHaveText("That PIN is wrong. Try again.");
   await page.getByRole("group", { name: "Enter your PIN" }).focus();
   for (const k of "1234") await page.keyboard.press(k);
   await expect(rail(page).getByRole("button", { name: "Sell" })).toHaveAttribute("aria-current", "page");
+  expect(await page.evaluate(() => (window as unknown as { __tones: number }).__tones)).toBe(2);
+  await expect(page.getByRole("button", { name: "Full screen" })).toBeVisible();
 
   await addPumpAndHelmet(page);
   await expect(cart(page)).toContainText("2 items");
@@ -70,7 +96,8 @@ test("terminal card, PIN, and a cash sale with change and receipt (quickstart 1�
 test("a till sale reaches Sales, stock and accounts; split and pay later (quickstart 4–5)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await openTill(page);
+  const main = page;
+  page = await openTill(main);
   await addPumpAndHelmet(page);
   await page.getByRole("button", { name: /^Charge/ }).click();
   await dialog(page, "Checkout").getByRole("button", { name: /^Complete sale/ }).click();
@@ -110,8 +137,9 @@ test("a till sale reaches Sales, stock and accounts; split and pay later (quicks
   await co.getByRole("button", { name: "Complete on credit" }).click();
   await dialog(page, "Sale complete").getByRole("button", { name: "New sale" }).click();
 
-  await rail(page).getByRole("button", { name: "Exit" }).click();
-  await expect(page).toHaveURL(/\/point-of-sale\/terminals$/);
+  // Exit closes the till tab; its sales are already in the main tab.
+  await Promise.all([page.waitForEvent("close"), rail(page).getByRole("button", { name: "Exit" }).click()]);
+  page = main;
   await nav(page).getByRole("link", { name: "Sales", exact: true }).click();
   await page.getByRole("navigation", { name: "Sections" }).getByRole("link", { name: "All sales", exact: true }).click();
   await expect(page.getByRole("row").nth(1)).toContainText("Morningview Bicycles");
@@ -127,7 +155,8 @@ test("a till sale reaches Sales, stock and accounts; split and pay later (quicks
 test("open and close a shift (quickstart 8)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await openTill(page);
+  const main = page;
+  page = await openTill(main);
   await rail(page).getByRole("button", { name: "Shift" }).click();
   await expect(page.getByText("Expected cash in drawer")).toBeVisible();
   await expect(page.getByText("KES 8,968.00")).toBeVisible();
@@ -137,12 +166,11 @@ test("open and close a shift (quickstart 8)", async ({ page, errors }) => {
   await expect(cl.getByRole("alert")).toHaveText("Enter the cash you counted.");
   await cl.getByLabel("Cash you counted (KES)").fill("8900");
   await expect(cl).toContainText("Short by");
-  await cl.getByRole("button", { name: "Close shift" }).click();
-  await expect(toast(page)).toHaveText("Terminal 1 shift closed. Short by KES 68.00.");
-  await expect(page).toHaveURL(/\/point-of-sale\/terminals$/);
-  await expect(card(page)).toContainText("Closed");
+  await Promise.all([page.waitForEvent("close"), cl.getByRole("button", { name: "Close shift" }).click()]);
+  await expect(toast(main)).toHaveText("Terminal 1 shift closed. Short by KES 68.00.");
+  await expect(card(main)).toContainText("Closed");
 
-  await card(page).getByRole("button", { name: "Open shift" }).click();
+  page = await popTill(main, "Open shift");
   await expect(page.getByRole("heading", { name: "Open a new shift" })).toBeVisible();
   const till = page.getByRole("dialog", { name: "Terminal 1 till" });
   await till.getByRole("button", { name: "Open shift" }).click();
@@ -156,7 +184,8 @@ test("open and close a shift (quickstart 8)", async ({ page, errors }) => {
 test("customers, hold and resume, and an earlier receipt (quickstart 6)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await openTill(page);
+  const main = page;
+  page = await openTill(main);
   await cart(page).getByRole("button", { name: /Walk-in Customer/ }).click();
   const pick = dialog(page, "Who is this sale for?");
   await pick.getByLabel("Search customers").fill("zzz");
@@ -189,7 +218,8 @@ test("customers, hold and resume, and an earlier receipt (quickstart 6)", async 
   await expect(dialog(page, "Receipt SAL-POS-0005")).toContainText("M-Pesa SKB7Q2LM0P");
   await dialog(page, "Receipt SAL-POS-0005").getByRole("button", { name: "Done" }).click();
 
-  await rail(page).getByRole("button", { name: "Exit" }).click();
+  await Promise.all([page.waitForEvent("close"), rail(page).getByRole("button", { name: "Exit" }).click()]);
+  page = main;
   await nav(page).getByRole("link", { name: "Customers" }).click();
   await expect(page.getByRole("row").filter({ hasText: "Grace Wanjiru" })).toBeVisible();
 });
@@ -197,7 +227,8 @@ test("customers, hold and resume, and an earlier receipt (quickstart 6)", async 
 test("Today, settings, quick notes and Lock (quickstart 7)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await openTill(page);
+  const main = page;
+  page = await openTill(main);
   await rail(page).getByRole("button", { name: "Today" }).click();
   for (const l of ["Sales this shift", "Paid orders", "Average sale", "Items sold"]) await expect(page.getByRole("list", { name: "Shift figures" }).getByText(l, { exact: true })).toBeVisible();
   await expect(page.getByText("Busiest: 10:00 – 11:00")).toBeVisible();

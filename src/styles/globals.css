@@ -158,6 +158,8 @@
     .uz-shake { animation: none; }
   }
 }
+/* Uza AI hides in the tab where a till is open (set by Point of sale). */
+html[data-till] .uz-ai { display: none !important; }
 @keyframes uzShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes uzDot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 

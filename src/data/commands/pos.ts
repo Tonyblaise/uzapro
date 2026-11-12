@@ -40,20 +40,24 @@ export function tillProducts(s: AppState): { products: PosProduct[]; variantStoc
 }
 
 let audio: AudioContext | null = null;
-function beep(settings: PosSettings) {
+/** A short tone (design `beep`); a list of frequencies plays a quick rising chime. */
+function beep(settings: PosSettings, notes: number[] = [880]) {
   if (!settings.sound || typeof window === "undefined") return;
   try {
     const A = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!A) return;
     audio ??= new A();
-    const o = audio.createOscillator();
-    const g = audio.createGain();
-    o.frequency.value = 880;
-    g.gain.value = 0.05;
-    o.connect(g);
-    g.connect(audio.destination);
-    o.start();
-    o.stop(audio.currentTime + 0.07);
+    notes.forEach((hz, i) => {
+      const o = audio!.createOscillator();
+      const g = audio!.createGain();
+      o.frequency.value = hz;
+      g.gain.value = 0.05;
+      o.connect(g);
+      g.connect(audio!.destination);
+      const at = audio!.currentTime + i * 0.09;
+      o.start(at);
+      o.stop(at + 0.07);
+    });
   } catch {
     /* audio blocked */
   }
@@ -110,6 +114,8 @@ export function pressPin(key: string): void {
   const p = (pin + key).slice(0, 4);
   if (p.length < 4) return setUi(() => ({ pin: p, pinErr: "" }));
   if (p === DEMO_PIN) {
+    // A rising two-tone chime when someone logs in at the till (follows the Sound setting).
+    beep(s.pos.settings, [660, 990]);
     const shift = s.pos.shifts[termId];
     getStore().setState((st) => ({
       pos: {

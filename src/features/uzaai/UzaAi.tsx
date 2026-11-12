@@ -36,7 +36,7 @@ export function UzaAi() {
         type="button"
         onClick={openUzaAi}
         aria-label="Open Uza AI"
-        className="uz-fab fixed bottom-6 right-6 z-[var(--z-launcher)] grid size-[58px] place-items-center rounded-full border-[3px] border-white bg-[linear-gradient(135deg,var(--green-500),var(--green-800))] text-white shadow-fab"
+        className="uz-ai uz-fab fixed bottom-6 right-6 z-[var(--z-launcher)] grid size-[58px] place-items-center rounded-full border-[3px] border-white bg-[linear-gradient(135deg,var(--green-500),var(--green-800))] text-white shadow-fab"
       >
         <Icon name="sparkles" size={26} />
         <span className="uz-fab-tip" aria-hidden="true">
@@ -51,7 +51,7 @@ export function UzaAi() {
       ref={panel}
       role="dialog"
       aria-label="Uza AI and help"
-      className="fixed inset-y-0 right-0 z-[var(--z-ai-panel)] flex w-[min(460px,100vw)] flex-col border-l border-border bg-surface shadow-panel"
+      className="uz-ai fixed inset-y-0 right-0 z-[var(--z-ai-panel)] flex w-[min(460px,100vw)] flex-col border-l border-border bg-surface shadow-panel"
     >
       <div className="flex flex-none items-center gap-0.5 border-b border-border px-3">
         <div role="tablist" aria-label="Uza AI sections" className="flex min-w-0 items-center gap-0.5">

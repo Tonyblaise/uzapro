@@ -197,7 +197,8 @@ test.describe("till on phones", () => {
     await loginAs(page, "owner");
     await page.getByRole("button", { name: "Open menu" }).click();
     await page.getByRole("complementary", { name: "Main" }).getByRole("link", { name: "Point of sale" }).click();
-    await page.getByRole("button", { name: "Continue selling" }).click();
+    const [till] = await Promise.all([page.waitForEvent("popup"), page.getByRole("button", { name: "Continue selling" }).click()]);
+    page = till;
     await expect(page.getByRole("group", { name: "Enter your PIN" })).toBeVisible();
     await fits(page, "PIN");
     await scan(page, "PIN");

@@ -39,9 +39,10 @@ The design's `erp-data.js` also changes:
 
 ### Session 2026-11-12
 
-- Q: Should the till open in the same tab or a new browser tab, as in the design? → A: Full-screen in
-  the same tab, at its own address (`/point-of-sale/terminals?till={id}`), so POS sales update All sales,
-  stock, accounts and receivables. Exit returns to UzaPro.
+- Q: Should the till open in the same tab or a new browser tab, as in the design? → A: First answered
+  "same tab". Revised on 2026-11-12 at the user's request: a **new tab** that shares the main tab's
+  in-memory data through the browser's window link (as the canvas's `window.opener` link does), with
+  the design's "Not linked to UzaPro" fallback (FR-003).
 - Q: Should till settings be remembered across reloads (a new browser-storage key)? → A: No. They
   last for the session only, and the subtitle reads "Saved for {terminal} in this session". There is
   no constitution change.
@@ -321,10 +322,23 @@ the quick note "No box" and use it on a cart line.
   as the Owner already has.
 - **FR-002**: The Terminals tab MUST list the terminals from Settings › Terminals with the design's
   card, status pill, facts and button (User Story 1, scenario 1), plus the "Manage terminals" link.
-- **FR-003**: Launching a terminal MUST open the full-screen till in the same browser tab, at its own
-  address (`/point-of-sale/terminals?till={id}`, Clarification Q1), so sales flow into the rest of the
-  demo. "Back to UzaPro" and Exit return to Point of sale › Terminals. Reloading the till's address
-  reopens it at the right step for that terminal.
+- **FR-003**: Launching a terminal MUST open the till in a **new browser tab**
+  (`/point-of-sale/terminals?till={id}&tab=1`), as the design does, and toast "{terminal} opened in
+  a new tab.". The tab is titled "UzaPro POS · {terminal}".
+  - **Linked**: a till tab shares the main UzaPro tab's in-memory data through the browser's window
+    link, so its sales still update All sales, stock, accounts and receivables. Nothing is written to
+    browser storage.
+  - **Not linked**: if the tab has no UzaPro tab behind it (it was reloaded, or the main tab closed),
+    the till keeps working on its own copy and shows "Not linked to UzaPro" ("Sales made now stay in
+    this tab").
+  - **Blocked**: if the browser blocks the new tab, the till opens in the current tab with the toast
+    "Your browser blocked the new tab, so the POS opened here.".
+  - **Exit**: "Close POS tab" / Exit close the till tab. In the same-tab fallback, "Back to UzaPro"
+    returns to the cards.
+- **FR-003a**: The till header MUST offer a Full screen / Exit full screen toggle (user request,
+  2026-11-12).
+- **FR-005a**: A successful PIN login MUST play a short rising two-tone chime. It follows the Sound
+  setting (user request, 2026-11-12).
 
 **Shift and login**
 
@@ -448,7 +462,8 @@ Required by Constitution Principle I. These are the only intended differences fr
 | Deviation | Reason | Reference |
 |---|---|---|
 | The seeded shift and sales are by Tony Blaise, not Tony Ashiuma | The demo Owner was renamed (feature 001 deviation, 2026-11-12) | FR-016 |
-| The till opens full-screen in the same tab at `/point-of-sale/terminals?till={id}`, not in a new browser tab; the "Not linked to UzaPro" state and "Close POS tab" label are not used | A new tab can't share the in-memory demo data, so its sales wouldn't reach the rest of the app (Clarification Q1) | FR-003 |
+| A till tab writes into the main tab's data as copies (so the data outlives the till tab), and the till is closed in the shared data when its tab closes | Keeps the shared in-memory store safe across tabs, with no browser storage (Principle III) | FR-003 |
+| The till header has a Full screen toggle, and a successful PIN login plays a chime | User requests, 2026-11-12; neither is in the canvas | FR-003a, FR-005a |
 | Till settings last for the session; the subtitle reads "Saved for {terminal} in this session" instead of "on this device" | Constitution Principle III forbids new browser-storage keys (Clarification Q2) | FR-014 |
 | The receipt footer reads "Thank you for shopping with us." instead of the canvas's "Thank you for shopping with us!" | Constitution Principle IV forbids exclamation marks | FR-017 |
 | Below 860px the slide-in cart has its own "Close cart" button | The canvas's cart panel covers the header button that opens it, leaving no way to close it on a phone (Principle IV) | FR-019 |

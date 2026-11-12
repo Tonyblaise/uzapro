@@ -41,7 +41,7 @@ export * from "./commands/uzaai";
 export { AI_PROMPTS } from "./fixtures/uzaai";
 export type { AiState, AiTab, FeaturesTabName } from "./store/state";
 export { HELP_ARTICLES, HELP_CATEGORIES } from "./fixtures/helpcenter";
-export { StoreProvider } from "./store/StoreProvider";
+export { StoreProvider, useLinkedTab } from "./store/StoreProvider";
 
 // Reference lists the forms need (read-only copies).
 export { UZ_UNITS, UZ_PAYMETHODS, PAY_LATER, UZ_REFUND, UZ_VOID, UZ_LOC, UZ_BIZ, DEMO_LOGIN } from "./fixtures/reference";

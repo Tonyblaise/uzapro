@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Input } from "@/components/ui/Field";
-import { exitTill, lockTill, onShiftLabel, openPosSettings, setPosQuery, setPosView, toggleCart, usePos, usePosTill, initialsOf, type PosView } from "@/data";
+import { exitTill, lockTill, onShiftLabel, openPosSettings, setPosQuery, setPosView, toggleCart, useLinkedTab, usePos, usePosTill, initialsOf, type PosView } from "@/data";
 import { Cart } from "./Cart";
 import { Dialogs } from "./Dialogs";
 import { PreSteps } from "./PreSteps";
@@ -29,6 +29,25 @@ const SEARCH_PH: Record<PosView, string> = {
   shift: "Search products",
 };
 
+/** Full screen for the till (Fullscreen API): the state follows the browser, so Esc stays in sync. */
+function useFullscreen() {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const sync = () => setOn(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+  const toggle = () => {
+    try {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void document.documentElement.requestFullscreen?.();
+    } catch {
+      /* not supported */
+    }
+  };
+  return { on, toggle, supported: typeof document !== "undefined" && !!document.fullscreenEnabled };
+}
+
 /** The current time, refreshed every 30 seconds ("On shift {h}h {m}m"). */
 function useNow() {
   const [now, setNow] = useState(() => Date.now());
@@ -39,12 +58,14 @@ function useNow() {
   return now;
 }
 
-export function Till() {
+export function Till({ tab = false }: { tab?: boolean }) {
   const now = useNow();
+  const fs = useFullscreen();
   const { term } = usePosTill();
+  const linked = useLinkedTab();
   const { ui, held, shifts } = usePos();
   if (!term) return null;
-  if (ui.step !== "app") return <PreSteps term={term} />;
+  if (ui.step !== "app") return <PreSteps term={term} tab={tab} />;
   const title = { sell: "Sell", today: `Today on ${term.name}`, orders: "Orders this shift", customers: "Customers", shift: "Shift" }[ui.view];
   const count = ui.cart.reduce((a, l) => a + l.qty, 0);
   const railBtn = "flex w-16 flex-col items-center gap-1 rounded-[12px] border-0 px-0 pb-2 pt-2.5 text-[11px] font-semibold";
@@ -104,6 +125,23 @@ export function Till() {
               <div className="type-caption text-text-muted">On shift {onShiftLabel(shifts[term.id]?.start, now)}</div>
             </div>
           </div>
+          {fs.supported && (
+            <button
+              type="button"
+              onClick={fs.toggle}
+              aria-pressed={fs.on}
+              aria-label={fs.on ? "Exit full screen" : "Full screen"}
+              title={fs.on ? "Exit full screen" : "Full screen"}
+              className="grid size-10 flex-none place-items-center rounded-full border border-border bg-surface text-text-secondary hover:text-text"
+            >
+              <Icon name={fs.on ? "minimize" : "maximize"} size={18} />
+            </button>
+          )}
+          {tab && !linked && (
+            <span title="Sales made now stay in this tab" className="type-caption inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-warning-soft px-2.5 py-1.5 font-bold text-warning-text">
+              Not linked to UzaPro
+            </span>
+          )}
           <button type="button" onClick={toggleCart} aria-expanded={ui.cartOpen} className="uz-pos-cartbtn type-label hidden items-center gap-1.5 rounded-pill border border-green-200 bg-green-50 px-3 py-2 text-green-800">
             <Icon name="shopping-cart" size={16} />
             {count} {count === 1 ? "item" : "items"}

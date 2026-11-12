@@ -10,7 +10,7 @@ import { Eyebrow, UMark, avatar } from "./shared";
 
 const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clr", "0", "del"];
 
-export function PreSteps({ term }: { term: Terminal }) {
+export function PreSteps({ term, tab = false }: { term: Terminal; tab?: boolean }) {
   const { ui, shifts } = usePos();
   const sh = shifts[term.id] ?? { open: false, refs: [] };
   const stepIdx = ui.step === "pin" ? 2 : 1;
@@ -26,7 +26,7 @@ export function PreSteps({ term }: { term: Terminal }) {
         <UMark />
         <button type="button" onClick={exitTill} className="type-label inline-flex items-center gap-1.5 border-0 bg-transparent text-text">
           <Icon name="arrow-left" size={16} />
-          Back to UzaPro
+          {tab ? "Close POS tab" : "Back to UzaPro"}
         </button>
         <span className="flex-1" />
         <span className="type-small text-right text-text-secondary">

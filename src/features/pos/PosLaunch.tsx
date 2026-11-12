@@ -1,9 +1,9 @@
 "use client";
 /** Point of sale › Terminals (design `isPosLaunch`): a card per terminal; `?till={id}` opens the till. */
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { hrefFor } from "@/config/modules";
-import { exitTill, launchTill, posK0, usePos, useTerminals } from "@/data";
+import { exitTill, launchTill, posK0, toast, usePos, useTerminals } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Till } from "./Till";
@@ -17,22 +17,88 @@ export function PosLaunch() {
   const tillId = Number(params.get("till"));
   const term = list.find((t) => t.id === tillId && t.active);
 
-  // The URL drives the till: open it for an active terminal, close it otherwise (Clarification Q1).
+  // This tab is a till tab opened from the cards (`?till=1&tab=1`), as the design's `#pos-term-1`.
+  const tillTab = params.get("tab") === "1";
+  // Whether this tab launched the till (the slice is shared with a linked till tab).
+  const launchedHere = useRef(false);
+  const [mine, setMine] = useState(false);
+
+  // The URL drives the till in this tab: open it for an active terminal.
   useEffect(() => {
-    if (term && (!pos.ui.open || pos.ui.termId !== term.id)) launchTill(term.id);
-    if (!term && pos.ui.open) exitTill();
+    if (term && (!pos.ui.open || pos.ui.termId !== term.id || !launchedHere.current)) {
+      launchTill(term.id);
+      launchedHere.current = true;
+      setMine(true);
+    }
+    if (!term && launchedHere.current) {
+      launchedHere.current = false;
+      setMine(false);
+      if (pos.ui.open) exitTill();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [term?.id]);
-  // Leaving the till (Exit, Close shift) returns to the cards: only on an open → closed change.
+
+  // Leaving the till (Exit, Close shift): a till tab closes itself; otherwise back to the cards.
   const wasOpen = useRef(false);
   useEffect(() => {
-    if (wasOpen.current && !pos.ui.open && params.get("till")) router.replace(pathname, { scroll: false });
+    if (wasOpen.current && !pos.ui.open && params.get("till") && launchedHere.current) {
+      launchedHere.current = false;
+      setMine(false);
+      if (tillTab) {
+        try {
+          window.close();
+        } catch {
+          /* ignore */
+        }
+      }
+      // If the browser keeps the tab open (it wasn't opened by script), show the cards.
+      setTimeout(() => router.replace(pathname, { scroll: false }), 150);
+    }
     wasOpen.current = pos.ui.open;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pos.ui.open]);
 
+  // A till tab: name the tab, hide Uza AI here only, and close the till if the tab is closed.
+  const tillShown = !!term && pos.ui.open && pos.ui.termId === term.id && mine;
+  useEffect(() => {
+    if (!tillShown || !term) return;
+    const title = document.title;
+    const want = `UzaPro POS · ${term.name}`;
+    // Next.js re-applies the page title on render, so keep the till's name on the tab.
+    const keep = () => {
+      if (tillTab && document.title !== want) document.title = want;
+    };
+    keep();
+    const watch = new MutationObserver(keep);
+    if (tillTab) watch.observe(document.head, { subtree: true, childList: true, characterData: true });
+    document.documentElement.dataset.till = "1";
+    const bye = () => exitTill();
+    if (tillTab) window.addEventListener("pagehide", bye);
+    return () => {
+      watch.disconnect();
+      document.title = title;
+      delete document.documentElement.dataset.till;
+      window.removeEventListener("pagehide", bye);
+    };
+  }, [tillShown, tillTab, term]);
+
+  /** Design `tm.go`: open the till in a new tab; if the browser blocks it, open it here. */
+  const openTill = (id: number, name: string) => {
+    let w: Window | null = null;
+    try {
+      w = window.open(`${pathname}?${new URLSearchParams({ till: String(id), tab: "1" })}`, "_blank");
+    } catch {
+      w = null;
+    }
+    if (w) toast(`${name} opened in a new tab.`);
+    else {
+      router.push(`${pathname}?till=${id}`, { scroll: false });
+      toast("Your browser blocked the new tab, so the POS opened here.");
+    }
+  };
+
   // While the till is open it is the whole screen, so the cards aren't rendered behind it.
-  if (term && pos.ui.open && pos.ui.termId === term.id) return <Till />;
+  if (tillShown) return <Till tab={tillTab} />;
 
   return (
     <>
@@ -71,7 +137,7 @@ export function PosLaunch() {
                     <dd className="type-label u-num m-0 mt-0.5 text-text">{open ? `${sh!.refs.length} · ${posK0(sales)}` : sh?.closedAt || "—"}</dd>
                   </div>
                 </dl>
-                <Button size="lg" icon="arrow-up-right" fullWidth disabled={off} onClick={() => router.push(`${pathname}?till=${t.id}`, { scroll: false })}>
+                <Button size="lg" icon="arrow-up-right" fullWidth disabled={off} onClick={() => openTill(t.id, t.name)}>
                   {off ? "Terminal is off" : open ? "Continue selling" : "Open shift"}
                 </Button>
               </li>
