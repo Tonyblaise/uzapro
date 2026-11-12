@@ -65,6 +65,8 @@
 
   --shadow-sm: var(--shadow-sm);
   --shadow-lg: var(--shadow-lg);
+  --shadow-fab: var(--shadow-fab);
+  --shadow-panel: var(--shadow-panel);
 
   --ease-standard: var(--ease-standard);
 }
@@ -101,6 +103,31 @@
   /* Storage rings need more room for "Spreadsheets" beside the ring: single column on all phones. */
   @media (max-width: 419px) { .uz-c4.uz-c4-four.uz-c4-rings { grid-template-columns: minmax(0, 1fr); } }
 }
+
+/* Uza AI (feature 008; canvas .uz-fab / .uz-fab-tip / .uz-dots) */
+@layer components {
+  .uz-fab { transition: transform 0.15s ease; }
+  .uz-fab:hover { transform: scale(1.06); }
+  .uz-fab-tip {
+    position: absolute; right: 70px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+    padding: 8px 12px; border-radius: var(--radius-md); background: var(--grey-900); color: var(--white);
+    font: var(--type-label); opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  }
+  .uz-fab-tip::after {
+    content: ""; position: absolute; right: -5px; top: 50%; margin-top: -5px;
+    border: 5px solid transparent; border-right: 0; border-left-color: var(--grey-900);
+  }
+  .uz-fab:hover .uz-fab-tip, .uz-fab:focus-visible .uz-fab-tip { opacity: 1; }
+  .uz-dots { display: flex; gap: 4px; }
+  .uz-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); animation: uzDot 1s infinite; }
+  .uz-dots i:nth-child(2) { animation-delay: 0.15s; }
+  .uz-dots i:nth-child(3) { animation-delay: 0.3s; }
+  @media (prefers-reduced-motion: reduce) {
+    .uz-fab, .uz-fab:hover { transition: none; transform: none; }
+    .uz-dots i { animation: none; opacity: 0.6; }
+  }
+}
+@keyframes uzDot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; }

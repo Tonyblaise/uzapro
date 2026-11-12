@@ -371,3 +371,62 @@ export interface HelpSearchResult {
   /** 0 = title match, 1 = heading match, 2 = body match. */
   rank: 0 | 1 | 2;
 }
+
+// ── Uza AI (feature 008, data-model.md) ────────────────────────────────────
+
+/** A button under an Uza AI answer: open a module tab, or open a support ticket. */
+export type AiAction =
+  | { kind: "screen"; label: string; module: ModuleId; tab: string }
+  | { kind: "ticket"; label: string; ref: string };
+
+export interface AiMessage {
+  me: boolean;
+  text: string;
+  /** The attached file's name only; the file itself is never read. */
+  file?: string;
+  act?: AiAction;
+}
+
+export interface AiChat {
+  id: string;
+  title: string;
+  /** ISO date; set to the demo date on every send. */
+  date: string;
+  msgs: AiMessage[];
+  /** Waiting for the details of a reported problem (design `bug[conv.id]`). */
+  awaitingDetails: boolean;
+}
+
+export type TicketPriority = "Low" | "Medium" | "High";
+export type TicketStatus = "Open" | "In progress" | "Resolved" | "Closed";
+
+export interface TicketMessage {
+  me: boolean;
+  /** "Faith · UzaPro support" | "UzaPro support"; shown as "You" when `me`. */
+  who?: string;
+  /** "14 Oct 2026, 10:12" | "Automatic reply" */
+  when: string;
+  text: string;
+}
+
+export interface SupportTicket {
+  ref: string;
+  subject: string;
+  priority: TicketPriority;
+  status: TicketStatus;
+  msgs: TicketMessage[];
+}
+
+export type IdeaStatus = "Planned" | "In progress" | "Done" | "Under review";
+
+export interface FeatureIdea {
+  id: string;
+  title: string;
+  /** The outcome. */
+  desc: string;
+  status: IdeaStatus;
+  eta?: string;
+  /** Base count, not including the user's own vote. */
+  votes: number;
+  tags: string;
+}

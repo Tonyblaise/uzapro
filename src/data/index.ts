@@ -29,6 +29,10 @@ export * from "./commands/settings";
 export * from "./commands/profile";
 export * from "./commands/generic";
 export * from "./helpcenter";
+export * from "./uzaai";
+export * from "./commands/uzaai";
+export { AI_PROMPTS } from "./fixtures/uzaai";
+export type { AiState, AiTab, FeaturesTabName } from "./store/state";
 export { HELP_ARTICLES, HELP_CATEGORIES } from "./fixtures/helpcenter";
 export { StoreProvider } from "./store/StoreProvider";
 

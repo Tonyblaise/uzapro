@@ -1,6 +1,9 @@
 "use client";
 /** Office, People and Settings read hooks (specs/005-office-people-settings/contracts/data-access.md). */
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import type { AiState } from "./store/state";
+import { viewingLabel } from "./uzaai";
 import { comingUp, visibleEvents } from "./calendar";
 import { storageTotals } from "./docs";
 import { currentUserFirst, currentUserName } from "./profile";
@@ -193,4 +196,14 @@ export function useCurrentUserFirst(): string {
 /** Rows of a generic table tab ("{moduleId}/{tabSlug}"). */
 export function useGenericRows(moduleId: ModuleId, tab: string): GenericRow[] {
   return useAppStore((s) => s.generic[`${moduleId}/${tab}`] ?? NO_ROWS);
+}
+
+/** Uza AI panel state (feature 008). */
+export function useUzaAi(): AiState {
+  return useAppStore((s) => s.ai);
+}
+
+/** The "Viewing:" chip text for the current screen (research R9). */
+export function useViewingLabel(): string {
+  return viewingLabel(usePathname() ?? "/");
 }

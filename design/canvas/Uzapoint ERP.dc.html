@@ -32,6 +32,12 @@
     table th:has(.uz-th-right){text-align:right!important}
     @media(max-width:900px){.uz-login-side{display:none!important}}
     .uz-full button{width:100%;justify-content:center}
+    .uz-fab{transition:transform .15s ease}.uz-fab:hover{transform:scale(1.06)}
+    .uz-fab-tip{position:absolute;right:70px;top:50%;transform:translateY(-50%);white-space:nowrap;padding:8px 12px;border-radius:8px;background:#111;color:#fff;font:var(--type-label);opacity:0;pointer-events:none;transition:opacity .15s}
+    .uz-fab-tip::after{content:"";position:absolute;right:-5px;top:50%;margin-top:-5px;border:5px solid transparent;border-right:0;border-left-color:#111}
+    .uz-fab:hover .uz-fab-tip,.uz-fab:focus-visible .uz-fab-tip{opacity:1}
+    .uz-dots{display:flex;gap:4px}.uz-dots i{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:uzDot 1s infinite}.uz-dots i:nth-child(2){animation-delay:.15s}.uz-dots i:nth-child(3){animation-delay:.3s}
+    @keyframes uzDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
   </style>
 </helmet>
 <div style="display:flex;min-height:100vh;background:var(--canvas)">
@@ -2786,7 +2792,177 @@
     </sc-if>
   </x-import>
 
-  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  
+<sc-if value="{{ ai.showFab }}" hint-placeholder-val="{{ false }}">
+  <button type="button" class="uz-fab" onClick="{{ ai.open }}" aria-label="Open Uza AI" style="position:fixed;right:24px;bottom:24px;z-index:80;width:58px;height:58px;border-radius:50%;border:3px solid #fff;background:linear-gradient(135deg,var(--green-500),var(--green-800));color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 28px rgba(16,94,52,.38)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="sparkles" size="26" hint-size="26px,26px"></x-import><span class="uz-fab-tip">Open Uza AI</span></button>
+</sc-if>
+<sc-if value="{{ ai.isOpen }}" hint-placeholder-val="{{ false }}">
+  <aside role="dialog" aria-label="Uza AI and help" style="position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);z-index:90;background:var(--surface);border-left:1px solid var(--border);box-shadow:-16px 0 40px rgba(0,0,0,.14);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:2px;padding:0 var(--space-3) 0 var(--space-3);border-bottom:1px solid var(--border);flex:none">
+      <sc-for list="{{ ai.tabs }}" as="t" hint-placeholder-count="3"><button type="button" onClick="{{ t.go }}" style="display:flex;align-items:center;gap:6px;padding:16px 10px 13px;border:0;border-bottom:2px solid {{ t.line }};background:transparent;cursor:pointer;font:var(--type-label);color:{{ t.color }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="{{ t.icon }}" size="16" hint-size="16px,16px"></x-import>{{ t.label }}</button></sc-for>
+      <span style="flex:1"></span>
+      <x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="x" size="sm" label="Close" on-click="{{ ai.close }}" hint-size="30px,30px"></x-import>
+    </div>
+
+    <sc-if value="{{ ai.isList }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border);flex:none">
+        <span style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-800));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px var(--green-50)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="sparkles" size="22" hint-size="22px,22px"></x-import></span>
+        <div style="flex:1;min-width:0"><div style="font:var(--type-title);color:var(--text)">Uza AI</div><div style="font:var(--type-small);color:var(--text-secondary)">Your business helper in UzaPro</div></div>
+        <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="plus" on-click="{{ ai.newChat }}" hint-size="80px,36px">New</x-import>
+      </div>
+      <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-4) var(--space-5);display:flex;flex-direction:column;gap:var(--space-2)">
+        <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-2)"><sc-for list="{{ ai.filters }}" as="f" hint-placeholder-count="2"><button type="button" onClick="{{ f.go }}" style="padding:6px 14px;border-radius:999px;border:0;cursor:pointer;font:var(--type-label);background:{{ f.bg }};color:{{ f.fg }}">{{ f.label }}</button></sc-for></div>
+        <sc-for list="{{ ai.rows }}" as="r" hint-placeholder-count="4">
+          <sc-if value="{{ r.isHead }}" hint-placeholder-val="{{ false }}"><div style="font:var(--type-eyebrow);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-muted);margin-top:var(--space-3)">{{ r.label }}</div></sc-if>
+          <sc-if value="{{ r.isItem }}" hint-placeholder-val="{{ true }}"><button type="button" onClick="{{ r.go }}" style="display:flex;align-items:center;gap:var(--space-3);width:100%;padding:var(--space-2);border:0;border-radius:var(--radius-md);background:transparent;cursor:pointer;text-align:left" style-hover="background:var(--canvas)"><span style="width:36px;height:36px;border-radius:var(--radius-md);background:var(--canvas);color:var(--text-secondary);display:grid;place-items:center;flex:none"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="message-square" size="16" hint-size="16px,16px"></x-import></span><span style="flex:1;min-width:0;font:var(--type-label);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.title }}</span><span style="font:var(--type-small);color:var(--text-muted);flex:none">{{ r.age }}</span></button></sc-if>
+        </sc-for>
+        <sc-if value="{{ ai.noRows }}" hint-placeholder-val="{{ false }}"><div style="padding:var(--space-6) 0;text-align:center;font:var(--type-body);color:var(--text-muted)">No chats in this period.</div></sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ai.isChat }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border);flex:none">
+        <x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="arrow-left" size="sm" label="All chats" on-click="{{ ai.back }}" hint-size="30px,30px"></x-import>
+        <span style="width:9px;height:9px;border-radius:50%;background:var(--green-500);flex:none"></span>
+        <span style="flex:1;min-width:0;font:var(--type-title);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ai.chatTitle }}</span>
+        <x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="plus" size="sm" label="New chat" on-click="{{ ai.newChat }}" hint-size="30px,30px"></x-import>
+      </div>
+      <div class="uz-ai-body" style="flex:1;min-height:0;overflow:auto;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-3)">
+        <sc-if value="{{ ai.empty }}" hint-placeholder-val="{{ true }}">
+          <div style="margin:auto 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--space-3);padding:var(--space-6) 0">
+            <span style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-800));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px var(--green-50)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="sparkles" size="34" hint-size="34px,34px"></x-import></span>
+            <div style="font:var(--type-card-title);font-size:20px;color:var(--text);margin-top:var(--space-2)">Chat with Uza AI</div>
+            <div style="font:var(--type-body);color:var(--text-secondary);max-width:320px">Ask about sales, stock, money owed or expenses, or report a problem. Uza AI can help with it all.</div>
+            <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-2);margin-top:var(--space-2)"><sc-for list="{{ ai.prompts }}" as="pr" hint-placeholder-count="4"><button type="button" onClick="{{ pr.go }}" style="padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font:var(--type-label);color:var(--text)" style-hover="background:var(--canvas)">{{ pr.label }}</button></sc-for></div>
+          </div>
+        </sc-if>
+        <sc-for list="{{ ai.msgs }}" as="mm" hint-placeholder-count="0">
+          <div style="display:flex;gap:var(--space-2);justify-content:{{ mm.justify }};align-items:flex-end">
+            <sc-if value="{{ mm.bot }}" hint-placeholder-val="{{ false }}"><span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-800));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px var(--green-50)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="sparkles" size="14" hint-size="14px,14px"></x-import></span></sc-if>
+            <div style="max-width:82%;display:flex;flex-direction:column;gap:var(--space-2);align-items:{{ mm.align }}">
+              <sc-if value="{{ mm.hasFile }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--canvas);font:var(--type-small);color:var(--text-secondary)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="paperclip" size="13" hint-size="13px,13px"></x-import>{{ mm.file }}</span></sc-if>
+              <div style="padding:10px 14px;border-radius:{{ mm.radius }};background:{{ mm.bg }};color:{{ mm.fg }};font:var(--type-body);line-height:1.5;white-space:pre-line;overflow-wrap:anywhere">{{ mm.text }}</div>
+              <sc-if value="{{ mm.hasAct }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" variant="secondary" size="sm" icon="arrow-up-right" on-click="{{ mm.act }}" hint-size="140px,30px">{{ mm.actLabel }}</x-import></sc-if>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ ai.typing }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:var(--space-2);align-items:flex-end"><span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--green-500),var(--green-800));color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 0 0 3px var(--green-50)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="sparkles" size="14" hint-size="14px,14px"></x-import></span><div class="uz-dots" style="padding:12px 16px;border-radius:16px 16px 16px 4px;background:var(--canvas)"><i></i><i></i><i></i></div></div></sc-if>
+      </div>
+      <div style="padding:var(--space-3) var(--space-4) var(--space-4);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:var(--space-2);flex:none">
+        <span style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--canvas);font:var(--type-small);color:var(--text-secondary)"><span style="width:7px;height:7px;border-radius:50%;background:var(--green-600)"></span>Viewing: {{ ai.viewing }}</span>
+        <div style="border:1.5px solid var(--green-200);border-radius:var(--radius-lg);background:var(--surface);padding:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2)">
+          <sc-if value="{{ ai.hasFile }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;border-radius:999px;background:var(--canvas);font:var(--type-small);color:var(--text-secondary)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="paperclip" size="13" hint-size="13px,13px"></x-import>{{ ai.fileName }}<button type="button" onClick="{{ ai.clearFile }}" aria-label="Remove file" style="border:0;background:transparent;cursor:pointer;color:var(--text-muted);display:grid;place-items:center;padding:2px"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="x" size="13" hint-size="13px,13px"></x-import></button></span></sc-if>
+          <textarea rows="2" maxlength="4000" placeholder="Ask Uza AI anything…" aria-label="Message to Uza AI" value="{{ ai.draft }}" onChange="{{ ai.onDraft }}" onKeyDown="{{ ai.onKey }}" style="border:0;outline:none;resize:none;font:var(--type-body);color:var(--text);background:transparent;padding:0;width:100%"></textarea>
+          <div style="display:flex;align-items:center;gap:var(--space-2)">
+            <label title="Attach a file" style="display:grid;place-items:center;width:32px;height:32px;border-radius:var(--radius-md);color:var(--text-secondary);cursor:pointer"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="paperclip" size="18" hint-size="18px,18px"></x-import><input type="file" onChange="{{ ai.onFile }}" style="display:none"></label>
+            <span style="flex:1;font:var(--type-small);color:var(--text-muted)">{{ ai.count }} / 4,000</span>
+            <button type="button" onClick="{{ ai.send }}" aria-label="Send" disabled="{{ ai.cantSend }}" style="width:38px;height:38px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:{{ ai.sendBg }};color:#fff"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="send" size="17" hint-size="17px,17px"></x-import></button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ai.isSupport }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ ai.spList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border);flex:none">
+          <span style="width:44px;height:44px;border-radius:var(--radius-md);background:var(--canvas);color:var(--text-secondary);display:grid;place-items:center;flex:none"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="message-square" size="20" hint-size="20px,20px"></x-import></span>
+          <div style="flex:1;min-width:0"><div style="font:var(--type-title);color:var(--text)">Support</div><div style="font:var(--type-small);color:var(--text-secondary)">Your support requests and our replies.</div></div>
+          <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="plus" on-click="{{ ai.spNew }}" hint-size="120px,36px">New request</x-import>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-4) var(--space-5);display:flex;flex-direction:column;gap:var(--space-3)">
+          <sc-for list="{{ ai.tickets }}" as="tk" hint-placeholder-count="3">
+            <button type="button" onClick="{{ tk.go }}" style="display:flex;flex-direction:column;gap:6px;width:100%;padding:var(--space-3) var(--space-4);border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);cursor:pointer;text-align:left" style-hover="border-color:var(--green-200);background:var(--canvas)">
+              <div style="display:flex;align-items:center;gap:var(--space-2)"><span style="font:var(--type-small);color:var(--text-muted);font-variant-numeric:tabular-nums">{{ tk.ref }}</span><span style="flex:1"></span><x-import component-from-global-scope="UzapointDesignSystem_dfe583.StatusPill" status="{{ tk.tone }}" hint-size="80px,22px">{{ tk.status }}</x-import></div>
+              <div style="font:var(--type-label);color:var(--text)">{{ tk.subject }}</div>
+              <div style="font:var(--type-small);color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ tk.last }}</div>
+              <div style="font:var(--type-small);color:var(--text-muted)">{{ tk.prio }} priority · {{ tk.when }}</div>
+            </button>
+          </sc-for>
+          <sc-if value="{{ ai.noTickets }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1.5px dashed var(--border-strong);border-radius:var(--radius-lg);background:var(--canvas);padding:var(--space-6) var(--space-5);display:flex;flex-direction:column;align-items:center;gap:var(--space-4);text-align:center">
+              <div style="font:var(--type-body);color:var(--text-secondary)">No support requests yet.</div>
+              <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="plus" on-click="{{ ai.spNew }}" hint-size="170px,36px">Start a conversation</x-import>
+              <div style="font:var(--type-small);color:var(--text-secondary)">Use <strong style="color:var(--text)">Report a problem</strong> in Uza AI for things that are broken. For ideas, use the <strong style="color:var(--text)">Features</strong> tab.</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ ai.spForm }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border);flex:none"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="arrow-left" size="sm" label="Back" on-click="{{ ai.spBack }}" hint-size="30px,30px"></x-import><span style="font:var(--type-title);color:var(--text)">New support request</span></div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-4)">
+          <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" label="Subject" placeholder="For example, Receipt printer not working" value="{{ ai.sf.subject }}" on-change="{{ ai.sf.onSubject }}" hint-size="100%,60px"></x-import>
+          <x-import component-from-global-scope="UzForms.SearchSelect" label="How urgent is it?" options="{{ ai.sf.prios }}" value="{{ ai.sf.prio }}" on-change="{{ ai.sf.onPrio }}" hint-size="100%,60px"></x-import>
+          <label style="display:flex;flex-direction:column;gap:var(--space-1)"><span style="font:var(--type-label);color:var(--text)">What happened?</span><textarea rows="6" placeholder="Tell us what you were doing, what went wrong and what you expected." value="{{ ai.sf.body }}" onChange="{{ ai.sf.onBody }}" style="box-sizing:border-box;width:100%;padding:var(--space-2) var(--space-3);font:var(--type-body);color:var(--text);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);resize:vertical"></textarea></label>
+          <sc-if value="{{ ai.sf.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font:var(--type-small);color:var(--danger-text)">{{ ai.sf.err }}</div></sc-if>
+          <div class="uz-full" style="display:grid"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="send" on-click="{{ ai.sf.send }}" hint-size="100%,40px">Send to support</x-import></div>
+          <div style="font:var(--type-small);color:var(--text-muted)">We reply to high-priority requests within 1 hour, medium within 4 hours and low within 1 day.</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ ai.spTicket }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border);flex:none"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="arrow-left" size="sm" label="Back" on-click="{{ ai.spBack }}" hint-size="30px,30px"></x-import><div style="flex:1;min-width:0"><div style="font:var(--type-title);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ai.tv.subject }}</div><div style="font:var(--type-small);color:var(--text-muted)">{{ ai.tv.ref }} · {{ ai.tv.prio }} priority</div></div><x-import component-from-global-scope="UzapointDesignSystem_dfe583.StatusPill" status="{{ ai.tv.tone }}" hint-size="80px,22px">{{ ai.tv.status }}</x-import></div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-4)">
+          <sc-for list="{{ ai.tv.msgs }}" as="tm" hint-placeholder-count="2">
+            <div style="display:flex;flex-direction:column;gap:4px;align-items:{{ tm.align }}"><span style="font:var(--type-small);color:var(--text-muted)">{{ tm.who }} · {{ tm.when }}</span><div style="max-width:85%;padding:10px 14px;border-radius:{{ tm.radius }};background:{{ tm.bg }};color:{{ tm.fg }};font:var(--type-body);line-height:1.5;white-space:pre-line">{{ tm.text }}</div></div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ ai.tv.open }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:var(--space-3) var(--space-4) var(--space-4);border-top:1px solid var(--border);display:flex;gap:var(--space-2);align-items:flex-end;flex:none">
+            <textarea rows="2" placeholder="Write a reply" aria-label="Reply" value="{{ ai.tv.draft }}" onChange="{{ ai.tv.onDraft }}" style="box-sizing:border-box;width:100%;padding:var(--space-2) var(--space-3);font:var(--type-body);color:var(--text);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);resize:vertical;flex:1;resize:none"></textarea>
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="send" on-click="{{ ai.tv.send }}" hint-size="80px,36px">Send</x-import>
+          </div>
+        </sc-if>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ ai.isFeatures }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:var(--space-4);flex:none">
+        <div style="display:flex;align-items:center;gap:var(--space-3)"><span style="width:44px;height:44px;border-radius:var(--radius-md);background:var(--canvas);color:var(--text-secondary);display:grid;place-items:center;flex:none"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="lightbulb" size="20" hint-size="20px,20px"></x-import></span><div><div style="font:var(--type-title);color:var(--text)">Features</div><div style="font:var(--type-small);color:var(--text-secondary)">Ideas you shared, voted on, or want to browse.</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:var(--radius-lg);background:var(--canvas)"><sc-for list="{{ ai.ftTabs }}" as="ft" hint-placeholder-count="4"><button type="button" onClick="{{ ft.go }}" style="padding:8px 4px;border:0;border-radius:var(--radius-md);cursor:pointer;font:var(--type-label);background:{{ ft.bg }};color:{{ ft.fg }};box-shadow:{{ ft.shadow }}">{{ ft.label }}</button></sc-for></div>
+      </div>
+      <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-4) var(--space-5);display:flex;flex-direction:column;gap:var(--space-3)">
+        <sc-if value="{{ ai.ftRoad }}" hint-placeholder-val="{{ true }}">
+          <sc-for list="{{ ai.road }}" as="rd" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:40px minmax(0,1fr);gap:var(--space-3)">
+              <div style="display:flex;justify-content:center">
+                <sc-if value="{{ rd.isHead }}" hint-placeholder-val="{{ false }}"><span style="width:36px;height:36px;border-radius:var(--radius-md);background:{{ rd.soft }};color:{{ rd.strong }};display:grid;place-items:center"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="{{ rd.icon }}" size="17" hint-size="17px,17px"></x-import></span></sc-if>
+                <sc-if value="{{ rd.isCard }}" hint-placeholder-val="{{ true }}"><span style="width:2px;background:var(--border);height:100%"></span></sc-if>
+              </div>
+              <sc-if value="{{ rd.isHead }}" hint-placeholder-val="{{ false }}"><div style="align-self:center;font:var(--type-label);color:var(--text)">{{ rd.label }} <span style="color:var(--text-muted);font-weight:400">({{ rd.n }})</span></div></sc-if>
+              <sc-if value="{{ rd.isCard }}" hint-placeholder-val="{{ true }}"><div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);margin-bottom:var(--space-1)"><div style="font:var(--type-title);color:var(--text)">{{ rd.title }}</div><div style="font:var(--type-body);color:var(--text-secondary);line-height:1.55">{{ rd.desc }}</div><div style="display:flex;align-items:center;gap:var(--space-3);font:var(--type-small);color:var(--text-muted)"><span style="display:inline-flex;align-items:center;gap:4px"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="calendar" size="14" hint-size="14px,14px"></x-import>{{ rd.eta }}</span><span style="display:inline-flex;align-items:center;gap:4px"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="thumbs-up" size="14" hint-size="14px,14px"></x-import>{{ rd.votes }} votes</span></div></div></sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ ai.ftList }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ ai.ftBrowse }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" icon="search" placeholder="Search ideas" value="{{ ai.ftQ }}" on-change="{{ ai.onFtQ }}" aria-label="Search ideas" hint-size="100%,36px"></x-import></sc-if>
+          <sc-for list="{{ ai.ideas }}" as="idea" hint-placeholder-count="3">
+            <div style="display:flex;gap:var(--space-3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4)">
+              <button type="button" onClick="{{ idea.vote }}" aria-label="{{ idea.voteLabel }}" aria-pressed="{{ idea.voted }}" style="width:48px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 0;border-radius:var(--radius-md);border:1px solid {{ idea.vLine }};background:{{ idea.vBg }};color:{{ idea.vFg }};cursor:pointer;align-self:flex-start"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="chevron-up" size="16" hint-size="16px,16px"></x-import><span style="font:var(--type-label);font-variant-numeric:tabular-nums">{{ idea.votes }}</span></button>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:flex-start;gap:var(--space-2)"><span style="flex:1;font:var(--type-label);color:var(--text)">{{ idea.title }}</span><x-import component-from-global-scope="UzapointDesignSystem_dfe583.StatusPill" status="{{ idea.tone }}" hint-size="80px,22px">{{ idea.status }}</x-import></div><div style="font:var(--type-small);color:var(--text-secondary);line-height:1.5">{{ idea.desc }}</div><sc-if value="{{ idea.hasMeta }}" hint-placeholder-val="{{ false }}"><div style="font:var(--type-small);color:var(--text-muted)">{{ idea.meta }}</div></sc-if></div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ ai.noIdeas }}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed var(--border-strong);border-radius:var(--radius-lg);background:var(--canvas);padding:var(--space-6) var(--space-5);text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--space-3)"><div style="font:var(--type-body);color:var(--text-secondary)">{{ ai.noIdeasText }}</div><sc-if value="{{ ai.ftMine }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="plus" on-click="{{ ai.toNewIdea }}" hint-size="140px,36px">Share an idea</x-import></sc-if></div></sc-if>
+        </sc-if>
+        <sc-if value="{{ ai.ftNew }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-4)">
+            <div style="display:flex;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--warning-bg, #FFFBEB);border:1px solid var(--warning-border, #FDE68A);font:var(--type-small);color:var(--warning-text)"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="info" size="16" hint-size="16px,16px"></x-import><span>Your idea's title and outcome may be seen by other UzaPro customers. Comments are seen only by you and the UzaPro team.</span></div>
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" label="Idea title" placeholder="For example, Send receipts on WhatsApp" value="{{ ai.nf.title }}" on-change="{{ ai.nf.onTitle }}" hint-size="100%,60px"></x-import>
+            <label style="display:flex;flex-direction:column;gap:var(--space-1)"><span style="font:var(--type-label);color:var(--text)">What would it help you do?</span><textarea rows="4" placeholder="Describe the result you want, not how to build it." value="{{ ai.nf.outcome }}" onChange="{{ ai.nf.onOutcome }}" style="box-sizing:border-box;width:100%;padding:var(--space-2) var(--space-3);font:var(--type-body);color:var(--text);background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-md);resize:vertical"></textarea></label>
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" label="Tags (optional)" placeholder="For example, sales, receipts" value="{{ ai.nf.tags }}" on-change="{{ ai.nf.onTags }}" hint-size="100%,60px"></x-import>
+            <sc-if value="{{ ai.nf.hasErr }}" hint-placeholder-val="{{ false }}"><div role="alert" style="font:var(--type-small);color:var(--danger-text)">{{ ai.nf.err }}</div></sc-if>
+            <sc-if value="{{ ai.nf.notChecked }}" hint-placeholder-val="{{ true }}"><div class="uz-full" style="display:grid"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="search" on-click="{{ ai.nf.check }}" hint-size="100%,40px">Check for similar ideas</x-import></div></sc-if>
+            <sc-if value="{{ ai.nf.checked }}" hint-placeholder-val="{{ false }}">
+              <div style="font:var(--type-eyebrow);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-muted)">{{ ai.nf.matchTitle }}</div>
+              <sc-for list="{{ ai.nf.matches }}" as="mt" hint-placeholder-count="0"><div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-3);border:1px solid var(--border);border-radius:var(--radius-md)"><span style="flex:1;min-width:0;font:var(--type-label);color:var(--text)">{{ mt.title }}</span><button type="button" onClick="{{ mt.vote }}" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid {{ mt.vLine }};background:{{ mt.vBg }};color:{{ mt.vFg }};cursor:pointer;font:var(--type-small);font-weight:600"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="chevron-up" size="14" hint-size="14px,14px"></x-import>{{ mt.votes }}</button></div></sc-for>
+              <div class="uz-full" style="display:grid"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" icon="check" on-click="{{ ai.nf.submit }}" hint-size="100%,40px">Submit my idea</x-import></div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </aside>
+</sc-if>
+
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
     <div role="status" style="position:fixed;left:50%;bottom:var(--space-6);transform:translateX(-50%);background:var(--grey-900);color:var(--white);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);font:var(--type-label);box-shadow:var(--shadow-lg);z-index:200">{{ toast }}</div>
   </sc-if>
 </div>
@@ -3453,6 +3629,144 @@ class Component extends DCLogic {
     return { columns, objs };
   }
 
+  aiStore() {
+    if (this._ais) return this._ais;
+    const B = (text, act) => ({ me: false, text, act }), U = text => ({ me: true, text });
+    this._ais = {
+      seq: 1, bug: {},
+      convs: [
+        { id: 'c3', title: 'Which customers owe me money?', date: '2026-11-07', msgs: [U('Which customers owe me money?'), B('2 customers have overdue invoices. Open Receivables to see each one and record payments.', { label: 'Open Receivables', mod: 'rcv', tab: 'Receivables' })] },
+        { id: 'c2', title: 'How do I give a refund?', date: '2026-10-29', msgs: [U('How do I give a refund?'), B('Go to Sales › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items being returned, and say whether they go back into stock.', { label: 'Open Refunds', mod: 'sales', tab: 'Refunds (credit notes)' })] },
+        { id: 'c1', title: 'Receipt printer stopped printing', date: '2026-10-14', msgs: [U('Report a problem'), B('Sorry about that. Tell me what went wrong, which page you were on and what you expected to happen.'), U('Receipt printer stopped printing at the Westlands till.'), B('Thanks. I logged this as TKT-1042 so the support team can look at it. You can follow it under Support.')] }
+      ],
+      tk: {},
+      ideas: [
+        { id: 'i1', title: 'M-Pesa payments match invoices automatically', desc: 'Money paid to your Till or Paybill is matched to the right invoice by reference, so you don\'t mark invoices as paid by hand.', status: 'Planned', eta: '2-4 weeks', votes: 214, tags: 'payments, mpesa' },
+        { id: 'i2', title: 'Send invoices to KRA eTIMS', desc: 'Every invoice and credit note is sent to eTIMS when you save it, and the KRA control number prints on the receipt.', status: 'Planned', eta: '1-2 months', votes: 187, tags: 'tax, invoices' },
+        { id: 'i3', title: 'Different prices for wholesale customers', desc: 'Give a customer group its own price list, so the right price fills in when you make a sale or invoice.', status: 'Planned', eta: '2-4 weeks', votes: 96, tags: 'sales, pricing' },
+        { id: 'i4', title: 'Supplier price history', desc: 'See what you paid each supplier for a product over time, and get a warning when a new purchase order costs more than last time.', status: 'In progress', eta: 'This month', votes: 72, tags: 'purchases' },
+        { id: 'i5', title: 'Transaction costs on expenses', desc: 'Record M-Pesa and bank charges with each expense so account balances match your statements.', status: 'Done', eta: 'Released Oct 2026', votes: 133, tags: 'expenses' },
+        { id: 'i6', title: 'Send receipts on WhatsApp', desc: 'Send the customer their receipt or invoice on WhatsApp straight from the sale.', status: 'Under review', votes: 158, tags: 'sales, receipts' },
+        { id: 'i7', title: 'Print barcode labels', desc: 'Print shelf and product labels with barcodes and prices for any product or delivery.', status: 'Under review', votes: 64, tags: 'stock, products' },
+        { id: 'i8', title: 'Customer loyalty points', desc: 'Customers earn points on every sale and can spend them as a discount next time.', status: 'Under review', votes: 41, tags: 'customers, sales' }
+      ],
+      votes: { i6: true }, mine: {}
+    };
+    return this._ais;
+  }
+  aiTickets() { return (window.UZ_MODS.find(x => x.id === 'sup') || { tabs: [] }).tabs.find(t => t.t === 'Help requests').s.rows; }
+  aiTicketMsgs(r) {
+    const st = this.aiStore();
+    if (!st.tk[r[0]]) {
+      const p = this.plain(r[3]), when = { 'TKT-1042': '14 Oct 2026, 10:12', 'TKT-1041': '22 Oct 2026, 15:40' }[r[0]] || '30 Sep 2026, 09:05';
+      const list = [{ me: true, text: r[1] + '.', when }];
+      if (p !== 'Open') list.push({ me: false, name: 'Faith · UzaPro support', text: p === 'In progress' ? 'Thanks for reporting this. We can see the problem and are working on a fix. We\'ll update you here.' : 'This is fixed now. Let us know here if it happens again.', when: when.replace(/, .*/, ', 16:05') });
+      st.tk[r[0]] = list;
+    }
+    return st.tk[r[0]];
+  }
+  aiAddTicket(subject, prio, body) {
+    const rows = this.aiTickets(), n = Math.max.apply(null, rows.map(r => Number(String(r[0]).replace(/\D/g, '')) || 0).concat([1042])) + 1, ref = 'TKT-' + n;
+    rows.unshift([ref, subject, { pill: prio, tone: prio === 'High' ? 'danger' : prio === 'Medium' ? 'warning' : 'neutral' }, { pill: 'Open', tone: 'info' }]);
+    const reply = { High: '1 hour', Medium: '4 hours', Low: '1 day' }[prio] || '4 hours';
+    this.aiStore().tk[ref] = [{ me: true, text: body || subject, when: '10 Nov 2026, ' + new Date().toTimeString().slice(0, 5) }, { me: false, name: 'UzaPro support', text: 'Thanks, we\'ve got your request. Someone from the team will reply here within ' + reply + '.', when: 'Automatic reply' }];
+    return ref;
+  }
+  aiAnswer(text, conv, where) {
+    const st = this.aiStore(), t = text.toLowerCase(), K = (...w) => w.some(x => t.includes(x)), fmt = n => 'KES ' + Math.round(n).toLocaleString('en-KE');
+    if (st.bug[conv.id]) {
+      st.bug[conv.id] = false;
+      const ref = this.aiAddTicket(text.length > 60 ? text.slice(0, 57) + '…' : text, 'Medium', text + '\n\n(Reported from ' + where + ')');
+      return { text: 'Thanks for telling me. I logged this as ' + ref + ' and sent it to the support team. They usually reply within 4 hours, and you can follow it under Support.', act: { label: 'Open ' + ref, ticket: ref } };
+    }
+    if (K('bug', 'problem', 'broken', 'not working', "doesn't work", 'error', 'crash')) { st.bug[conv.id] = true; return { text: 'Sorry about that. Tell me what went wrong, which page you were on and what you expected to happen. I\'ll pass it to the support team.' }; }
+    if (/^(hi|hello|hey|habari|good (morning|afternoon|evening))\b/.test(t)) return { text: 'Hi ' + (((window.UZ_ROLES || {})[this.state.role] || {}).first || 'there') + '. What can I help you with? You can ask about sales, stock, money owed, expenses, or report a problem.' };
+    if (K('overdue', 'owe', 'owed', 'debt', 'receivable', 'unpaid')) {
+      const rows = this.rcvTab('Receivables'), late = rows.filter(r => this.rcvStatus(r).pill === 'Overdue').sort((a, b) => this.rcvBal(b) - this.rcvBal(a)), all = rows.reduce((a, r) => a + this.rcvBal(r), 0);
+      if (!late.length) return { text: 'No invoices are overdue. Customers owe you ' + fmt(all) + ' in total, none of it late.', act: { label: 'Open Receivables', mod: 'rcv', tab: 'Receivables' } };
+      return { text: late.length + (late.length === 1 ? ' invoice is' : ' invoices are') + ' overdue, worth ' + fmt(late.reduce((a, r) => a + this.rcvBal(r), 0)) + ':\n' + late.slice(0, 4).map(r => '• ' + r[1] + ', ' + fmt(this.rcvBal(r)) + ' (due ' + r[4] + ')').join('\n') + '\n\nIn total customers owe you ' + fmt(all) + '.', act: { label: 'Open Receivables', mod: 'rcv', tab: 'Receivables' } };
+    }
+    if (K('stock', 'reorder', 'run out', 'running out', 'inventory')) {
+      const low = ((window.UZ_STOCK || {}).low || []).filter(r => this.plain(r[4]) !== 'Healthy');
+      return { text: low.length + ' items need restocking:\n' + low.map(r => '• ' + r[0] + ' at ' + r[1] + ': ' + r[2] + ' left (reorder at ' + r[3] + ')').join('\n'), act: { label: 'Open Stock', mod: 'inv', tab: 'Overview' } };
+    }
+    if (K('expense', 'spent', 'spend', 'spending')) {
+      const rows = this.expTab('Expenses'), paid = rows.filter(r => r[8].pill === 'Paid' && /Nov 2026$/.test(r[1])), wait = rows.filter(r => r[8].pill === 'Waiting approval');
+      return { text: 'You have spent ' + fmt(paid.reduce((a, r) => a + this.expNum(r[7]), 0)) + ' on ' + paid.length + ' paid expenses this month.' + (wait.length ? ' ' + wait.length + (wait.length === 1 ? ' expense is' : ' expenses are') + ' waiting for approval.' : ''), act: { label: 'Open Expenses', mod: 'exp', tab: 'Expenses' } };
+    }
+    if (K('refund', 'credit note', 'return')) return { text: 'Go to Sales › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items coming back, and say whether they go back into stock.', act: { label: 'Open Refunds', mod: 'sales', tab: 'Refunds (credit notes)' } };
+    if (K('invoice', 'bill a customer')) return { text: 'To bill a customer, go to Sales › Invoices and choose New invoice. Pick the customer, add the items and save. You can send it from the invoice once it\'s saved.', act: { label: 'Open Invoices', mod: 'sales', tab: 'Invoices' } };
+    if (K('sale', 'sold', 'revenue', 'today', 'week')) return { text: 'Sales so far: KES 184K today, KES 1.12M this week and KES 4.82M this month.', act: { label: 'Open Sales', mod: 'sales', tab: 'All sales' } };
+    if (K('supplier', 'purchase', 'order')) return { text: 'To order stock, go to Purchases › Purchase orders and choose New purchase order. When the goods arrive, open the order and choose Receive goods.', act: { label: 'Open Purchases', mod: 'buy', tab: 'Purchase orders' } };
+    return { text: 'I can help with money customers owe you, stock running low, sales, expenses, how to do things in UzaPro, or reporting a problem.\n\nTry asking "Which invoices are overdue?" or "What stock is running low?"' };
+  }
+  aiVals(m, activeTab, hidden) {
+    const st = this.state, S = this.aiStore(), tab = st.aiTab || 'chat', view = st.aiView || 'list', open = !!st.aiOpen && !hidden;
+    const set = o => this.setState(o), today = Date.parse('2026-11-10');
+    const age = d => { const n = Math.round((today - Date.parse(d)) / 864e5); return n <= 0 ? 'Today' : n < 7 ? n + 'd' : n < 30 ? Math.round(n / 7) + 'w' : Math.round(n / 30) + 'mo'; };
+    const where = m ? m.n + (activeTab && m.tabs.length > 1 && activeTab.t !== m.n && activeTab.t !== 'Overview' ? ' › ' + activeTab.t : '') : 'Dashboard';
+    const conv = S.convs.find(c => c.id === st.aiConv);
+    const runAct = a => { if (!a) return; if (a.ticket) return set({ aiTab: 'support', spView: 'ticket', spRef: a.ticket, spDraft: '' }); this.goLabel(a.mod, a.tab); if (window.innerWidth < 900) set({ aiOpen: false }); };
+    const scroll = () => setTimeout(() => { const el = document.querySelector('.uz-ai-body'); if (el) el.scrollTop = el.scrollHeight; }, 30);
+    const ask = (raw, file) => {
+      const text = String(raw || '').trim(); if ((!text && !file) || st.aiTyping) return;
+      let c = conv; if (!c) { c = { id: 'n' + (S.seq++), title: text || file, date: '2026-11-10', msgs: [] }; S.convs.unshift(c); }
+      c.msgs.push({ me: true, text: text || 'Sent a file', file }); c.date = '2026-11-10';
+      set({ aiConv: c.id, aiView: 'chat', aiDraft: '', aiFile: null, aiTyping: true }); scroll();
+      setTimeout(() => { const a = file && !text ? { text: 'I got ' + file + '. I can\'t read files yet, but you can attach it to a support request or an expense.' } : this.aiAnswer(text || '', c, where); c.msgs.push({ me: false, text: a.text, act: a.act }); this.setState({ aiTyping: false }); scroll(); }, 700);
+    };
+    const filt = st.aiFilter || 'all', list = S.convs.filter(c => filt === 'all' || Date.parse(c.date) >= today - 7 * 864e5);
+    const rows = []; [['Last 7 days', c => Date.parse(c.date) >= today - 7 * 864e5], ['Older', c => Date.parse(c.date) < today - 7 * 864e5]].forEach(([label, fn]) => { const g = list.filter(fn); if (g.length) { rows.push({ isHead: true, isItem: false, label }); g.forEach(c => rows.push({ isHead: false, isItem: true, title: c.title, age: age(c.date), go: () => { set({ aiConv: c.id, aiView: 'chat' }); scroll(); } })); } });
+    const tickets = this.aiTickets(), tkRow = tickets.find(r => r[0] === st.spRef);
+    const pillTone = p => ({ success: 'success', good: 'success', warning: 'warning', warn: 'warning', danger: 'danger', bad: 'danger', info: 'info' }[p && p.tone] || 'neutral');
+    const sv = st.spView || 'list', sfv = st.spForm || { subject: '', prio: 'Medium', body: '' }, sfSet = (k, v) => set({ spForm: { ...sfv, [k]: v }, spErr: '' });
+    const ftTab = st.ftTab || 'Roadmap', votes = S.votes, voteFn = i => () => { votes[i.id] = !votes[i.id]; this.forceUpdate(); };
+    const vcount = i => i.votes + (votes[i.id] ? 1 : 0);
+    const ideaCard = i => ({ title: i.title, desc: i.desc, status: i.status, tone: { Planned: 'info', 'In progress': 'warning', Done: 'success' }[i.status] || 'neutral', votes: vcount(i), voted: !!votes[i.id], voteLabel: (votes[i.id] ? 'Remove vote for ' : 'Vote for ') + i.title, vote: voteFn(i),
+      vLine: votes[i.id] ? 'var(--green-600)' : 'var(--border)', vBg: votes[i.id] ? 'var(--green-50)' : 'var(--surface)', vFg: votes[i.id] ? 'var(--green-700)' : 'var(--text-secondary)', hasMeta: !!(i.tags || S.mine[i.id]), meta: (S.mine[i.id] ? 'Your idea' + (i.tags ? ' · ' : '') : '') + (i.tags ? 'Tags: ' + i.tags : '') });
+    const q = (st.ftQ || '').toLowerCase();
+    const ideaList = ftTab === 'Browse' ? S.ideas.filter(i => !q || (i.title + ' ' + i.desc + ' ' + (i.tags || '')).toLowerCase().includes(q)).sort((a, b) => vcount(b) - vcount(a)) : S.ideas.filter(i => S.mine[i.id] || votes[i.id]);
+    const road = []; [['Planned', 'clipboard-list', 'var(--info-bg, #EFF6FF)', 'var(--info-text)'], ['In progress', 'wrench', 'var(--warning-bg, #FFFBEB)', 'var(--warning-text)'], ['Done', 'circle-check', 'var(--green-50)', 'var(--green-700)']].forEach(([label, icon, soft, strong]) => { const g = S.ideas.filter(i => i.status === label); if (!g.length) return; road.push({ isHead: true, isCard: false, label, n: g.length, icon, soft, strong }); g.forEach(i => road.push({ isHead: false, isCard: true, title: i.title, desc: i.desc, eta: i.eta, votes: vcount(i) })); });
+    const nf = st.ftForm || { title: '', outcome: '', tags: '' }, nfSet = (k, v) => set({ ftForm: { ...nf, [k]: v }, ftChecked: false, ftErr: '' });
+    const words = (nf.title + ' ' + nf.outcome).toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3 && !['with', 'that', 'this', 'from', 'when', 'want', 'would', 'have', 'they', 'your', 'send', 'sale', 'sales', 'customer', 'customers', 'after', 'more', 'make', 'help', 'product', 'products', 'every', 'able', 'should'].includes(w));
+    const uw = Array.from(new Set(words)), score = i => uw.reduce((a, w) => a + (i.title.toLowerCase().includes(w) ? 2 : 0) + ((i.desc + ' ' + (i.tags || '')).toLowerCase().includes(w) ? 1 : 0), 0);
+    const matches = S.ideas.filter(i => score(i) >= 2).sort((a, b) => score(b) - score(a)).slice(0, 3);
+    return {
+      showFab: !hidden && !st.aiOpen, isOpen: open,
+      open: () => set({ aiOpen: true, userMenu: false, aiTab: 'chat', aiView: 'chat', aiConv: null, aiDraft: '', aiFile: null }), close: () => set({ aiOpen: false }),
+      tabs: [['chat', 'Uza AI', 'sparkles'], ['support', 'Support', 'message-square'], ['features', 'Features', 'lightbulb']].map(([k, label, icon]) => ({ label, icon, line: tab === k ? 'var(--green-600)' : 'transparent', color: tab === k ? 'var(--text)' : 'var(--text-secondary)', go: () => set({ aiTab: k }) })),
+      isList: tab === 'chat' && view === 'list', isChat: tab === 'chat' && view === 'chat', isSupport: tab === 'support', isFeatures: tab === 'features',
+      newChat: () => set({ aiTab: 'chat', aiView: 'chat', aiConv: null, aiDraft: '', aiFile: null }), back: () => set({ aiView: 'list' }),
+      filters: [['all', 'All'], ['week', 'Last 7 days']].map(([k, label]) => ({ label, bg: filt === k ? 'var(--green-700)' : 'var(--canvas)', fg: filt === k ? '#fff' : 'var(--text-secondary)', go: () => set({ aiFilter: k }) })),
+      rows, noRows: !rows.length,
+      chatTitle: conv ? conv.title : 'Uza AI', empty: !conv || !conv.msgs.length,
+      prompts: ['Overdue invoices', 'Low stock', 'Spending this month', 'Report a problem'].map(label => ({ label, go: () => ask(label) })),
+      msgs: (conv ? conv.msgs : []).map(x => ({ bot: !x.me, justify: x.me ? 'flex-end' : 'flex-start', align: x.me ? 'flex-end' : 'flex-start', text: x.text, bg: x.me ? 'var(--green-700)' : 'var(--canvas)', fg: x.me ? '#fff' : 'var(--text)', radius: x.me ? '16px 16px 4px 16px' : '16px 16px 16px 4px', hasFile: !!x.file, file: x.file || '', hasAct: !!x.act, actLabel: x.act ? x.act.label : '', act: () => runAct(x.act) })),
+      typing: !!st.aiTyping, viewing: where,
+      draft: st.aiDraft || '', count: (st.aiDraft || '').length.toLocaleString('en-KE'),
+      onDraft: e => set({ aiDraft: e.target.value.slice(0, 4000) }), onKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(e.target.value, st.aiFile); } },
+      send: () => ask(st.aiDraft, st.aiFile), cantSend: !(st.aiDraft || '').trim() && !st.aiFile, sendBg: (st.aiDraft || '').trim() || st.aiFile ? 'var(--green-700)' : 'var(--green-200)',
+      hasFile: !!st.aiFile, fileName: st.aiFile || '', onFile: e => { const f = e.target.files && e.target.files[0]; if (f) set({ aiFile: f.name }); e.target.value = ''; }, clearFile: () => set({ aiFile: null }),
+      spList: sv === 'list', spForm: sv === 'new', spTicket: sv === 'ticket' && !!tkRow,
+      spNew: () => set({ spView: 'new', spForm: { subject: '', prio: 'Medium', body: '' }, spErr: '' }), spBack: () => set({ spView: 'list' }),
+      tickets: tickets.map(r => { const ms = this.aiTicketMsgs(r), last = ms[ms.length - 1]; return { ref: r[0], subject: r[1], prio: this.plain(r[2]), status: this.plain(r[3]), tone: pillTone(r[3]), last: (last.me ? 'You: ' : '') + last.text, when: last.when, go: () => set({ spView: 'ticket', spRef: r[0], spDraft: '' }) }; }), noTickets: !tickets.length,
+      sf: { subject: sfv.subject, prio: sfv.prio, body: sfv.body, prios: ['Low', 'Medium', 'High'], onSubject: e => sfSet('subject', e.target.value), onPrio: e => sfSet('prio', e.target.value), onBody: e => sfSet('body', e.target.value), err: st.spErr || '', hasErr: !!st.spErr,
+        send: () => { if (!sfv.subject.trim()) return set({ spErr: 'Add a subject so we know what this is about.' }); if (!sfv.body.trim()) return set({ spErr: 'Tell us what happened.' }); const ref = this.aiAddTicket(sfv.subject.trim(), sfv.prio, sfv.body.trim()); set({ spView: 'ticket', spRef: ref, spForm: null }); this.showToast(ref + ' sent to support.'); } },
+      tv: !tkRow ? { msgs: [], on: {} } : (() => { const ms = this.aiTicketMsgs(tkRow), status = this.plain(tkRow[3]); return { ref: tkRow[0], subject: tkRow[1], prio: this.plain(tkRow[2]), status, tone: pillTone(tkRow[3]), open: !/resolved|closed/i.test(status),
+        msgs: ms.map(x => ({ who: x.me ? 'You' : x.name, when: x.when, text: x.text, align: x.me ? 'flex-end' : 'flex-start', bg: x.me ? 'var(--green-700)' : 'var(--canvas)', fg: x.me ? '#fff' : 'var(--text)', radius: x.me ? '14px 14px 4px 14px' : '14px 14px 14px 4px' })),
+        draft: st.spDraft || '', onDraft: e => set({ spDraft: e.target.value }), send: () => { const t = (st.spDraft || '').trim(); if (!t) return; ms.push({ me: true, text: t, when: '10 Nov 2026, ' + new Date().toTimeString().slice(0, 5) }); set({ spDraft: '' }); } }; })(),
+      ftTabs: ['Roadmap', 'My ideas', 'Browse', 'New'].map(label => ({ label, bg: ftTab === label ? 'var(--surface)' : 'transparent', fg: ftTab === label ? 'var(--text)' : 'var(--text-secondary)', shadow: ftTab === label ? '0 1px 3px rgba(0,0,0,.1)' : 'none', go: () => set({ ftTab: label }) })),
+      ftRoad: ftTab === 'Roadmap', ftList: ftTab === 'Browse' || ftTab === 'My ideas', ftBrowse: ftTab === 'Browse', ftMine: ftTab === 'My ideas', ftNew: ftTab === 'New',
+      road, ideas: ideaList.map(ideaCard), noIdeas: !ideaList.length, noIdeasText: ftTab === 'Browse' ? 'No ideas match your search.' : 'Ideas you share or vote for will show here.',
+      ftQ: st.ftQ || '', onFtQ: e => set({ ftQ: e.target.value }), toNewIdea: () => set({ ftTab: 'New' }),
+      nf: { title: nf.title, outcome: nf.outcome, tags: nf.tags, onTitle: e => nfSet('title', e.target.value), onOutcome: e => nfSet('outcome', e.target.value), onTags: e => nfSet('tags', e.target.value),
+        err: st.ftErr || '', hasErr: !!st.ftErr, checked: !!st.ftChecked, notChecked: !st.ftChecked,
+        check: () => { if (!nf.title.trim()) return set({ ftErr: 'Give your idea a title.' }); if (!nf.outcome.trim()) return set({ ftErr: 'Say what the idea would help you do.' }); set({ ftChecked: true, ftErr: '' }); },
+        matchTitle: matches.length ? 'Similar ideas. Vote for one if it covers yours' : 'No similar ideas found',
+        matches: matches.map(i => { const c = ideaCard(i); return { title: i.title, votes: c.votes, vote: c.vote, vLine: c.vLine, vBg: c.vBg, vFg: c.vFg }; }),
+        submit: () => { const id = 'u' + (S.seq++); S.ideas.push({ id, title: nf.title.trim(), desc: nf.outcome.trim(), status: 'Under review', votes: 0, tags: nf.tags.trim() }); S.mine[id] = true; votes[id] = true; set({ ftTab: 'My ideas', ftForm: null, ftChecked: false }); this.showToast('Thanks! Your idea was shared.'); } }
+    };
+  }
   renderVals() {
     const mods = window.UZ_MODS || [];
     const DS = window.UzapointDesignSystem_dfe583;
@@ -3466,6 +3780,17 @@ class Component extends DCLogic {
       image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
       sheet: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 9v12M15 9v12"/>',
       camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'
+    });
+    if (DS && DS.ICONS && !DS.ICONS.sparkles) Object.assign(DS.ICONS, {
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>',
+      'message-square': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+      lightbulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+      wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+      paperclip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+      send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+      'thumbs-up': '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>',
+      lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      'arrow-left': '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'
     });
     const roles = window.UZ_ROLES || {};
     const role = roles[this.state.role] || { label: 'Owner', name: 'Tony Ashiuma', role: 'Owner', first: 'Tony', kpis: [], tasks: [], attention: [] };
@@ -5633,6 +5958,7 @@ class Component extends DCLogic {
       newStatus: name => { this._statusOpts = this._statusOpts.concat([name]); this.forceUpdate(); return name; },
       create: () => { this.setState({ drawer: null }); this.showToast('Record created.'); },
 
+      ai: this.aiVals(m, activeTab, !(this.state.authed !== undefined ? this.state.authed : (() => { try { return !!localStorage.getItem('uzAuth'); } catch (e) { return false; } })())),
       isLogin: !(this.state.authed !== undefined ? this.state.authed : (() => { try { return !!localStorage.getItem('uzAuth'); } catch (e) { return false; } })()),
       lg: (() => { const st = this.state, view = st.lgView || 'login', email = st.lgEmail || '', pass = st.lgPass || '', show = !!st.lgShow, remember = st.lgRemember !== false;
         const okId = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) || /^\+?[0-9][0-9\s]{8,13}$/.test(v.trim());

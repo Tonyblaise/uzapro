@@ -1,4 +1,8 @@
 import type {
+  AiChat,
+  FeatureIdea,
+  SupportTicket,
+  TicketPriority,
   BusinessProfile,
   Branch,
   CalEvent,
@@ -170,4 +174,41 @@ export interface AppState {
   /** Generic table rows keyed "{moduleId}/{tabSlug}". */
   generic: Record<string, GenericRow[]>;
   ui: UiState;
+  /** Uza AI panel: chats, support tickets, feature ideas and where the panel is (feature 008). */
+  ai: AiState;
+}
+
+export type AiTab = "chat" | "support" | "features";
+export type FeaturesTabName = "Roadmap" | "My ideas" | "Browse" | "New";
+
+export interface AiState {
+  chats: AiChat[];
+  tickets: SupportTicket[];
+  ideas: FeatureIdea[];
+  votes: Record<string, boolean>;
+  mine: Record<string, boolean>;
+  seq: number;
+  open: boolean;
+  tab: AiTab;
+  view: "list" | "chat";
+  /** null = a new, empty chat. */
+  chatId: string | null;
+  draft: string;
+  file: string | null;
+  typing: boolean;
+  filter: "all" | "week";
+  support: {
+    view: "list" | "new" | "ticket";
+    ref: string | null;
+    form: { subject: string; priority: TicketPriority; body: string };
+    error: string;
+    reply: string;
+  };
+  features: {
+    tab: FeaturesTabName;
+    q: string;
+    form: { title: string; outcome: string; tags: string };
+    checked: boolean;
+    error: string;
+  };
 }

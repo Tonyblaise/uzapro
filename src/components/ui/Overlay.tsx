@@ -4,7 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { IconButton } from "./IconButton";
 
 /** Focus trap + Escape + focus restore shared by Drawer and Modal (Principle IV). */
-function useDialog(open: boolean, onClose: () => void) {
+export function useDialog(open: boolean, onClose: () => void) {
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;

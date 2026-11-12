@@ -38,6 +38,8 @@ import { FILE_ROWS, FOLDER_ROWS } from "../fixtures/docs";
 import { GENERIC_ROWS } from "../fixtures/generic";
 import { PROFILE_DEFAULTS, PROFILE_EMAIL_DOMAIN, UZ_BIZ_FULL, UZ_BRANCHES, UZ_GROUPS, UZ_LOC_BRANCHES, UZ_LOC_TYPES, UZ_LOCPOS, UZ_TERMS } from "../fixtures/settings";
 import { nextCode } from "../settings";
+import { AI_CHATS, FEATURE_IDEAS, SEED_VOTES, SUPPORT_TICKETS } from "../fixtures/uzaai";
+import type { AiState } from "./state";
 import type { Branch, Profile, RoleId } from "../types";
 import type { CalendarState, DocsState, SettingsState } from "./state";
 
@@ -236,6 +238,7 @@ export function createSeed(): AppState {
     profiles: seedProfiles(),
     generic: Object.fromEntries(Object.entries(GENERIC_ROWS).map(([k, rows]) => [k, rows.map((r) => r.map((c) => (typeof c === "string" ? c : { ...c })))])),
     ui: { toast: null, search: "" },
+    ai: seedAi(),
   };
 }
 
@@ -481,4 +484,26 @@ function seedProfiles(): Record<RoleId, Profile> {
       return [id, { first, last: rest.join(" "), email: id === "owner" ? DEMO_LOGIN.email : (r.first || "you").toLowerCase() + PROFILE_EMAIL_DOMAIN, ...PROFILE_DEFAULTS }];
     }),
   ) as Record<RoleId, Profile>;
+}
+
+/** Uza AI seed (`aiStore`): deep copies so the in-memory session never mutates the fixtures. */
+export function seedAi(): AiState {
+  return {
+    chats: AI_CHATS.map((c) => ({ ...c, msgs: c.msgs.map((m) => ({ ...m, ...(m.act ? { act: { ...m.act } } : {}) })) })),
+    tickets: SUPPORT_TICKETS.map((t) => ({ ...t, msgs: t.msgs.map((m) => ({ ...m })) })),
+    ideas: FEATURE_IDEAS.map((i) => ({ ...i })),
+    votes: { ...SEED_VOTES },
+    mine: {},
+    seq: 1,
+    open: false,
+    tab: "chat",
+    view: "chat",
+    chatId: null,
+    draft: "",
+    file: null,
+    typing: false,
+    filter: "all",
+    support: { view: "list", ref: null, form: { subject: "", priority: "Medium", body: "" }, error: "", reply: "" },
+    features: { tab: "Roadmap", q: "", form: { title: "", outcome: "", tags: "" }, checked: false, error: "" },
+  };
 }

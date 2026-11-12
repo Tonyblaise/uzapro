@@ -47,7 +47,7 @@ export async function switchRole(role: RoleId): Promise<Result<Role>> {
 
 export async function signOut(): Promise<Result<void>> {
   clearAuth();
-  getStore().setState((s) => ({ session: { ...s.session, authed: false }, ui: { ...s.ui, search: "", toast: null } }));
+  getStore().setState((s) => ({ session: { ...s.session, authed: false }, ui: { ...s.ui, search: "", toast: null }, ai: { ...s.ai, open: false } }));
   return ok(undefined);
 }
 

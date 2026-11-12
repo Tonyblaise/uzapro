@@ -2,7 +2,7 @@
 /** Receivables and Payables read hooks (specs/003-receivables-payables/contracts/data-access.md). */
 import { useMemo } from "react";
 import { date as fmtDate } from "@/lib/format";
-import { ageing, balance, creditLeft, creditStatus, creditUsable, payStatus, planNextDue, rcvStatus } from "./money";
+import { ageing, balance, creditLeft, creditStatus, creditUsable, payStatus, planNextDue, receivableRows } from "./money";
 import { useAppStore } from "./store/StoreProvider";
 import type { AgeingRow, Credit, CreditRow, MoneyPayment, PayableRow, Plan, PlanRow, ReceivableRow, Side } from "./types";
 
@@ -10,7 +10,7 @@ export { PLAN_FREQS, planEach, planStep } from "./money";
 
 export function useReceivables(): ReceivableRow[] {
   const list = useAppStore((s) => s.money.receivables);
-  return useMemo(() => list.map((r) => ({ ...r, balance: balance(r), status: rcvStatus(r) })), [list]);
+  return useMemo(() => receivableRows(list), [list]);
 }
 
 export function usePayables(): PayableRow[] {

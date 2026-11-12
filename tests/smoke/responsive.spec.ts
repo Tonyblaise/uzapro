@@ -69,3 +69,82 @@ test.describe("at 320px", () => {
     }
   });
 });
+
+/** Feature 008 · Uza AI on phones (T029, FR-020, SC-006, SC-006a, FR-006). */
+test.describe("Uza AI on phones", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  const AXE = require.resolve("axe-core/axe.min.js");
+  const panel = (page: import("@playwright/test").Page) => page.getByRole("dialog", { name: "Uza AI and help" });
+
+  async function scan(page: import("@playwright/test").Page) {
+    await page.addScriptTag({ path: AXE });
+    const bad = await page.evaluate(async () => {
+      const w = window as unknown as { axe: { run: (ctx: unknown, opts: unknown) => Promise<{ violations: { id: string; impact: string; nodes: unknown[] }[] }> } };
+      const r = await w.axe.run({ include: [['[role="dialog"]']] }, { resultTypes: ["violations"] });
+      return r.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} (${v.nodes.length})`);
+    });
+    expect(bad, "serious or critical axe violations").toEqual([]);
+  }
+
+  test("the panel fits 320px on every tab and passes the accessibility scan", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.getByRole("button", { name: "Open Uza AI" }).click();
+    const fits = async (what: string) => {
+      const overflow = await page.evaluate(() => {
+        const d = document.querySelector('[role="dialog"]') as HTMLElement;
+        return Math.max(document.documentElement.scrollWidth - innerWidth, ...Array.from(d.querySelectorAll<HTMLElement>("*")).map((el) => el.getBoundingClientRect().right - innerWidth));
+      });
+      expect(overflow, `${what} overflows by ${overflow}px`).toBeLessThanOrEqual(0.5);
+    };
+    await panel(page).getByRole("button", { name: "Overdue invoices" }).click();
+    await expect(panel(page).getByRole("button", { name: "Open Receivables" })).toBeVisible();
+    await fits("chat");
+    await scan(page);
+    await panel(page).getByRole("tab", { name: "Support" }).click();
+    await fits("support");
+    await scan(page);
+    await panel(page).getByRole("tab", { name: "Features" }).click();
+    await fits("roadmap");
+    for (const t of ["Browse", "New"]) {
+      await panel(page).getByRole("tab", { name: t }).click();
+      await fits(t);
+    }
+    await scan(page);
+  });
+
+  test("a chat action navigates and closes the panel on a phone", async ({ page, errors }) => {
+    void errors;
+    await page.setViewportSize({ width: 375, height: 812 });
+    await loginAs(page, "owner");
+    await page.getByRole("button", { name: "Open Uza AI" }).click();
+    await panel(page).getByRole("button", { name: "Overdue invoices" }).click();
+    await panel(page).getByRole("button", { name: "Open Receivables" }).click();
+    await page.waitForURL("**/receivables/receivables");
+    await expect(panel(page)).toBeHidden();
+    await expect(page.getByRole("button", { name: "Open Uza AI" })).toBeVisible();
+  });
+
+  test("scrolled to the bottom, no page control sits under the launcher (SC-006a)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    for (const width of [320, 375, 430]) {
+      await page.setViewportSize({ width, height: 740 });
+      for (const path of ["/sales/all-sales", "/stock/stock-management", "/settings/business-profile"]) {
+        await page.goto(path);
+        await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        const hits = await page.evaluate(() => {
+          const fab = document.querySelector('[aria-label="Open Uza AI"]')!.getBoundingClientRect();
+          return Array.from(document.querySelectorAll<HTMLElement>("main a[href], main button, main input, main select, main textarea"))
+            .filter((el) => {
+              const r = el.getBoundingClientRect();
+              return r.width > 0 && r.height > 0 && r.left < fab.right && r.right > fab.left && r.top < fab.bottom && r.bottom > fab.top;
+            })
+            .map((el) => el.getAttribute("aria-label") || el.textContent?.trim().slice(0, 30) || el.tagName);
+        });
+        expect(hits, `${path} at ${width}px: controls under the launcher`).toEqual([]);
+      }
+    }
+  });
+});

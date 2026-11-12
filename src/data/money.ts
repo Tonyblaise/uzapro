@@ -3,7 +3,7 @@
  * ageing buckets, plan instalments and credit status (research R1–R5). Today = 10 Nov 2026.
  */
 import { DEMO_TODAY, addDays } from "@/lib/demo-clock";
-import type { AgeingRow, Credit, Payable, Pill, Plan, Receivable } from "./types";
+import type { AgeingRow, Credit, Payable, Pill, Plan, Receivable, ReceivableRow } from "./types";
 
 const DAY = 86_400_000;
 const t = (iso: string) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
@@ -22,6 +22,11 @@ function owedStatus(x: { total: number; paid: number; due: string; voided?: bool
 
 export const rcvStatus = (r: Receivable): Pill => owedStatus(r);
 export const payStatus = (p: Payable): Pill => owedStatus(p);
+
+/** Receivables with their balance and status pill (shared by `useReceivables` and Uza AI). */
+export function receivableRows(list: readonly Receivable[]): ReceivableRow[] {
+  return list.map((r) => ({ ...r, balance: balance(r), status: rcvStatus(r) }));
+}
 
 /** Whole days past due as of today (≤ 0 = not yet due). */
 export function daysLate(due: string, today = DEMO_TODAY): number {
