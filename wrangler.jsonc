@@ -1,0 +1,12 @@
+{
+  // UzaPro demo: the Next.js static export (./out) served from a Cloudflare Worker.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "uzapro",
+  "compatibility_date": "2026-03-17",
+  "assets": {
+    "directory": "./out",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "uza.buildwithblaise.com", "custom_domain": true }]
+}

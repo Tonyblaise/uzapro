@@ -9,7 +9,10 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
-    "test:smoke": "playwright test tests/smoke"
+    "test:smoke": "playwright test tests/smoke",
+    "build:static": "STATIC_EXPORT=1 next build",
+    "deploy": "npm run build:static && wrangler deploy",
+    "preview:worker": "npm run build:static && wrangler dev"
   },
   "dependencies": {
     "lucide-react": "1.72.0",
