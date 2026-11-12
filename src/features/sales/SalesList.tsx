@@ -8,6 +8,7 @@ import { RowActions } from "@/components/ui/Menu";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { CreditNoteForm } from "./CreditNoteForm";
 import { NewSaleForm } from "./NewSaleForm";
+import { InvoicePayment, useInvoicePayable } from "./InvoicePayment";
 import { RecordView } from "./RecordView";
 import { SaleView } from "./SaleView";
 import { VoidForm } from "./VoidForm";
@@ -57,6 +58,7 @@ export function SalesList() {
 
   const viewing = view ? sales.find((s) => s.ref === view) : undefined;
   const isInvoice = !!view && /^INV-/.test(view);
+  const invoicePayable = useInvoicePayable(isInvoice ? view : null);
 
   return (
     <>
@@ -71,8 +73,15 @@ export function SalesList() {
         />
       )}
       {view && !step && isInvoice && (
-        <RecordView kind="invoice" refId={view} onClose={close} onVoid={(d) => open({ view: d.number, step: "void", label: `${d.number} to ${d.customer}`, amount: amount(d.amount) })} />
+        <RecordView
+          kind="invoice"
+          refId={view}
+          onClose={close}
+          onVoid={(d) => open({ view: d.number, step: "void", label: `${d.number} to ${d.customer}`, amount: amount(d.amount) })}
+          onPay={invoicePayable ? (d) => open({ view: d.number, step: "pay" }) : undefined}
+        />
       )}
+      {view && step === "pay" && isInvoice && <InvoicePayment invoice={view} onClose={() => open({ view })} />}
       {view && step === "void" && <VoidForm refId={view} label={voidLabel} amount={voidAmount} onClose={close} onDone={close} />}
       {view && step === "credit" && <CreditNoteForm saleRef={view} onClose={() => open({ view })} onDone={() => open({ view })} />}
     </>

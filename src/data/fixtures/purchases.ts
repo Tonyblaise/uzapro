@@ -35,5 +35,3 @@ export const UZ_BUY = {
   onTime: { Croma: 96, "Eastside Bicycle": 92, "Magaliesburg Wheels": 74 } as Record<string, number>,
 } as const;
 
-/** Highest Payables reference in the design's seed (PYB-0014); receipts name the next bill (FR-018). */
-export const PYB_LAST = 14;

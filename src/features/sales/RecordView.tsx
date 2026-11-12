@@ -114,6 +114,7 @@ export function RecordView({
   onEdit,
   onConvert,
   onVoid,
+  onPay,
 }: {
   kind: RecordKind;
   refId: string;
@@ -121,6 +122,8 @@ export function RecordView({
   onEdit?: (doc: Quotation) => void;
   onConvert?: (doc: Quotation) => void;
   onVoid?: (doc: Quotation) => void;
+  /** FR-016a: "Record payment" on an unpaid invoice that has an open receivable. */
+  onPay?: (doc: Quotation) => void;
 }) {
   const router = useRouter();
   const role = useRole();
@@ -165,6 +168,7 @@ export function RecordView({
       const actions: Action[] = [];
       if (!(kind === "quote" && approved) && onEdit) actions.push({ label: "Edit", icon: "pencil", variant: "secondary", run: () => onEdit(doc) });
       if (kind === "quote" && !converted && onConvert) actions.push({ label: "Convert to invoice", icon: "file-text", variant: "soft", run: () => onConvert(doc) });
+      if (kind === "invoice" && !isPaid && onPay) actions.push({ label: "Record payment", icon: "banknote", variant: "primary", run: () => onPay(doc) });
       if (kind === "invoice" && (!role.tabs || role.figures) && onVoid) actions.push({ label: "Void", icon: "x", variant: "danger", run: () => onVoid(doc) });
       cv = {
         kindLabel: kind === "quote" ? "Quotation" : "Invoice",

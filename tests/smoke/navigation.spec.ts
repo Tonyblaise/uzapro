@@ -18,7 +18,7 @@ for (const roleId of ROLE_LIST) {
         await page.goto(`/${m.slug}/${t.slug}`);
         await expect(page.getByRole("heading", { level: 1, name: m.name })).toBeVisible();
         if (visibleTabs(role, m.id).length > 1) {
-          await expect(page.getByRole("link", { name: t.title, exact: true })).toHaveAttribute("aria-current", "page");
+          await expect(page.getByRole("navigation", { name: "Sections" }).getByRole("link", { name: t.title, exact: true })).toHaveAttribute("aria-current", "page");
         }
       }
     }

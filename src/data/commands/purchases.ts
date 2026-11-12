@@ -27,6 +27,7 @@ import {
   type Result,
 } from "../types";
 import { getStore, showToast } from "../store";
+import { addPayable, peekRef } from "./money";
 import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
@@ -200,16 +201,17 @@ export async function receiveGoods(ref: string, input: NewReceipt): Promise<Resu
   if (!isAccepted(order)) activity.push(["Accepted", by]);
   activity.push(["Goods received", `${grnRef} · ${totAcc} accepted${totRecv - totAcc ? `, ${totRecv - totAcc} rejected` : ""}`]);
 
+  // FR-015: an unpaid order with accepted value creates a real, approved "Goods received" payable.
   let pyb: string | null = null;
-  let pybNo = state.purchases.pybNo;
+  let pybDue = "";
   if (!order.paid && value > 0) {
     const term = order.term || "Cash on delivery";
     const days = Number(term.match(/(\d+)\s*day/)?.[1]) || 0;
-    const due = addDays(input.date || DEMO_TODAY, days);
-    pybNo += 1;
-    pyb = `PYB-${String(pybNo).padStart(4, "0")}`;
-    activity.push(["Added to Payables", `${pyb} · KES ${Math.round(value).toLocaleString("en-US")} due ${fmtDate(due)}`]);
+    pybDue = addDays(input.date || DEMO_TODAY, days);
+    pyb = peekRef(state, "pay");
+    activity.push(["Added to Payables", `${pyb} · KES ${Math.round(value).toLocaleString("en-US")} due ${fmtDate(pybDue)}`]);
   }
+  const branch = state.stock.stores.find((x) => x.name === input.store)?.branch ?? "Nairobi HQ";
 
   const receipt: GoodsReceipt = {
     ref: grnRef,
@@ -244,8 +246,10 @@ export async function receiveGoods(ref: string, input: NewReceipt): Promise<Resu
         orders: s.purchases.orders.map((o) => (o.ref === ref ? updated : o)),
         receipts: [receipt, ...s.purchases.receipts],
         rejected: [...rejected, ...s.purchases.rejected],
-        pybNo,
       },
+      money: pyb
+        ? addPayable(s, { party: order.supplier, type: "Goods received", doc: `${grnRef} (${order.ref})`, branch, due: pybDue, total: Math.round(value), approval: "Approved" }).money
+        : s.money,
     };
   });
   const message = `${grnRef} saved. ${totAcc} accepted into ${input.store}.${pyb ? ` ${pyb} added to Payables.` : ""}`;

@@ -23,6 +23,7 @@ import { RowActions, type MenuItem } from "@/components/ui/Menu";
 import { ConfirmDialog } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { DocumentForm, type DocKind } from "./DocumentForm";
+import { InvoicePayment, useInvoicePayable } from "./InvoicePayment";
 import { RecordView } from "./RecordView";
 import { VoidForm } from "./VoidForm";
 import { Lead, amount, docDate, useOverlay, useStatusFilter } from "./shared";
@@ -95,6 +96,7 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
   const convert = params.get("convert");
   const step = params.get("step");
   const editing = edit ? docs.find((d) => d.number === edit) : undefined;
+  const payable = useInvoicePayable(view);
   const converting = convert ? docs.find((d) => d.number === convert) : undefined;
   return (
     <>
@@ -109,8 +111,10 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
           onEdit={(d) => open({ edit: d.number })}
           onConvert={(d) => open({ convert: d.number })}
           onVoid={(d) => open({ view: d.number, step: "void" })}
+          onPay={kind === "invoice" && payable ? (d) => open({ view: d.number, step: "pay" }) : undefined}
         />
       )}
+      {view && step === "pay" && kind === "invoice" && <InvoicePayment invoice={view} onClose={() => open({ view })} />}
       {view && step === "void" && (
         <VoidForm
           refId={view}

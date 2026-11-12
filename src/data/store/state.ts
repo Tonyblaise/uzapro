@@ -1,4 +1,10 @@
 import type {
+  Credit,
+  Payable,
+  MoneyPayment,
+  Plan,
+  Receivable,
+  StatementFilter,
   GoodsReceipt,
   PurchaseOrder,
   PurchaseReturn,
@@ -70,8 +76,19 @@ export interface PurchasesState {
   rejected: RejectedItem[];
   /** Nationality options for the supplier form (UZ_NATIONS, can grow). */
   nations: string[];
-  /** Last Payables number used in receipt messages (no Payables records; FR-018). */
-  pybNo: number;
+}
+
+export interface MoneyState {
+  receivables: Receivable[];
+  payables: Payable[];
+  rcvPayments: MoneyPayment[];
+  payPayments: MoneyPayment[];
+  rcvPlans: Plan[];
+  payPlans: Plan[];
+  customerCredits: Credit[];
+  supplierCredits: Credit[];
+  /** Applied Receivables statement filter (design `rcvStmt`). */
+  statement: StatementFilter;
 }
 
 export interface AppState {
@@ -82,5 +99,6 @@ export interface AppState {
   customers: Customer[];
   suppliers: Supplier[];
   purchases: PurchasesState;
+  money: MoneyState;
   ui: UiState;
 }

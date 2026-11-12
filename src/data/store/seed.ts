@@ -9,10 +9,25 @@ import { UZ_NONTAX, UZ_UNITS } from "../fixtures/reference";
 import { CREDIT_NOTE_ROWS, INVOICE_ROWS, QUOTATION_ROWS, SALE_NO_START, SALE_ROWS, UZ_TARGETS, VOID_ROWS } from "../fixtures/sales";
 import { STOCK_LINES, STOCK_MOVES, TRANSFER_DETAILS, TRANSFER_ROWS, WAREHOUSE_ROWS, WASTAGE_ROWS } from "../fixtures/stock";
 import type { Product, Sale, SalesTarget, Store, TransferStatus, Variant } from "../types";
-import { GRN_ROWS, PO_ROWS, PRT_ROWS, PYB_LAST, REJ_ROWS } from "../fixtures/purchases";
+import { GRN_ROWS, PO_ROWS, PRT_ROWS, REJ_ROWS } from "../fixtures/purchases";
 import { SUPPLIER_ROWS, UZ_NATIONS } from "../fixtures/suppliers";
 import type { GoodsReceipt, PurchaseOrder, Supplier } from "../types";
-import type { AppState, PurchasesState } from "./state";
+import {
+  CUSTOMER_CREDIT_ROWS,
+  PAYABLE_ROWS,
+  PAY_PAYMENT_ROWS,
+  PAY_PLAN_ROWS,
+  RCV_PAYMENT_ROWS,
+  RCV_PLAN_ROWS,
+  RCV_ROWS,
+  SUPPLIER_CREDIT_ROWS,
+  UZ_PAYDETAIL,
+  UZ_PLANDETAIL,
+  UZ_RCVDETAIL,
+  UZ_SCDETAIL,
+} from "../fixtures/money";
+import type { Credit, MoneyPayment, Payable, Plan, Priority, Receivable } from "../types";
+import type { AppState, MoneyState, PurchasesState } from "./state";
 
 const MONTHS: Record<string, string> = {
   Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
@@ -200,6 +215,7 @@ export function createSeed(): AppState {
       }),
     ),
     purchases: seedPurchases(),
+    money: seedMoney(),
     ui: { toast: null, search: "" },
   };
 }
@@ -269,6 +285,82 @@ function seedPurchases(): PurchasesState {
     })),
     rejected: REJ_ROWS.map(([ref, grn, supplier, item, qty, reason, status]) => ({ ref, grn, supplier, item, qty: Number(qty), reason, status: { ...status } })),
     nations: [...UZ_NATIONS],
-    pybNo: PYB_LAST,
+  };
+}
+
+/** Receivables and Payables seed (feature 003), ported from the design's rcv/pay rows + details. */
+function seedMoney(): MoneyState {
+  const pr = (v: string) => (v === "High" || v === "Low" ? v : "Normal") as Priority;
+  const receivables: Receivable[] = RCV_ROWS.map(([ref, party, type, doc, due, priority, total, paid]) => ({
+    ref,
+    party,
+    type,
+    doc,
+    due: parseDisplayDate(due),
+    priority: pr(priority),
+    total: parseAmount(total),
+    paid: parseAmount(paid),
+    raised: UZ_RCVDETAIL[ref]?.raised ?? "",
+    voided: false,
+  }));
+  const payables: Payable[] = PAYABLE_ROWS.map(([ref, party, type, doc, branch, due, priority, total, paid, approval]) => ({
+    ref,
+    party,
+    type,
+    doc,
+    branch,
+    due: parseDisplayDate(due),
+    priority: pr(priority),
+    total: parseAmount(total),
+    paid: parseAmount(paid),
+    approval: approval.label as Payable["approval"],
+  }));
+  const payments = (rows: readonly (readonly [string, string, string, string, string, string, string, { label: string; tone: string }])[]): MoneyPayment[] =>
+    rows.map(([ref, date, party, refs, method, type, amount, verification]) => {
+      const det = UZ_PAYDETAIL[ref];
+      const list = refs.split(", ");
+      const amt = parseAmount(amount);
+      return {
+        ref,
+        date: parseDisplayDate(date),
+        party,
+        alloc: det?.alloc ?? (list.length === 1 ? { [list[0]!]: amt } : Object.fromEntries(list.map((x) => [x, 0]))),
+        method,
+        account: det?.account ?? "",
+        payRef: det?.payRef ?? "",
+        type: type as MoneyPayment["type"],
+        amount: amt,
+        verification: { ...(verification as MoneyPayment["verification"]) },
+      };
+    });
+  const plans = (rows: readonly (readonly [string, string, string, string, string, string, string, { label: string; tone: string }])[]): Plan[] =>
+    rows.map(([ref, party, target, total, , each, , status]) => {
+      const d = UZ_PLANDETAIL[ref] ?? { count: 1, paid: 0, freq: "Monthly", start: "2026-11-10" };
+      return { ref, party, target, total: parseAmount(total), each: parseAmount(each), count: d.count, paid: d.paid, freq: d.freq, start: d.start, status: { ...(status as Plan["status"]) } };
+    });
+  const credits = (rows: readonly (readonly [string, string, string, string, string, string])[]): Credit[] =>
+    rows.map(([ref, party, reason, issued, amount, used]) => ({
+      ref,
+      party,
+      reason,
+      issued,
+      amount: parseAmount(amount),
+      used: parseAmount(used),
+      currency: "KES",
+      expires: UZ_SCDETAIL[ref]?.expires ?? "",
+      notes: UZ_SCDETAIL[ref]?.notes ?? "",
+      payRef: "",
+      voided: false,
+    }));
+  return {
+    receivables,
+    payables,
+    rcvPayments: payments(RCV_PAYMENT_ROWS),
+    payPayments: payments(PAY_PAYMENT_ROWS),
+    rcvPlans: plans(RCV_PLAN_ROWS),
+    payPlans: plans(PAY_PLAN_ROWS),
+    customerCredits: credits(CUSTOMER_CREDIT_ROWS),
+    supplierCredits: credits(SUPPLIER_CREDIT_ROWS),
+    statement: { from: "2026-01-01", to: "2026-11-10", customer: "All customers" },
   };
 }

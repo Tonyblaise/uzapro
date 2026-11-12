@@ -1,6 +1,6 @@
 /** Sales commands (FR-017–FR-023). Messages copied from the design's script (`showToast` calls). */
 import { ROLES } from "@/config/roles";
-import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
+import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate, kes } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
 import { docTotals } from "@/lib/totals";
@@ -25,6 +25,7 @@ import {
   type VoidRecord,
 } from "../types";
 import { getStore, showToast } from "../store";
+import { addCustomerCredit, addReceivable, closeReceivableFor } from "./money";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
 const who = () => ROLES[getStore().getState().session.role].name;
@@ -36,13 +37,6 @@ const stamp = () => `${fmtDate(DEMO_TODAY)}, ${demoTime()}`;
 const RETURNED: Pill = { label: "Returned", tone: "info" };
 const APPROVED: Pill = { label: "Approved", tone: "success" };
 
-/** Receivables seed tops out at RCV-0012 in the design (out of scope module, number only). */
-const RCV_FLOOR = 12;
-let rcvNo = RCV_FLOOR;
-const nextRcv = () => {
-  rcvNo += 1;
-  return `RCV-${String(rcvNo).padStart(4, "0")}`;
-};
 
 /** Split a document line key "Product · Variant" (the design's `l.key`). */
 export function splitKey(key: string): { product: string; variant: string } | null {
@@ -100,9 +94,14 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
     session: true,
   };
   store.setState((s) => ({ ...applyStockChanges(s, changes), sales: { ...s.sales, sales: [sale, ...s.sales.sales], saleNo } }));
-  const message = credit
-    ? `Credit sale recorded. ${kes(t.total)} added to Receivables as ${nextRcv()}, due in 30 days.`
-    : `Sale recorded. ${kes(t.total)} paid by ${input.payMethod}.`;
+  let rcvRef = "";
+  if (credit) {
+    // FR-013: a credit sale creates a real "Sale on credit" receivable, due in 30 days.
+    const r = addReceivable(store.getState(), { party: input.customer, type: "Sale on credit", doc: ref, due: addDays(DEMO_TODAY, 30), total: t.total });
+    rcvRef = r.ref;
+    store.setState({ money: r.money });
+  }
+  const message = credit ? `Credit sale recorded. ${kes(t.total)} added to Receivables as ${rcvRef}, due in 30 days.` : `Sale recorded. ${kes(t.total)} paid by ${input.payMethod}.`;
   showToast(message);
   return ok(sale, message);
 }
@@ -140,6 +139,8 @@ export async function voidSale(ref: string, reason: string): Promise<Result<Void
       invoices: s.sales.invoices.filter((x) => x.number !== ref),
       voids: [record, ...s.sales.voids],
     },
+    // FR-016b: the receivable raised from this sale/invoice stays listed but is closed.
+    money: closeReceivableFor(s, ref),
   }));
   showToast("Sale voided.");
   return ok(record, "Sale voided.");
@@ -226,7 +227,10 @@ export async function createInvoice(input: NewDocument): Promise<Result<Invoice>
       quotations: input.convertedFrom ? s.sales.quotations.map((q) => (q.number === input.convertedFrom ? { ...q, convertedTo: number } : q)) : s.sales.quotations,
     },
   }));
-  const message = `${number} saved. ${nextRcv()} added to Receivables.`;
+  // FR-014: the invoice creates a real "Invoice" receivable.
+  const r = addReceivable(store.getState(), { party: input.customer, type: "Invoice", doc: number, due: input.due || input.date, total: inv.amount, raised: input.date });
+  store.setState({ money: r.money });
+  const message = `${number} saved. ${r.ref} added to Receivables.`;
   showToast(message);
   return ok(inv, message);
 }
@@ -379,6 +383,10 @@ export async function approveCreditNote(number: string): Promise<Result<CreditNo
     ...(back.length ? applyStockChanges(s, back) : {}),
     sales: { ...s.sales, creditNotes: s.sales.creditNotes.map((c) => (c.number === number ? updated : c)) },
   }));
+  // FR-016c: money back as store credit (credit notes raised from a sale) becomes a customer credit.
+  if (cn.moneyBack === "credit" && cn.source.startsWith("SAL-") && cn.status.label !== "Approved") {
+    store.setState((s) => ({ money: addCustomerCredit(s, cn.customer, number, cn.amount).money }));
+  }
   const message = `${number} approved.`;
   showToast(message);
   return ok(updated, message);
