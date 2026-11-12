@@ -36,13 +36,14 @@ for (const roleId of ROLE_LIST) {
     }
   });
 
-  test(`${role.label}: out-of-scope modules show the placeholder`, async ({ page, errors }) => {
+  test(`${role.label}: every visible module is built (no placeholder left)`, async ({ page, errors }) => {
     void errors;
+    expect(MODULES.filter((m) => !m.inScope).map((m) => m.id)).toEqual([]);
     await loginAs(page, roleId);
-    const outOfScope = visibleModules(role).filter((m) => !m.inScope);
-    for (const m of outOfScope.slice(0, 4)) {
+    for (const m of visibleModules(role).filter((x) => x.id !== "home")) {
       await page.goto(`/${m.slug}`);
-      await expect(page.getByText("Not built yet in this prototype.")).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: m.name })).toBeVisible();
+      await expect(page.getByText("Not built yet in this prototype.")).toHaveCount(0);
     }
   });
 }

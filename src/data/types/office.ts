@@ -306,3 +306,9 @@ export interface ReportCard {
   /** Always "Run, schedule or export" in the design. */
   desc: string;
 }
+
+/** Ask UzaPro chat message (feature 006). `me` = sent by the user. */
+export interface ChatMessage {
+  me: boolean;
+  text: string;
+}

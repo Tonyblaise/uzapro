@@ -22,7 +22,7 @@ function screen(moduleId: ModuleId, tab: string, kind: ScreenKind): ScreenDef {
   return { Body, Actions: NewAction };
 }
 
-function screensFor(moduleId: ModuleId, only?: readonly string[]): ScreenMap {
+export function screensFor(moduleId: ModuleId, only?: readonly string[]): ScreenMap {
   const map: ScreenMap = {};
   for (const t of getModule(moduleId).tabs) if (!only || only.includes(t.slug)) map[t.slug] = screen(moduleId, t.slug, t.kind);
   return map;

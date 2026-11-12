@@ -428,7 +428,7 @@ Required by Constitution Principle I. These are the only intended differences fr
 
 | Deviation | Reason | Reference |
 |---|---|---|
-| Modules outside this feature open a plain page reading "Not built yet in this prototype." instead of their designed screens | Phased delivery; those modules come in later features | Clarification Q1, FR-029 |
+| ~~Modules outside this feature open a plain page reading "Not built yet in this prototype." instead of their designed screens~~ | **Superseded by features 002–006**: every module is now built; the placeholder remains only as a code fallback | Clarification Q1, FR-029 |
 | A "View as" role select in the account menu | The canvas has role data (`roleOptions`) but no visible switcher; US2 needs one for demos. Logging in as mary@, jane@ or grant@ also picks the role, as the design does | US2, FR-003 |
 | Product record drawer (`?view=<name>`: overview, variants, stock history, Edit) | In the canvas a product row opens "Edit product" and stock history opens only from Stock; FR-011 asks for a product record | FR-011 |
 

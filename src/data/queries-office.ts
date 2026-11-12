@@ -8,6 +8,7 @@ import { bizCompletion, storageCode } from "./settings";
 import { useAppStore } from "./store/StoreProvider";
 import type {
   BizCompletion,
+  ChatMessage,
   BranchRow,
   BusinessProfile,
   CalEvent,
@@ -191,6 +192,11 @@ export function useCurrentUserFirst(): string {
 // ---- Generic screens --------------------------------------------------------------------------
 
 /** Rows of a generic table tab ("{moduleId}/{tabSlug}"). */
+/** Ask UzaPro conversation, oldest first (feature 006). */
+export function useChatMessages(): ChatMessage[] {
+  return useAppStore((s) => s.help.messages);
+}
+
 export function useGenericRows(moduleId: ModuleId, tab: string): GenericRow[] {
   return useAppStore((s) => s.generic[`${moduleId}/${tab}`] ?? NO_ROWS);
 }

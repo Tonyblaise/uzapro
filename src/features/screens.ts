@@ -18,6 +18,7 @@ import { purchasesScreens } from "./purchases/screens";
 import { receivablesScreens } from "./receivables/screens";
 import { salesScreens } from "./sales/screens";
 import { stockScreens } from "./stock/screens";
+import { helpScreens } from "./help/screens";
 import { suppliersScreens } from "./suppliers/screens";
 import type { ScreenDef, ScreenMap } from "./types";
 
@@ -29,6 +30,7 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   cust: customersScreens,
   buy: purchasesScreens,
   vend: suppliersScreens,
+  sup: helpScreens,
   rcv: receivablesScreens,
   pay: payablesScreens,
   fin: accountsScreens,

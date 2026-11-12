@@ -23,6 +23,7 @@ export * from "./commands/purchases";
 export * from "./commands/money";
 export * from "./commands/accounts";
 export * from "./commands/expenses";
+export * from "./commands/help";
 export * from "./commands/calendar";
 export * from "./commands/docs";
 export * from "./commands/settings";

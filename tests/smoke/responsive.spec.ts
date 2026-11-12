@@ -31,6 +31,8 @@ const PAGES = [
   "/settings/terminals",
   "/profile/profile",
   "/reports/popular",
+  "/help/ask-uzapro",
+  "/help/help-requests",
 ];
 
 test("in-scope screens fit a 390px phone without horizontal page scroll", async ({ page, errors }) => {

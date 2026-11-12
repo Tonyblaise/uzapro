@@ -275,12 +275,21 @@ export const MODULES: Module[] = [
     true,
   ),
   mod("docs", "Office", "folder", "File Manager", "Company files, organised by folder", "file-manager", [["All documents", "docs"]], true),
-  mod("sup", "Office", "circle-help", "Help", "Get answers and ask for help", "help", [
-    ["Ask UzaPro", "chat"],
-    ["How-to guides", "table"],
-    ["Help requests", "table"],
-    ["Response times", "table"],
-  ]),
+  mod(
+    "sup",
+    "Office",
+    "circle-help",
+    "Help",
+    "Get answers and ask for help",
+    "help",
+    [
+      ["Ask UzaPro", "chat"],
+      ["How-to guides", "table", [C("Article"), C("Category"), N("Views"), C("Status")]],
+      ["Help requests", "table", [C("Ticket"), C("Subject"), C("Priority"), C("Status")]],
+      ["Response times", "table", [C("Priority"), C("Respond in"), C("Resolve in"), N("Met")]],
+    ],
+    true,
+  ),
   mod("prof", "Account", "users", "Profile", "Your personal details, photo and password", "profile", [["Profile", "profile"]], true),
   mod(
     "set",
