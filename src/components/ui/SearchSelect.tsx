@@ -19,9 +19,11 @@ export interface SearchSelectProps {
   onNew?: (typed: string) => void;
   noun?: string;
   placeholder?: string;
+  /** Accessible name when there is no visible label (e.g. the report "Period" picker). */
+  ariaLabel?: string;
 }
 
-export function SearchSelect({ label, options, value, onChange, onCreate, onNew, noun = "item", placeholder = "Choose" }: SearchSelectProps) {
+export function SearchSelect({ label, options, value, onChange, onCreate, onNew, noun = "item", placeholder = "Choose", ariaLabel }: SearchSelectProps) {
   const opts = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -97,7 +99,7 @@ export function SearchSelect({ label, options, value, onChange, onCreate, onNew,
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={label ? labelId : undefined}
-        aria-label={label ? undefined : noun}
+        aria-label={label ? undefined : ariaLabel ? `${ariaLabel}: ${sel?.label ?? placeholder}` : noun}
         onClick={() => (open ? close() : setOpen(true))}
         className={`type-body flex h-[var(--control-height)] w-full items-center justify-between gap-2 rounded-md border bg-surface pl-3 pr-2.5 text-left text-text ${open ? "border-action shadow-[0_0_0_3px_var(--green-100)]" : "border-border-strong"}`}
       >

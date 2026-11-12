@@ -1,7 +1,7 @@
 "use client";
 /** Sales › Sales targets: KPI tiles, the targets table, and the new/edit target modal (design `setOpen('target')`). */
 import { useMemo, useState } from "react";
-import { SALES_STAFF, TARGET_BRANCHES, deleteTarget, saveTarget, useSales, useStores, useTargets, type SalesTarget } from "@/data";
+import { SALES_STAFF, TARGET_BRANCHES, deleteTarget, saveTarget, targetAchieved, useSales, useStores, useTargets, type SalesTarget } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { Input } from "@/components/ui/Field";
@@ -26,22 +26,11 @@ function statusOf(t: SalesTarget, got: number) {
   return pct >= (gone / span) * 100 ? ({ label: "On track", tone: "success" } as const) : ({ label: "Behind", tone: "warning" } as const);
 }
 
-/** Achieved = the design's base figure plus sales recorded in the period that match the scope (`tgAchieved`). */
+/** Achieved per target (design `tgAchieved`, shared with the Sales targets report). */
 function useAchieved() {
   const sales = useSales();
   const stores = useStores();
-  return useMemo(() => {
-    const branchOf = (store: string) => {
-      const b = stores.find((s) => s.name === store)?.branch;
-      return b && b !== "—" ? b : "Nairobi HQ";
-    };
-    return (t: SalesTarget) =>
-      (t.base || 0) +
-      sales
-        .filter((s) => s.session && s.date >= t.start && s.date <= t.end)
-        .filter((s) => t.scope === "Whole business" || (t.scope === "Staff member" && s.by === t.who) || (t.scope === "Branch" && branchOf(s.store) === t.who))
-        .reduce((a, s) => a + s.total, 0);
-  }, [sales, stores]);
+  return useMemo(() => (t: SalesTarget) => targetAchieved(t, sales, stores), [sales, stores]);
 }
 
 interface Row {

@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import type { AiState } from "./store/state";
 import { viewingLabel } from "./uzaai";
+import { receivableRows } from "./money";
+import { runReport, type ReportSource } from "./reports";
 import { comingUp, visibleEvents } from "./calendar";
 import { storageTotals } from "./docs";
 import { currentUserFirst, currentUserName } from "./profile";
@@ -19,6 +21,8 @@ import type {
   GenericRow,
   GroupRow,
   ModuleId,
+  ReportPeriod,
+  ReportResult,
   Profile,
   StorageLocationRow,
   StorageTotals,
@@ -206,4 +210,30 @@ export function useUzaAi(): AiState {
 /** The "Viewing:" chip text for the current screen (research R9). */
 export function useViewingLabel(): string {
   return viewingLabel(usePathname() ?? "/");
+}
+
+/** Run a report over the live store (feature 009, research R1). */
+export function useReport(name: string, period: ReportPeriod): ReportResult {
+  const receivables = useAppStore((s) => s.money.receivables);
+  const payables = useAppStore((s) => s.money.payables);
+  const creditNotes = useAppStore((s) => s.sales.creditNotes);
+  const expenses = useAppStore((s) => s.expenses.expenses);
+  const accounts = useAppStore((s) => s.accounts.accounts);
+  const ledger = useAppStore((s) => s.accounts.ledger);
+  const levels = useAppStore((s) => s.stock.levels);
+  const movements = useAppStore((s) => s.stock.movements);
+  const wastage = useAppStore((s) => s.stock.wastage);
+  const products = useAppStore((s) => s.catalog.products);
+  const targets = useAppStore((s) => s.sales.targets);
+  const sales = useAppStore((s) => s.sales.sales);
+  const stores = useAppStore((s) => s.stock.stores);
+  return useMemo(() => {
+    const src: ReportSource = { receivables: receivableRows(receivables), payables, creditNotes, expenses, accounts, ledger, levels, movements, wastage, products, targets, sales, stores };
+    return runReport(name, period, src);
+  }, [name, period, receivables, payables, creditNotes, expenses, accounts, ledger, levels, movements, wastage, products, targets, sales, stores]);
+}
+
+/** The period last chosen for reports. */
+export function useReportPeriod(): ReportPeriod {
+  return useAppStore((s) => s.ui.reportPeriod);
 }

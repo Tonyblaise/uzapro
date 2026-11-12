@@ -25,9 +25,9 @@ function plain<R>(c: DataColumn<R>, r: R): string {
 }
 
 /** The bare table (DS DataTable): canvas-coloured sticky header, row hover, numeric columns right-aligned. */
-export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing to show.", minWidth = 560 }: { columns: DataColumn<R>[]; rows: R[]; rowKey: (r: R, i: number) => string; onRowClick?: (r: R) => void; empty?: string; minWidth?: number }) {
+export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing to show.", minWidth = 560, scrollLabel }: { columns: DataColumn<R>[]; rows: R[]; rowKey: (r: R, i: number) => string; onRowClick?: (r: R) => void; empty?: string; minWidth?: number; /** Names the scroll area and makes it keyboard-scrollable (report tables). */ scrollLabel?: string }) {
   return (
-    <div className="max-h-[var(--uz-h,60vh)] overflow-auto">
+    <div className="max-h-[var(--uz-h,60vh)] overflow-auto" {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}>
       <table className="w-full border-collapse" style={{ minWidth }}>
         <thead>
           <tr>

@@ -3,7 +3,7 @@
  * Field names follow the design's records (`UZ_EVENTS`, `UZ_DOCS`, `UZ_BIZ`, `UZ_GROUPS`,
  * `UZ_BRANCHES`, `UZ_TERMS`, `_profiles`, `UZ_MODS`).
  */
-import type { ModuleId, Pill } from "./common";
+import type { ModuleId, Pill, Tone } from "./common";
 import type { Store } from "./stock";
 
 // ---- Calendar ---------------------------------------------------------------------------------
@@ -303,8 +303,47 @@ export type GenericForm = GenericField[];
 
 export interface ReportCard {
   title: string;
-  /** Always "Run, schedule or export" in the design. */
+  /** The design's per-report description, or "Not available yet". */
   desc: string;
+  /** False for cards the canvas has no report for ("Coming soon"). */
+  runnable: boolean;
+}
+
+// ---- Run reports (feature 009, specs/009-run-reports/data-model.md) -------------------------
+
+export type ReportPeriod = "This month" | "Last month" | "This year";
+
+export interface ReportColumn {
+  t: string;
+  num?: boolean;
+  pct?: boolean;
+}
+
+/** A table cell: a raw number (formatted per column), text, or a styled label. */
+export type ReportCell = number | string | { text: string; bold?: boolean; right?: boolean; tone?: Tone };
+
+export type ReportTone = "green" | "danger" | "info" | "warning";
+
+export interface ReportKpi {
+  label: string;
+  value: string;
+  note?: string;
+  tone?: ReportTone;
+}
+
+export interface ReportResult {
+  title: string;
+  sub: string;
+  /** Point-in-time (or all-targets) report: no period picker. */
+  asAt: boolean;
+  kpis: ReportKpi[];
+  cols: ReportColumn[];
+  rows: ReportCell[][];
+  total: ReportCell[] | null;
+  empty?: string;
+  note?: string;
+  /** The design's default branch: shown as "Coming soon". */
+  missing?: boolean;
 }
 
 // ---- Help Center (feature 007, specs/007-help-center-articles/data-model.md) ------------------

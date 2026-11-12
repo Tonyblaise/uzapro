@@ -148,3 +148,27 @@ test.describe("Uza AI on phones", () => {
     }
   });
 });
+
+/** Feature 009 · Run Reports on phones (T018, FR-014, SC-006). */
+test.describe("reports on phones", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  const AXE = require.resolve("axe-core/axe.min.js");
+
+  test("report views fit 320px and pass the accessibility scan", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    for (const path of ["/reports/money?report=aged-receivables", "/reports/stock?report=low-stock", "/reports/popular?report=sales-summary"]) {
+      await page.goto(path);
+      await expect(page.getByRole("button", { name: "All reports" })).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow, `${path} overflows by ${overflow}px at 320px`).toBeLessThanOrEqual(0);
+      await page.addScriptTag({ path: AXE });
+      const bad = await page.evaluate(async () => {
+        const w = window as unknown as { axe: { run: (ctx: unknown, opts: unknown) => Promise<{ violations: { id: string; impact: string; nodes: unknown[] }[] }> } };
+        const r = await w.axe.run({ include: [["[data-report-view]"]] }, { resultTypes: ["violations"] });
+        return r.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} (${v.nodes.length})`);
+      });
+      expect(bad, `${path}: serious or critical axe violations`).toEqual([]);
+    }
+  });
+});

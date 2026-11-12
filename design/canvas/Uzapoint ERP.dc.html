@@ -848,18 +848,45 @@
       <sc-if value="{{ v.isCards }}" hint-placeholder-val="{{ false }}">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:var(--space-4)">
           <sc-for list="{{ v.cards }}" as="r" hint-placeholder-count="6">
-            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Card" hint-size="100%,128px">
-              <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Card" hint-size="100%,150px">
+              <div style="display:flex;flex-direction:column;gap:var(--space-3);height:100%">
                 <span style="width:36px;height:36px;border-radius:var(--radius-sm);background:var(--green-50);color:var(--green-600);display:grid;place-items:center">
                   <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Icon" name="file-text" size="{{ 18 }}" hint-size="18px,18px"></x-import>
                 </span>
-                <div>
+                <div style="flex:1">
                   <div style="font:var(--type-title);color:var(--text)">{{ r.title }}</div>
                   <div style="font:var(--type-small);color:var(--text-muted);margin-top:2px">{{ r.desc }}</div>
+                </div>
+                <div style="display:flex;justify-content:flex-end">
+                  <sc-if value="{{ r.canRun }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" size="sm" icon="chevron-right" on-click="{{ r.open }}" aria-label="{{ r.aria }}" hint-size="70px,30px">Run</x-import></sc-if>
+                  <sc-if value="{{ r.soon }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" size="sm" variant="secondary" disabled="{{ true }}" hint-size="110px,30px">Coming soon</x-import></sc-if>
                 </div>
               </div>
             </x-import>
           </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ v.isRepView }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" variant="secondary" icon="chevron-left" on-click="{{ v.rp.back }}" hint-size="120px,36px">All reports</x-import>
+            <div style="flex:1;min-width:200px"><div style="font:var(--type-card-title);color:var(--text)">{{ v.rp.title }}</div><div style="font:var(--type-small);color:var(--text-muted)">{{ v.rp.sub }}</div></div>
+            <sc-if value="{{ v.rp.hasPeriod }}" hint-placeholder-val="{{ true }}"><div style="flex:0 1 200px;min-width:160px"><x-import component-from-global-scope="UzForms.SearchSelect" aria-label="Period" options="{{ v.rp.periods }}" value="{{ v.rp.period }}" on-change="{{ v.rp.onPeriod }}" hint-size="100%,36px"></x-import></div></sc-if>
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" variant="secondary" icon="download" on-click="{{ v.rp.csv }}" hint-size="120px,36px">Export CSV</x-import>
+          </div>
+          <sc-if value="{{ v.rp.hasKpis }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--space-3)">
+              <sc-for list="{{ v.rp.kpis }}" as="k" hint-placeholder-count="3"><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4)"><div style="font:var(--type-eyebrow);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-muted)">{{ k.label }}</div><div style="font:var(--type-title);font-size:20px;color:{{ k.color }};margin-top:4px;font-variant-numeric:tabular-nums">{{ k.value }}</div><div style="font:var(--type-small);color:var(--text-secondary);margin-top:2px">{{ k.note }}</div></div></sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ v.rp.hasRows }}" hint-placeholder-val="{{ true }}">
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Card" padding="0" hint-size="100%,240px">
+              <x-import component-from-global-scope="UzapointDesignSystem_dfe583.DataTable" columns="{{ v.rp.columns }}" rows="{{ v.rp.rows }}" row-key="_k" hint-size="100%,220px"></x-import>
+            </x-import>
+          </sc-if>
+          <sc-if value="{{ v.rp.noRows }}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed var(--border-strong);border-radius:var(--radius-lg);padding:var(--space-6);text-align:center;font:var(--type-body);color:var(--text-secondary)">{{ v.rp.empty }}</div></sc-if>
+          <div style="font:var(--type-small);color:var(--text-muted)">{{ v.rp.note }}</div>
         </div>
       </sc-if>
 
@@ -2996,7 +3023,7 @@ class Component extends DCLogic {
   componentWillUnmount() { window.removeEventListener('resize', this._fit); clearInterval(this._poll); clearTimeout(this._tt); }
 
   go(mod, tab) {
-    this.setState(st => ({ mod, tab: tab || 0, q: '', docDir: null, docPage: 0 }));
+    this.setState(st => ({ mod, tab: tab || 0, q: '', docDir: null, docPage: 0, repName: null }));
     history.replaceState(null, '', '#' + mod + '-' + (tab || 0));
   }
 
@@ -3629,6 +3656,111 @@ class Component extends DCLogic {
     return { columns, objs };
   }
 
+  repFmt(n) { return (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('en-KE'); }
+  repRun(name, period) {
+    const per = period || 'This month', range = { 'This month': ['2026-11-01', '2026-11-10'], 'Last month': ['2026-10-01', '2026-10-31'], 'This year': ['2026-01-01', '2026-11-10'] }[per] || ['2026-11-01', '2026-11-10'];
+    const sc = { 'This month': 1, 'Last month': 4.29 / 4.82, 'This year': 38.6 / 4.82 }[per] || 1, iso = d => { const t = Date.parse(d); return isNaN(t) ? '' : new Date(t + 12 * 36e5).toISOString().slice(0, 10); };
+    const inR = d => { const x = /^\d{4}-/.test(d) ? d : iso(d); return x >= range[0] && x <= range[1]; }, N = x => this.expNum(x), K = n => 'KES ' + this.repFmt(n), sub = per + ' · ' + this.docDate(range[0]) + ' to ' + this.docDate(range[1]);
+    const tab = (mod, t) => ((window.UZ_MODS.find(x => x.id === mod) || { tabs: [] }).tabs.find(x => x.t === t) || { s: { rows: [] } }).s.rows;
+    const S = window.UZ_SALES || {}, board = t => ((S.boards || []).find(b => b.t === t) || { rows: [] }).rows, salesTotal = 4820000 * sc, orders = Math.round(1100 * sc);
+    const C = (t, num, pct) => ({ t, num: !!num, pct: !!pct });
+    const exps = this.expTab('Expenses').filter(r => r[8].pill === 'Paid' && inR(r[1]));
+    const cns = tab('sales', 'Refunds (credit notes)').filter(r => inR(r[2]) && this.plain(r[6]) !== 'Voided');
+    const rcv = this.rcvTab('Receivables'), pay = this.payTab('Payables');
+    const banks = tab('fin', 'Bank accounts'), stockVal = 2650000;
+    const outVat = salesTotal * 16 / 116, inVat = exps.reduce((a, r) => a + N(r[6]), 0) + 3400000 * sc * 0.6 * 16 / 116;
+    switch (name) {
+      case 'Sales summary': case 'Sales by channel': {
+        const ch = (S.channels || []), tot = ch.reduce((a, c) => a + c[1], 0), refunds = cns.reduce((a, r) => a + N(r[5]), 0);
+        const rows = ch.map(c => { const amt = c[1] / tot * salesTotal, o = Math.round(c[1] / tot * orders); return [c[0], String(o), amt, amt / Math.max(1, o), c[1] / tot * 100]; });
+        return { title: name, sub, kpis: [['Total sales', K(salesTotal), orders.toLocaleString('en-KE') + ' orders', 'var(--green-700)'], ['Average order', K(salesTotal / orders)], ['Refunds', K(refunds), cns.length + ' credit notes', 'var(--danger-text)'], ['Net sales', K(salesTotal - refunds)]],
+          cols: [C('Channel'), C('Orders', 1), C('Sales (KES)', 1), C('Average order (KES)', 1), C('Share', 1, 1)], rows, total: ['Total', orders.toLocaleString('en-KE'), salesTotal, salesTotal / orders, 100] };
+      }
+      case 'Sales by product': {
+        const rows = board('Top products').map(r => [r[0], String(Math.round(r[1] * sc)), r[2] * sc, r[2] / r[1]]), tot = rows.reduce((a, r) => a + r[2], 0);
+        return { title: name, sub, kpis: [['Best seller', rows[0] ? rows[0][0] : '—', rows[0] ? K(rows[0][2]) : '', 'var(--green-700)'], ['Products shown', String(rows.length)], ['Their sales', K(tot)]], cols: [C('Product'), C('Units sold', 1), C('Sales (KES)', 1), C('Average price (KES)', 1)], rows, total: ['Total', String(rows.reduce((a, r) => a + Number(r[1]), 0)), tot, ''] };
+      }
+      case 'Sales by customer': case 'Customer statements': {
+        if (name === 'Customer statements') {
+          const by = {}; rcv.forEach(r => { const b = by[r[1]] || (by[r[1]] = [0, 0, 0, 0]); b[0] += N(r[6]); b[1] += N(r[7]); b[2] += this.rcvBal(r); if (this.rcvStatus(r).pill === 'Overdue') b[3] += this.rcvBal(r); });
+          const rows = Object.keys(by).sort((a, b) => by[b][2] - by[a][2]).map(c => [c, by[c][0], by[c][1], by[c][2], by[c][3]]);
+          return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Customers with a balance', String(rows.filter(r => r[3] > 0).length)], ['Total owed', K(rows.reduce((a, r) => a + r[3], 0)), '', 'var(--info-text)'], ['Overdue', K(rows.reduce((a, r) => a + r[4], 0)), '', 'var(--danger-text)']],
+            cols: [C('Customer'), C('Invoiced (KES)', 1), C('Paid (KES)', 1), C('Balance (KES)', 1), C('Overdue (KES)', 1)], rows, total: ['Total', rows.reduce((a, r) => a + r[1], 0), rows.reduce((a, r) => a + r[2], 0), rows.reduce((a, r) => a + r[3], 0), rows.reduce((a, r) => a + r[4], 0)] };
+        }
+        const owed = c => rcv.filter(r => r[1] === c).reduce((a, r) => a + this.rcvBal(r), 0);
+        const rows = board('Top customers').map(r => [r[0], String(Math.round(r[1] * sc)), r[2] * sc, owed(r[0])]);
+        return { title: name, sub, kpis: [['Top customer', rows[0] ? rows[0][0] : '—', rows[0] ? K(rows[0][2]) : '', 'var(--green-700)'], ['Customers shown', String(rows.length)], ['They still owe', K(rows.reduce((a, r) => a + r[3], 0)), '', 'var(--info-text)']],
+          cols: [C('Customer'), C('Orders', 1), C('Sales (KES)', 1), C('Owes you now (KES)', 1)], rows, total: ['Total', String(rows.reduce((a, r) => a + Number(r[1]), 0)), rows.reduce((a, r) => a + r[2], 0), rows.reduce((a, r) => a + r[3], 0)] };
+      }
+      case 'Returns & refunds': {
+        const rows = cns.map(r => [r[0], r[1], r[2], r[3], r[4], N(r[5])]);
+        return { title: name, sub, kpis: [['Credit notes', String(rows.length)], ['Refunded', K(rows.reduce((a, r) => a + r[5], 0)), '', 'var(--danger-text)'], ['Share of sales', (rows.reduce((a, r) => a + r[5], 0) / salesTotal * 100).toFixed(2) + '%']],
+          cols: [C('Credit note'), C('Customer'), C('Date'), C('Invoice'), C('Reason'), C('Amount (KES)', 1)], rows, total: rows.length ? ['Total', '', '', '', '', rows.reduce((a, r) => a + r[5], 0)] : null, empty: 'No refunds in this period.' };
+      }
+      case 'Sales targets': {
+        const rows = (window.UZ_TARGETS || []).map(t => { const got = this.tgAchieved(t); return [t.name, t.who || t.scope, this.docDate(t.start) + ' – ' + this.docDate(t.end), t.amount, got, got / t.amount * 100]; });
+        return { title: name, sub: 'All targets', asAt: true, kpis: [['Targets', String(rows.length)], ['On track', String(rows.filter(r => r[5] >= 75).length), '75% or more reached', 'var(--green-700)']], cols: [C('Target'), C('For'), C('Dates'), C('Target (KES)', 1), C('Reached (KES)', 1), C('Progress', 1, 1)], rows };
+      }
+      case 'Profit & loss': {
+        const cogs = salesTotal * 0.58, by = {}; exps.forEach(r => { by[r[2]] = (by[r[2]] || 0) + N(r[7]) + (((window.UZ_EXPDETAIL || {})[r[0]] || {}).fee || 0); });
+        const opex = Object.keys(by).reduce((a, k) => a + by[k], 0), gross = salesTotal - cogs, net = gross - opex, B = t => ({ main: t, bold: true });
+        const rows = [[B('Income'), ''], ['Sales', salesTotal], ['Cost of goods sold', -cogs], [B('Gross profit'), { main: this.repFmt(gross), bold: true, right: true }], [B('Expenses'), '']].concat(Object.keys(by).sort((a, b) => by[b] - by[a]).map(k => ['   ' + k, -by[k]]), [[B('Total expenses'), { main: this.repFmt(-opex), bold: true, right: true }]]);
+        return { title: name, sub, kpis: [['Sales', K(salesTotal), '', 'var(--green-700)'], ['Gross profit', K(gross), (gross / salesTotal * 100).toFixed(1) + '% margin'], ['Expenses', K(opex), exps.length + ' paid expenses', 'var(--danger-text)'], ['Net profit', K(net), '', net >= 0 ? 'var(--green-700)' : 'var(--danger-text)']],
+          cols: [C('Line'), C('Amount (KES)', 1)], rows, total: ['Net profit', net], note: 'Sales and cost of goods come from the sales figures. Expenses are the paid expenses recorded in this period.' };
+      }
+      case 'Balance sheet': case 'Trial balance': {
+        const bank = banks.map(r => [r[0], N(r[4])]), recv = rcv.reduce((a, r) => a + this.rcvBal(r), 0), owe = pay.reduce((a, r) => a + this.payBal(r), 0), vat = Math.max(0, outVat - inVat);
+        const assets = bank.reduce((a, r) => a + r[1], 0) + recv + stockVal, liab = owe + vat, eq = assets - liab, B = t => ({ main: t, bold: true });
+        if (name === 'Trial balance') {
+          const rows = bank.map(r => [r[0], r[1], 0]).concat([['Customers owe you (receivables)', recv, 0], ['Stock', stockVal, 0], ['Suppliers you owe (payables)', 0, owe], ['VAT owed to KRA', 0, vat], ["Owner's equity", 0, eq]]);
+          return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Debits', K(assets)], ['Credits', K(liab + eq)], ['Difference', 'KES 0', 'Balanced', 'var(--green-700)']], cols: [C('Account'), C('Debit (KES)', 1), C('Credit (KES)', 1)], rows, total: ['Total', assets, liab + eq] };
+        }
+        const rows = [[B('What the business owns'), '']].concat(bank.map(r => ['   ' + r[0], r[1]]), [['   Customers owe you', recv], ['   Stock', stockVal], [B('Total assets'), { main: this.repFmt(assets), bold: true, right: true }], [B('What the business owes'), ''], ['   Suppliers', owe], ['   VAT owed to KRA', vat], [B('Total liabilities'), { main: this.repFmt(liab), bold: true, right: true }]]);
+        return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Assets', K(assets), '', 'var(--green-700)'], ['Liabilities', K(liab), '', 'var(--danger-text)'], ['Net worth', K(eq)]], cols: [C('Item'), C('Amount (KES)', 1)], rows, total: ["Owner's equity (net worth)", eq] };
+      }
+      case 'Cash flow': {
+        const led = (window.UZ_LEDGER || []).filter(e => inR(e.date)), by = {}; led.forEach(e => { const b = by[e.kind] || (by[e.kind] = [0, 0, 0]); if (e.amt >= 0) b[0] += e.amt; else b[1] -= e.amt; b[2]++; });
+        const rows = Object.keys(by).sort((a, b) => (by[b][0] + by[b][1]) - (by[a][0] + by[a][1])).map(k => [k, String(by[k][2]), by[k][0], by[k][1], by[k][0] - by[k][1]]), i = rows.reduce((a, r) => a + r[2], 0), o = rows.reduce((a, r) => a + r[3], 0);
+        return { title: name, sub, kpis: [['Money in', K(i), '', 'var(--green-700)'], ['Money out', K(o), '', 'var(--danger-text)'], ['Net cash flow', K(i - o), led.length + ' transactions', i - o >= 0 ? 'var(--green-700)' : 'var(--danger-text)']],
+          cols: [C('Type'), C('Transactions', 1), C('Money in (KES)', 1), C('Money out (KES)', 1), C('Net (KES)', 1)], rows, total: rows.length ? ['Total', String(led.length), i, o, i - o] : null, empty: 'No money moved in this period.', note: 'From the transactions recorded in your bank, M-Pesa and cash accounts.' };
+      }
+      case 'VAT return': {
+        const rows = [['Sales including VAT', salesTotal], ['VAT on sales (output VAT)', outVat], ['VAT on purchases and expenses (input VAT)', inVat]];
+        return { title: name, sub, kpis: [['VAT on sales', K(outVat)], ['VAT you can claim', K(inVat)], [outVat >= inVat ? 'VAT to pay KRA' : 'VAT to carry forward', K(Math.abs(outVat - inVat)), 'Due by the 20th of next month', outVat >= inVat ? 'var(--danger-text)' : 'var(--green-700)']],
+          cols: [C('Line'), C('Amount (KES)', 1)], rows, total: [outVat >= inVat ? 'VAT to pay' : 'VAT to carry forward', Math.abs(outVat - inVat)], note: 'Standard rate of 16%. Check the figures before filing on iTax.' };
+      }
+      case 'Aged receivables': {
+        const rows = rcv.filter(r => this.rcvBal(r) > 0).map(r => { const d = Math.floor((Date.parse('10 Nov 2026') - Date.parse(r[4])) / 864e5), b = this.rcvBal(r), z = [0, 0, 0, 0, 0]; z[d <= 0 ? 0 : d <= 30 ? 1 : d <= 60 ? 2 : d <= 90 ? 3 : 4] = b; return [r[1], r[3] && r[3] !== '—' ? r[3] : r[0], r[4]].concat(z, [b]); });
+        const sum = i => rows.reduce((a, r) => a + r[i], 0);
+        return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Total owed', K(sum(8)), rows.length + ' open balances', 'var(--info-text)'], ['Not yet due', K(sum(3))], ['Over 90 days', K(sum(7)), '', 'var(--danger-text)']],
+          cols: [C('Customer'), C('Document'), C('Due date'), C('Not due', 1), C('1–30 days', 1), C('31–60 days', 1), C('61–90 days', 1), C('Over 90 days', 1), C('Total (KES)', 1)], rows, total: ['Total', '', '', sum(3), sum(4), sum(5), sum(6), sum(7), sum(8)] };
+      }
+      case 'Purchase analysis': {
+        const rows = ((window.UZ_HOME || {}).suppliers || []).map(r => [r[0], String(Math.max(1, Math.round(r[1] * sc))), r[2] * sc, r[2] / r[1]]), tot = rows.reduce((a, r) => a + r[2], 0);
+        return { title: name, sub, kpis: [['Spent with suppliers', K(tot), '', 'var(--danger-text)'], ['Biggest supplier', rows[0] ? rows[0][0] : '—'], ['Purchase orders', String(rows.reduce((a, r) => a + Number(r[1]), 0))]], cols: [C('Supplier'), C('Orders', 1), C('Spent (KES)', 1), C('Average order (KES)', 1), C('Share', 1, 1)], rows: rows.map(r => r.concat([r[2] / tot * 100])), total: ['Total', String(rows.reduce((a, r) => a + Number(r[1]), 0)), tot, '', 100] };
+      }
+      case 'Stock valuation': {
+        const prices = {}; tab('prod', 'All products').forEach(r => { prices[r[0]] = N(String(r[2]).replace(/^From /, '')); });
+        const rows = ((window.UZ_STOCK || {}).lines || []).map(l => { const p = prices[l[0]] || 0, cost = p * 0.6; return [l[0], l[1], String(l[2]), cost, cost * l[2], p * l[2]]; }).filter(r => Number(r[2]) > 0);
+        return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Value at cost', K(rows.reduce((a, r) => a + r[4], 0)), '', 'var(--green-700)'], ['Value at selling price', K(rows.reduce((a, r) => a + r[5], 0))], ['Lines in stock', String(rows.length)]],
+          cols: [C('Product'), C('Store'), C('Quantity', 1), C('Unit cost (KES)', 1), C('Value at cost (KES)', 1), C('Value at price (KES)', 1)], rows, total: ['Total', '', String(rows.reduce((a, r) => a + Number(r[2]), 0)), '', rows.reduce((a, r) => a + r[4], 0), rows.reduce((a, r) => a + r[5], 0)], note: 'Unit cost is estimated at 60% of the selling price where no buying price is recorded.' };
+      }
+      case 'Stock movement': {
+        const rows = ((window.UZ_STOCK || {}).moves || []).filter(r => inR(r[0])).map(r => [r[0], r[1], r[2], this.plain(r[3]), r[4], r[5], r[6], r[7], r[8]]);
+        return { title: name, sub, kpis: [['Movements', String(rows.length)], ['Units in', String(rows.reduce((a, r) => a + Math.max(0, N(String(r[5]).replace('−', '-'))), 0))], ['Units out', String(rows.reduce((a, r) => a + Math.max(0, -N(String(r[5]).replace('−', '-'))), 0))]],
+          cols: [C('Date'), C('Product'), C('Variant'), C('Type'), C('Store'), C('Change', 1), C('Balance', 1), C('By'), C('Reference')], rows, empty: 'No stock moved in this period.' };
+      }
+      case 'Low stock': {
+        const rows = ((window.UZ_STOCK || {}).low || []).map(r => [r[0], r[1], r[2], r[3], r[4]]);
+        return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Need restocking', String(rows.filter(r => this.plain(r[4]) !== 'Healthy').length), '', 'var(--warning-text)'], ['Out of stock', String(rows.filter(r => Number(r[2]) === 0).length), '', 'var(--danger-text)']], cols: [C('Product'), C('Store'), C('In stock', 1), C('Reorder at', 1), C('Status')], rows };
+      }
+      case 'Wastage': {
+        const rows = tab('inv', 'Wastage').map(r => [r[0], r[1], r[2], r[3], N(r[4])]);
+        return { title: name, sub, kpis: [['Records', String(rows.length)], ['Value lost', K(rows.reduce((a, r) => a + r[4], 0)), '', 'var(--danger-text)']], cols: [C('Ref'), C('Item'), C('Qty', 1), C('Reason'), C('Value (KES)', 1)], rows, total: rows.length ? ['Total', '', String(rows.reduce((a, r) => a + N(r[2]), 0)), '', rows.reduce((a, r) => a + r[4], 0)] : null };
+      }
+      default: return { title: name, sub, missing: true, cols: [C('Item')], rows: [], empty: 'This report isn\'t in the sample yet.' };
+    }
+  }
   aiStore() {
     if (this._ais) return this._ais;
     const B = (text, act) => ({ me: false, text, act }), U = text => ({ me: true, text });
@@ -3706,7 +3838,7 @@ class Component extends DCLogic {
     const age = d => { const n = Math.round((today - Date.parse(d)) / 864e5); return n <= 0 ? 'Today' : n < 7 ? n + 'd' : n < 30 ? Math.round(n / 7) + 'w' : Math.round(n / 30) + 'mo'; };
     const where = m ? m.n + (activeTab && m.tabs.length > 1 && activeTab.t !== m.n && activeTab.t !== 'Overview' ? ' › ' + activeTab.t : '') : 'Dashboard';
     const conv = S.convs.find(c => c.id === st.aiConv);
-    const runAct = a => { if (!a) return; if (a.ticket) return set({ aiTab: 'support', spView: 'ticket', spRef: a.ticket, spDraft: '' }); this.goLabel(a.mod, a.tab); if (window.innerWidth < 900) set({ aiOpen: false }); };
+    const runAct = a => { if (!a) return; if (a.ticket) return set({ aiTab: 'support', spView: 'ticket', spRef: a.ticket, spDraft: '' }); if (a.report) { this.goLabel('rep', 'Popular'); set({ repName: a.report, repPeriod: a.period || 'This month' }); } else this.goLabel(a.mod, a.tab); if (window.innerWidth < 900) set({ aiOpen: false }); };
     const scroll = () => setTimeout(() => { const el = document.querySelector('.uz-ai-body'); if (el) el.scrollTop = el.scrollHeight; }, 30);
     const ask = (raw, file) => {
       const text = String(raw || '').trim(); if ((!text && !file) || st.aiTyping) return;
@@ -4178,7 +4310,19 @@ class Component extends DCLogic {
     } }] : []);
     if (tableCols) { const t = this.table(tableCols, tableRows, DS, rowActions); v.columns = t.columns; v.rows = t.objs; }
     if (v.isForm) v.fields = s.fields.map(f => ({ label: f[0], value: f[2] ? undefined : f[1], placeholder: f[2] ? f[1] : undefined, span: f[3] ? '1 / -1' : 'auto' }));
-    if (v.isCards) v.cards = s.items.map(r => ({ title: r[0], desc: r[1] || 'Run, schedule or export' }));
+    if (v.isCards && m.id === 'rep' && this.state.repName) {
+      v.isCards = false; v.isRepView = true;
+      const per = this.state.repPeriod || 'This month', R = this.repRun(this.state.repName, per), t = this.table(R.cols, R.rows.concat(R.total ? [R.total.map((c, i) => ({ main: i === 0 ? String(c) : (typeof c === 'number' ? this.repFmt(c) : String(c == null ? '' : c)), bold: true, right: i > 0 }))] : []).map(r => r.map((c, i) => typeof c === 'number' ? (R.cols[i] && R.cols[i].pct ? c.toFixed(1) + '%' : this.repFmt(c)) : c)), DS);
+      v.rp = { title: R.title, sub: R.sub, periods: ['This month', 'Last month', 'This year'], period: per, hasPeriod: !R.asAt, onPeriod: e => this.setState({ repPeriod: e.target.value }),
+        kpis: (R.kpis || []).map(k => ({ label: k[0], value: k[1], note: k[2] || '', color: k[3] || 'var(--text)' })), hasKpis: !!(R.kpis && R.kpis.length),
+        columns: t.columns, rows: t.objs, hasRows: !!R.rows.length, noRows: !R.rows.length, empty: R.empty || 'Nothing to show for this period.', note: R.note || 'Built from the sample data in UzaPro. Figures update as you record sales, expenses and payments.',
+        back: () => this.setState({ repName: null }),
+        csv: () => { const csv = [R.cols.map(c => c.t)].concat(R.rows, R.total ? [R.total] : []).map(r => r.map(c => JSON.stringify(typeof c === 'number' ? Math.round(c * 100) / 100 : this.plain(c))).join(',')).join('\n');
+          (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(csv) : Promise.reject()).then(() => this.showToast('Copied ' + R.title + ' as CSV.')).catch(() => this.showToast('Copy is not available here.')); },
+        ask: () => { this.setState({ aiOpen: true, aiTab: 'chat', aiView: 'chat', aiConv: null, aiDraft: '' }); setTimeout(() => { this.setState({ aiDraft: R.title + ' ' + per.toLowerCase() }); }, 0); } };
+    } else if (v.isCards) v.cards = s.items.map(r => { const open = () => this.setState({ repName: r[0], repPeriod: this.state.repPeriod || 'This month' }), soon = !!this.repRun(r[0], 'This month').missing;
+      const desc = { 'Sales summary': 'Total sales, orders and refunds', 'Sales by product': 'Which products bring in the most', 'Sales by customer': 'Your biggest customers and what they owe', 'Sales by channel': 'POS, invoices and online compared', 'Returns & refunds': 'Credit notes issued in the period', 'Sales targets': 'Progress against each target', 'Profit & loss': 'Sales, costs, expenses and profit', 'Balance sheet': 'What the business owns and owes', 'Trial balance': 'Debits and credits by account', 'Cash flow': 'Money in and out of your accounts', 'VAT return': 'VAT on sales, VAT to claim, VAT to pay', 'Aged receivables': 'Money owed, by how late it is', 'Customer statements': 'Invoiced, paid and balance per customer', 'Purchase analysis': 'Spending with each supplier', 'Stock valuation': 'What your stock is worth', 'Stock movement': 'Stock in, out and transferred', 'Low stock': 'Items to reorder now', 'Wastage': 'Damaged, expired and lost stock' }[r[0]] || 'Not available yet';
+      return { title: r[0], desc: r[1] || desc, open, aria: 'Run ' + r[0], canRun: !soon, soon }; });
     if (v.isKanban) v.kcols = s.cols.map(c => ({ title: c[0], color: c[1], count: c[2].length, cards: c[2].map(k => ({ title: k[0], sub: k[1] })) }));
 
     const saleLines = this.state.saleLines;

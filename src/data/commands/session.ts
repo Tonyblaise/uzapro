@@ -79,17 +79,21 @@ export function toast(text: string): void {
 }
 
 /** Copy rows as CSV to the clipboard — the design's `exportCsv`. */
-export async function copyCsv(headers: string[], rows: (string | number)[][]): Promise<Result<void>> {
+export async function copyCsv(headers: string[], rows: (string | number)[][], message?: string): Promise<Result<void>> {
   const csv = [headers.join(","), ...rows.map((r) => r.map((c) => JSON.stringify(String(c))).join(","))].join("\n");
+  return copyText(csv, message ?? `Copied ${rows.length} rows as CSV.`);
+}
+
+/** Copy text to the clipboard and confirm with a toast (shared by CSV exports). */
+export async function copyText(text: string, message: string): Promise<Result<void>> {
   try {
     if (!navigator.clipboard?.writeText) throw new Error("no clipboard");
-    await navigator.clipboard.writeText(csv);
-    const message = `Copied ${rows.length} rows as CSV.`;
+    await navigator.clipboard.writeText(text);
     showToast(message);
     return ok(undefined, message);
   } catch {
-    const message = "Copy is not available here.";
-    showToast(message);
-    return fail(message);
+    const failed = "Copy is not available here.";
+    showToast(failed);
+    return fail(failed);
   }
 }

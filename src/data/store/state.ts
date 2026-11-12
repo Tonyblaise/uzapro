@@ -1,4 +1,5 @@
 import type {
+  ReportPeriod,
   AiChat,
   FeatureIdea,
   SupportTicket,
@@ -89,6 +90,8 @@ export interface UiState {
   toast: { id: number; text: string } | null;
   /** Header search text; filters the current tab's table (FR-026a, T086). */
   search: string;
+  /** The last report period chosen (design `repPeriod`, feature 009). */
+  reportPeriod: ReportPeriod;
 }
 
 export interface PurchasesState {

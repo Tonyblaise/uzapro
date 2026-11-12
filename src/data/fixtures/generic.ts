@@ -6,6 +6,8 @@
 import type { GenericField, GenericRow, ReportCard } from "../types";
 import { P } from "./_helpers";
 
+import { REPORT_DESCRIPTIONS, REPORT_NAMES, REPORT_NOT_AVAILABLE, type ReportName } from "./reports";
+
 /** Table rows, cells in column order (the columns live in src/config/modules.ts). */
 export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
   "rep/sent-automatically": [
@@ -92,10 +94,14 @@ export const GENERIC_FORMS: Readonly<Record<string, readonly GenericField[]>> = 
   ]),
 };
 
-const RUN = "Run, schedule or export";
-const C = (titles: readonly string[]): ReportCard[] => titles.map((title) => ({ title, desc: RUN }));
+/** A card per title: the design's description and whether a report exists for it (feature 009). */
+const C = (titles: readonly string[]): ReportCard[] =>
+  titles.map((title) => {
+    const runnable = (REPORT_NAMES as readonly string[]).includes(title);
+    return { title, desc: runnable ? REPORT_DESCRIPTIONS[title as ReportName] : REPORT_NOT_AVAILABLE, runnable };
+  });
 
-/** Report card titles per tab (read-only fixture). Clicking a card does nothing in the design. */
+/** Report card titles per tab (read-only fixture); each runnable card opens its report. */
 export const REPORT_CARDS: Readonly<Record<string, readonly ReportCard[]>> = {
   "rep/popular": C([
     "Sales summary",

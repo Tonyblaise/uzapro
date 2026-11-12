@@ -41,16 +41,16 @@ test("every generic tab shows its seed content and the New button", async ({ pag
   }
 });
 
-test("Reports › Popular shows 8 cards that do nothing", async ({ page, errors }) => {
+test("Reports › Popular shows 8 cards with Run or Coming soon (feature 009)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/reports/popular");
   const cards = page.getByRole("list", { name: "Reports" }).getByRole("listitem");
   await expect(cards).toHaveCount(8);
   await expect(cards.first()).toContainText("Sales summary");
-  await expect(cards.first()).toContainText("Run, schedule or export");
-  await cards.first().click();
-  await expect(page).toHaveURL(/\/reports\/popular$/);
+  await expect(cards.first()).toContainText("Total sales, orders and refunds");
+  await expect(cards.first().getByRole("button", { name: "Run Sales summary" })).toBeEnabled();
+  await expect(cards.last().getByRole("button", { name: "Coming soon" })).toBeDisabled();
 });
 
 test("Saved messages: search, view, delete, and New without a new row", async ({ page, errors }) => {
