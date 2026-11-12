@@ -113,9 +113,11 @@ test("the store filter limits Stock management to one store", async ({ page, err
   void errors;
   await loginAs(page, "owner");
   await page.goto("/stock/stock-management");
-  await expect(page.getByRole("row").filter({ hasText: "Groupset" })).toBeVisible();
+  // Groupset is stocked at Stores and (since feature 010's design data) at Point of Sale.
+  await expect(page.getByRole("row").filter({ hasText: "Groupset" })).toHaveCount(2);
   await choose(page, "store", "Point of Sale");
   await expect(page.getByRole("row").filter({ hasText: "Helmet" }).first()).toBeVisible();
-  await expect(page.getByRole("row").filter({ hasText: "Groupset" })).toHaveCount(0);
+  await expect(page.getByRole("row").filter({ hasText: "Groupset" })).toHaveCount(1);
   await expect(page.getByRole("row").filter({ hasText: "Main Store" })).toHaveCount(0);
+  await expect(page.getByRole("row").filter({ hasText: "Stores" })).toHaveCount(0);
 });

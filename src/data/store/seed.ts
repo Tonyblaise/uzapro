@@ -40,6 +40,8 @@ import { PROFILE_DEFAULTS, PROFILE_EMAIL_DOMAIN, UZ_BIZ_FULL, UZ_BRANCHES, UZ_GR
 import { nextCode } from "../settings";
 import { AI_CHATS, FEATURE_IDEAS, SEED_VOTES, SUPPORT_TICKETS } from "../fixtures/uzaai";
 import type { AiState } from "./state";
+import { POS_SEED_DOCS, POS_SEED_SHIFT, POS_SETTINGS_DEFAULT } from "../fixtures/pos";
+import type { PosState, PosUi } from "../types";
 import type { Branch, Profile, RoleId } from "../types";
 import type { CalendarState, DocsState, SettingsState } from "./state";
 
@@ -239,6 +241,7 @@ export function createSeed(): AppState {
     generic: Object.fromEntries(Object.entries(GENERIC_ROWS).map(([k, rows]) => [k, rows.map((r) => r.map((c) => (typeof c === "string" ? c : { ...c })))])),
     ui: { toast: null, search: "", reportPeriod: "This month" },
     ai: seedAi(),
+    pos: seedPos(),
   };
 }
 
@@ -505,5 +508,57 @@ export function seedAi(): AiState {
     filter: "all",
     support: { view: "list", ref: null, form: { subject: "", priority: "Medium", body: "" }, error: "", reply: "" },
     features: { tab: "Roadmap", q: "", form: { title: "", outcome: "", tags: "" }, checked: false, error: "" },
+  };
+}
+
+/** A fresh till session (design `launch`): everything the till shows resets each time it opens. */
+export function posUiDefault(termId = 1, who = ""): PosUi {
+  return {
+    open: false,
+    termId,
+    step: "shift",
+    who,
+    pinWho: who,
+    pin: "",
+    pinErr: "",
+    shake: 0,
+    floatDraft: "",
+    view: "sell",
+    q: "",
+    cat: "All",
+    cart: [],
+    cust: "Walk-in Customer",
+    discVal: "",
+    discType: "KES",
+    discOpen: false,
+    noteLine: null,
+    cartOpen: false,
+    modal: null,
+    varProduct: null,
+    varSel: "",
+    varQty: "1",
+    cq: "",
+    nc: { name: "", phone: "" },
+    ncErr: "",
+    co: { pays: [], method: "Cash", amt: null, ref: "", phone: "", mpesa: "", note: "", notify: { Print: true, SMS: false, Email: false }, err: "" },
+    rcpt: null,
+    fresh: false,
+    count: "",
+    closeNote: "",
+    clErr: "",
+    qnDraft: "",
+    scan: "",
+  };
+}
+
+/** Point of sale seed (design `posStore`): Terminal 1 open with six sales. */
+export function seedPos(): PosState {
+  const { startAgoMin, ...shift } = POS_SEED_SHIFT;
+  return {
+    shifts: { 1: { ...shift, start: Date.now() - startAgoMin * 60_000, refs: POS_SEED_DOCS.map((d) => d.ref) } },
+    docs: Object.fromEntries(POS_SEED_DOCS.map((d) => [d.ref, { ...d, lines: d.lines.map((l) => ({ ...l })), pays: d.pays.map((p) => ({ ...p })) }])),
+    held: [],
+    settings: { ...POS_SETTINGS_DEFAULT, qn: [...POS_SETTINGS_DEFAULT.qn] },
+    ui: posUiDefault(),
   };
 }

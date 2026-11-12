@@ -127,6 +127,38 @@
     .uz-dots i { animation: none; opacity: 0.6; }
   }
 }
+/* Point of sale (feature 010; canvas .uz-ptile / .uz-key / .uz-orow / .uz-switch / .uz-shake / .uz-pos) */
+@layer components {
+  .uz-ptile { transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s; }
+  .uz-ptile:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgb(0 0 0 / 0.08); border-color: var(--green-200) !important; }
+  .uz-ptile:active { transform: scale(0.98); }
+  .uz-key:hover { background: var(--green-50) !important; border-color: var(--green-200) !important; }
+  .uz-key:active { transform: scale(0.96); }
+  .uz-orow:hover { border-color: var(--green-200) !important; box-shadow: 0 6px 16px rgb(0 0 0 / 0.05); }
+  .uz-switch { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; border-radius: 999px; background: var(--border-strong); position: relative; cursor: pointer; flex: none; transition: background 0.15s; margin: 0; }
+  .uz-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgb(0 0 0 / 0.25); transition: left 0.15s; }
+  .uz-switch:checked { background: var(--green-600); }
+  .uz-switch:checked::after { left: 21px; }
+  .uz-switch:focus-visible { outline: 2px solid var(--green-600); outline-offset: 2px; }
+  .uz-shake { animation: uzShake 0.35s; }
+  @media (max-width: 760px) { .uz-pinwrap { grid-template-columns: minmax(0, 1fr) !important; } }
+  @media (max-width: 1000px) { .uz-dash2 { grid-template-columns: minmax(0, 1fr) !important; } }
+  @media (max-width: 1100px) { .uz-pos .uz-cart { width: 340px !important; } }
+  @media (max-width: 860px) {
+    .uz-pos .uz-cart { position: fixed; top: 0; right: 0; bottom: 0; width: min(400px, 100vw) !important; z-index: 5; box-shadow: -12px 0 32px rgb(0 0 0 / 0.15); transform: translateX(105%); transition: transform 0.2s; visibility: hidden; }
+    .uz-pos .uz-cart.uz-cart-open { transform: none; visibility: visible; }
+    .uz-pos .uz-pos-cartbtn { display: inline-flex !important; }
+    .uz-pos .uz-pos-who { display: none !important; }
+    .uz-co { grid-template-columns: minmax(0, 1fr) !important; }
+    .uz-orow { grid-template-columns: minmax(0, 1fr) auto !important; }
+    .uz-orow > .uz-orow-items, .uz-orow > .uz-orow-time { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .uz-ptile, .uz-ptile:hover, .uz-key:active, .uz-ptile:active { transition: none; transform: none; }
+    .uz-shake { animation: none; }
+  }
+}
+@keyframes uzShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 @keyframes uzDot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 
 button { cursor: pointer; }

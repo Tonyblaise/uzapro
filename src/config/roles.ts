@@ -65,7 +65,7 @@ export const ROLES: Record<RoleId, Role> = {
     name: "Jane Smith",
     role: "Cashier",
     first: "Jane",
-    mods: ["home", "cal", "sales", "cust", "inv", "sup"],
+    mods: ["home", "cal", "sales", "pos", "cust", "inv", "sup"],
     tabs: {
       home: ["Overview"],
       cust: ["Customers"],

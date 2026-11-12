@@ -75,7 +75,7 @@ function rebalance(m: VariantMap, total: number): void {
 const SEED_QTY = new Map(STOCK_LINES.map(([p, s, q]) => [`${p}|${s}`, q]));
 
 /** Variant quantities for every (product, store) line: seed split, then this session's movements replayed. */
-function variantLevels(movements: readonly StockMovement[], products: readonly Product[]) {
+export function variantLevels(movements: readonly StockMovement[], products: readonly Product[]) {
   const session = movements.filter((m) => !m.id.startsWith("seed-")).slice().reverse();
   const maps = new Map<string, VariantMap>();
   const get = (product: string, store: string) => {

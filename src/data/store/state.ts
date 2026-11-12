@@ -1,4 +1,5 @@
 import type {
+  PosState,
   ReportPeriod,
   AiChat,
   FeatureIdea,
@@ -179,6 +180,8 @@ export interface AppState {
   ui: UiState;
   /** Uza AI panel: chats, support tickets, feature ideas and where the panel is (feature 008). */
   ai: AiState;
+  /** Point of sale: shifts, till receipts, held sales, settings and the open till (feature 010). */
+  pos: PosState;
 }
 
 export type AiTab = "chat" | "support" | "features";

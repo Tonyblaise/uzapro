@@ -3,14 +3,14 @@ import { P } from "./_helpers";
 
 /** UZ_MODS › prod › "All products": [Product, Category, Price, On hand, Status] */
 export const PRODUCT_ROWS = [
-  ["Carbon Road Frame", "Frames", "34,500", "135", P("Active", "good")],
-  ["Aluminium Frame", "Frames", "31,050", "165", P("Active", "good")],
+  ["Carbon Road Frame", "Frames", "34,500", "141", P("Active", "good")],
+  ["Aluminium Frame", "Frames", "31,050", "170", P("Active", "good")],
   ["Carbon Sole Shoes", "Apparel", "4,140", "68", P("Low stock", "warn")],
-  ["Racing Wheelset", "Parts", "From 12,900", "16", P("Low stock", "warn")],
-  ["Muthokinju Paint", "Acrylic Paints", "From 467", "0", P("Out", "bad")],
+  ["Racing Wheelset", "Parts", "From 12,900", "20", P("Low stock", "warn")],
+  ["Muthokinju Paint", "Acrylic Paints", "From 467", "12", P("Low stock", "warn")],
   ["Bike Pump", "Parts", "345", "58", P("Active", "good")],
   ["Helmet", "Apparel", "From 1,639", "44", P("Active", "good")],
-  ["Groupset", "Parts", "8,452", "27", P("Active", "good")],
+  ["Groupset", "Parts", "8,452", "30", P("Active", "good")],
 ] as const;
 
 /** UZ_MODS › prod › "Categories": [Category, Description, image, parent] */

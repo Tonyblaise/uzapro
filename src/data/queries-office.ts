@@ -6,6 +6,8 @@ import type { AiState } from "./store/state";
 import { viewingLabel } from "./uzaai";
 import { receivableRows } from "./money";
 import { runReport, type ReportSource } from "./reports";
+import { tillProducts } from "./commands/pos";
+import type { AppState } from "./store/state";
 import { comingUp, visibleEvents } from "./calendar";
 import { storageTotals } from "./docs";
 import { currentUserFirst, currentUserName } from "./profile";
@@ -21,6 +23,8 @@ import type {
   GenericRow,
   GroupRow,
   ModuleId,
+  PosSaleDoc,
+  PosState,
   ReportPeriod,
   ReportResult,
   Profile,
@@ -236,4 +240,25 @@ export function useReport(name: string, period: ReportPeriod): ReportResult {
 /** The period last chosen for reports. */
 export function useReportPeriod(): ReportPeriod {
   return useAppStore((s) => s.ui.reportPeriod);
+}
+
+/** Point of sale slice (feature 010). */
+export function usePos(): PosState {
+  return useAppStore((s) => s.pos);
+}
+
+/** The open till: its terminal, products with stock at its store, and this shift's receipts. */
+export function usePosTill() {
+  const pos = useAppStore((s) => s.pos);
+  const terminals = useAppStore((s) => s.settings.terminals.list);
+  const levels = useAppStore((s) => s.stock.levels);
+  const movements = useAppStore((s) => s.stock.movements);
+  const products = useAppStore((s) => s.catalog.products);
+  return useMemo(() => {
+    const term = terminals.find((t) => t.id === pos.ui.termId);
+    const view = tillProducts({ pos, settings: { terminals: { list: terminals } }, stock: { levels, movements }, catalog: { products } } as unknown as AppState);
+    const shift = pos.shifts[pos.ui.termId];
+    const shiftDocs = (shift?.refs ?? []).map((r) => pos.docs[r]).filter((d): d is PosSaleDoc => !!d);
+    return { term, shift, shiftDocs, ...view };
+  }, [pos, terminals, levels, movements, products]);
 }

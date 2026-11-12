@@ -207,3 +207,138 @@ export interface NewTarget {
   end: string;
   amount: number;
 }
+
+// ── Point of sale (feature 010, specs/010-point-of-sale/data-model.md) ─────────────────────────
+
+export type PosStep = "shift" | "pin" | "app";
+export type PosView = "sell" | "today" | "orders" | "customers" | "shift";
+/** "Credit" is shown as "Pay later". */
+export type PosMethod = "Cash" | "M-Pesa" | "Card" | "Credit";
+export type PosModal = "variant" | "customer" | "newcust" | "checkout" | "receipt" | "settings" | "close" | null;
+
+export interface PosShift {
+  open: boolean;
+  by?: string;
+  at?: string;
+  date?: string;
+  /** Epoch ms when selling started ("On shift {h}h {m}m"). */
+  start?: number;
+  float?: number;
+  /** Sale refs this shift, newest first. */
+  refs: string[];
+  closedAt?: string;
+  lastCount?: number;
+  lastDiff?: number;
+}
+
+export interface PosCartLine {
+  key: string;
+  product: string;
+  variant: string;
+  price: number;
+  qty: number;
+  note?: string;
+}
+
+export interface PosHeld {
+  cust: string;
+  cart: PosCartLine[];
+  at: string;
+}
+
+export interface PosPayment {
+  method: Exclude<PosMethod, "Credit">;
+  ref: string;
+  amount: number;
+  date?: string;
+}
+
+/** A till receipt (design `UZ_SALEDOCS` entry). */
+export interface PosSaleDoc {
+  ref: string;
+  date: string;
+  time: string;
+  cust: string;
+  store: string;
+  term: number;
+  lines: { product: string; variant: string; unit: string; qty: number; price: number; note?: string }[];
+  subtotal: number;
+  vat: number;
+  disc: number;
+  total: number;
+  note?: string;
+  pays: PosPayment[];
+  who: string;
+  tendered: number;
+  change: number;
+}
+
+export interface PosSettings {
+  sound: boolean;
+  stock: boolean;
+  scan: boolean;
+  notes: boolean;
+  autoPrint: boolean;
+  askCust: boolean;
+  qn: string[];
+}
+
+export type PosNotify = Record<"Print" | "SMS" | "Email", boolean>;
+
+export interface PosCheckout {
+  pays: PosPayment[];
+  method: PosMethod;
+  /** null = default to the amount still due. */
+  amt: string | null;
+  ref: string;
+  phone: string;
+  mpesa: "" | "waiting" | "paid";
+  note: string;
+  notify: PosNotify;
+  err: string;
+}
+
+export interface PosUi {
+  open: boolean;
+  termId: number;
+  step: PosStep;
+  who: string;
+  pinWho: string;
+  pin: string;
+  pinErr: string;
+  shake: number;
+  floatDraft: string;
+  view: PosView;
+  q: string;
+  cat: string;
+  cart: PosCartLine[];
+  cust: string;
+  discVal: string;
+  discType: "KES" | "%";
+  discOpen: boolean;
+  noteLine: number | null;
+  cartOpen: boolean;
+  modal: PosModal;
+  varProduct: string | null;
+  varSel: string;
+  varQty: string;
+  cq: string;
+  nc: { name: string; phone: string };
+  ncErr: string;
+  co: PosCheckout;
+  rcpt: string | null;
+  fresh: boolean;
+  count: string;
+  closeNote: string;
+  clErr: string;
+  qnDraft: string;
+  scan: string;
+}
+
+export interface PosState {
+  shifts: Record<number, PosShift>;
+  docs: Record<string, PosSaleDoc>;
+  held: PosHeld[];
+  settings: PosSettings;
+  ui: PosUi;
+}

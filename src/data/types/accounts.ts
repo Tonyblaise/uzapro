@@ -23,6 +23,7 @@ export interface Account {
 
 export type LedgerKind =
   | "Deposit"
+  | "Sale"
   | "Withdrawal"
   | "Transfer"
   | "Fee"

@@ -50,6 +50,14 @@
 /* Uza AI launcher (canvas .uz-fab): green-tinted lift. */
 --shadow-fab:0 10px 28px rgba(16,94,52,.38);
 --shadow-panel:-16px 0 40px rgba(0,0,0,.14);
+/* Point of sale (feature 010): the canvas's content colours, named once (Principle IV). */
+--pos-tint-1:#E8F5EC;--pos-ink-1:#1E6B3A;--pos-tint-2:#EAF1FB;--pos-ink-2:#1F4E8C;--pos-tint-3:#FDF1E7;--pos-ink-3:#9A4A0B;
+--pos-tint-4:#F3EEFB;--pos-ink-4:#5B3A92;--pos-tint-5:#FCEEF1;--pos-ink-5:#9B2C4A;--pos-tint-6:#EEF6F6;--pos-ink-6:#1F6262;
+--pos-avatar-1:#E7E4FB;--pos-avatar-ink-1:#4B3FA8;--pos-avatar-2:#DDF3EA;--pos-avatar-ink-2:#1E6B4A;
+--pos-avatar-3:#FBE3EA;--pos-avatar-ink-3:#9B2C4A;--pos-avatar-4:#FDF0DC;--pos-avatar-ink-4:#9A5A0B;
+--pos-mpesa:#EEF7E6;--pos-mpesa-ink:#3F7A12;--pos-card:#EEF0FB;--pos-card-ink:#3B47A8;
+--receipt-paper:#FFFEF9;--receipt-ink:#222222;--receipt-muted:#666666;--receipt-rule:#BBBBBB;
+--pos-scrim:rgba(15,23,42,.45);--shadow-pos:0 12px 32px rgba(0,0,0,.06);--shadow-pos-dialog:0 24px 60px rgba(0,0,0,.25);--shadow-charge:0 8px 20px rgba(16,94,52,.25);
 --sidebar-width:240px;--header-height:64px;--control-height:36px;--control-height-sm:30px;--control-height-lg:44px;
 --grid-kpi-min:200px;--grid-panel-min:320px;
 --ease-standard:cubic-bezier(.2,0,0,1); /* @kind other */

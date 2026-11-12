@@ -172,3 +172,50 @@ test.describe("reports on phones", () => {
     }
   });
 });
+
+/** Feature 010 · the point-of-sale till on phones (T028, FR-018, FR-019, SC-005). */
+test.describe("till on phones", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  const AXE = require.resolve("axe-core/axe.min.js");
+  type P = import("@playwright/test").Page;
+  const fits = async (page: P, what: string) => {
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `${what} overflows by ${overflow}px`).toBeLessThanOrEqual(0);
+  };
+  const scan = async (page: P, what: string) => {
+    await page.addScriptTag({ path: AXE });
+    const bad = await page.evaluate(async () => {
+      const w = window as unknown as { axe: { run: (ctx: unknown, opts: unknown) => Promise<{ violations: { id: string; impact: string; nodes: unknown[] }[] }> } };
+      const r = await w.axe.run({ include: [['[role="dialog"]']] }, { resultTypes: ["violations"] });
+      return r.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} (${v.nodes.length})`);
+    });
+    expect(bad, `${what}: serious or critical axe violations`).toEqual([]);
+  };
+
+  test("PIN, sell, cart panel and checkout fit 320px and pass the scan", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await page.getByRole("complementary", { name: "Main" }).getByRole("link", { name: "Point of sale" }).click();
+    await page.getByRole("button", { name: "Continue selling" }).click();
+    await expect(page.getByRole("group", { name: "Enter your PIN" })).toBeVisible();
+    await fits(page, "PIN");
+    await scan(page, "PIN");
+    await page.getByRole("group", { name: "Enter your PIN" }).focus();
+    for (const k of "1234") await page.keyboard.press(k);
+    await page.getByRole("button", { name: "Add Bike Pump" }).click();
+    await fits(page, "sell");
+    await scan(page, "sell");
+    await page.getByRole("button", { name: "1 item" }).click();
+    const cart = page.getByRole("complementary", { name: "Cart" });
+    await expect(cart.getByRole("button", { name: /^Charge/ })).toBeInViewport();
+    await cart.getByRole("button", { name: /^Charge/ }).click();
+    await fits(page, "checkout");
+    await scan(page, "checkout");
+    await page.getByRole("dialog", { name: "Checkout" }).getByRole("button", { name: "Close" }).click();
+    await cart.getByRole("button", { name: "Close cart" }).click();
+    await expect(cart.getByRole("button", { name: /^Charge/ })).not.toBeInViewport();
+  });
+
+  // Accountant / Store keeper visibility is covered by tests/unit/roles.test.ts (canSee pos = false).
+});

@@ -107,6 +107,7 @@ export const MODULES: Module[] = [
     ],
     true,
   ),
+  mod("pos", "Sales", "scan-barcode", "Point of sale", "Pick a terminal to start selling", "point-of-sale", [["Terminals", "poslaunch"]], true),
   mod(
     "cust",
     "Sales",

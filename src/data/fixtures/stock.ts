@@ -22,6 +22,12 @@ export const STOCK_LINES: [string, string, number][] = [
   ["Bike Pump", "Main Store", 30],
   ["Bike Pump", "Point of Sale", 28],
   ["Helmet", "Point of Sale", 44],
+  // Feature 010: the design added Point of Sale stock for the till.
+  ["Carbon Road Frame", "Point of Sale", 6],
+  ["Aluminium Frame", "Point of Sale", 5],
+  ["Racing Wheelset", "Point of Sale", 4],
+  ["Muthokinju Paint", "Point of Sale", 12],
+  ["Groupset", "Point of Sale", 3],
   ["Groupset", "Stores", 27],
 ];
 
