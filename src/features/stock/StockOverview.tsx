@@ -58,7 +58,7 @@ export function StockOverview() {
           </Card>
         </div>
       </div>
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(var(--grid-panel-min), 1fr))" }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(var(--grid-panel-min), 100%), 1fr))" }}>
         <Card title="Recent stock movement">
           {moves.length === 0 && <div className="type-small py-6 text-center text-text-muted">No recent movements found.</div>}
           {moves.slice(0, 5).map((m) => (

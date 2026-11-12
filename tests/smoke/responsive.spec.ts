@@ -54,3 +54,18 @@ test("the sidebar opens as a drawer from the menu button on a phone", async ({ p
   await nav.getByRole("link", { name: "Customers" }).click();
   await page.waitForURL("**/customers/customers");
 });
+
+/** Smallest common phone (320px): the screens whose grids used to overflow there. */
+test.describe("at 320px", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  test("overview boards and File Manager fit without horizontal page scroll", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    for (const path of ["/dashboard", "/stock/overview", "/purchases/overview", "/file-manager/all-documents"]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow, `${path} overflows by ${overflow}px at 320px`).toBeLessThanOrEqual(0);
+    }
+  });
+});

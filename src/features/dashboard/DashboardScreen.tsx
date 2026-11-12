@@ -14,7 +14,7 @@ import { StockPerformance } from "./StockPerformance";
 import { SuppliersPanel } from "./SuppliersPanel";
 import { TopProducts } from "./TopProducts";
 
-const PANEL_GRID = "grid grid-cols-[repeat(auto-fit,minmax(var(--grid-panel-min),1fr))] gap-4";
+const PANEL_GRID = "grid grid-cols-[repeat(auto-fit,minmax(min(var(--grid-panel-min),100%),1fr))] gap-4";
 
 /**
  * Dashboard body under the "Welcome back" header. As in the canvas, roles with all modules or

@@ -126,7 +126,7 @@ export function PurchasesOverview() {
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(var(--grid-panel-min),1fr))" }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(min(var(--grid-panel-min),100%),1fr))" }}>
         <Card>
           <div className="mb-3 flex items-center justify-between gap-3">
             <span className="type-card-title text-text">Recent orders</span>
