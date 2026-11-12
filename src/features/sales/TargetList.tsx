@@ -157,7 +157,7 @@ export function TargetList() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+      <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(var(--grid-kpi-min),1fr))" }}>
         {kpis.map((k) => (
           <div key={k.label} className="rounded-lg border border-border bg-surface px-4 py-3">
             <div className={`type-eyebrow ${k.color}`}>{k.label}</div>

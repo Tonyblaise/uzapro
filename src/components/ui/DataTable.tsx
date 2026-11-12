@@ -60,7 +60,7 @@ export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing t
               className={onRowClick ? "cursor-pointer hover:bg-surface-hover focus-visible:bg-surface-hover" : ""}
             >
               {columns.map((c) => (
-                <td key={c.key} className={`type-body u-num border-b border-border px-4 py-3 align-middle text-text-secondary ${c.numeric ? "text-right" : "text-left"}`}>
+                <td key={c.key} className={`type-body u-num border-b border-border px-4 py-3 align-middle text-text-secondary max-md:whitespace-nowrap ${c.numeric ? "text-right" : "text-left"}`}>
                   {c.render ? c.render(r) : plain(c, r)}
                 </td>
               ))}
@@ -106,7 +106,7 @@ export function DataTable<R>({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="max-w-[320px] flex-[1_1_220px]">
+        <div className="max-w-[320px] flex-[1_1_220px] max-sm:max-w-none max-sm:basis-full">
           <Input icon="search" placeholder="Search this list" aria-label="Search this list" value={q} onChange={(e) => setSearch(e.target.value)} />
         </div>
         {filters}

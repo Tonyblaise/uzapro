@@ -152,7 +152,7 @@ export function FileManager() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="uz-c4 uz-c4-four">
+      <div className="uz-c4 uz-c4-four uz-c4-rings">
         <Ring label="Total storage" icon="folder" color="var(--grey-700)" kb={totals.total} />
         <Ring label="Images" icon="image" color="var(--green-600)" kb={totals.images} />
         <Ring label="Documents" icon="file-text" color="var(--info)" kb={totals.documents} />

@@ -108,7 +108,7 @@ export function ExpensesOverview() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(var(--grid-kpi-min),1fr))" }}>
         {kpis.map((x) => (
           <div key={x.label} className="rounded-lg border border-border bg-surface px-5 py-4">
             <div className={`type-eyebrow ${x.color}`}>{x.label}</div>

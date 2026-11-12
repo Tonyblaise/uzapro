@@ -82,16 +82,19 @@ export function StockDrawer({ title, onClose, wide, width, children }: { title: 
 /** The bordered items grid used by the stock in, transfer and wastage forms. */
 export function ItemsGrid({ columns, head, empty, children }: { columns: string; head: { label: string; right?: boolean }[]; empty?: ReactNode; children?: ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-md border border-border">
-      <div className="type-table-head grid items-center gap-3 bg-canvas p-3 text-text-muted" style={{ gridTemplateColumns: columns }}>
-        {head.map((h) => (
-          <span key={h.label} className={h.right ? "text-right" : ""}>
-            {h.label}
-          </span>
-        ))}
+    // On narrow phones the line table keeps a readable minimum width and scrolls inside its box.
+    <div className="overflow-x-auto rounded-md border border-border">
+      <div className="min-w-[520px]">
+        <div className="type-table-head grid items-center gap-3 bg-canvas p-3 text-text-muted" style={{ gridTemplateColumns: columns }}>
+          {head.map((h) => (
+            <span key={h.label} className={h.right ? "text-right" : ""}>
+              {h.label}
+            </span>
+          ))}
+        </div>
+        {empty}
+        {children}
       </div>
-      {empty}
-      {children}
     </div>
   );
 }

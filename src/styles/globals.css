@@ -98,6 +98,8 @@
   @media (max-width: 960px) { .uz-c4 { grid-template-columns: minmax(0, 1fr); } }
   /* Smallest phones: four-up stat cards go single column so labels fit beside their icon or ring. */
   @media (max-width: 359px) { .uz-c4.uz-c4-four { grid-template-columns: minmax(0, 1fr); } }
+  /* Storage rings need more room for "Spreadsheets" beside the ring: single column on all phones. */
+  @media (max-width: 419px) { .uz-c4.uz-c4-four.uz-c4-rings { grid-template-columns: minmax(0, 1fr); } }
 }
 
 button { cursor: pointer; }

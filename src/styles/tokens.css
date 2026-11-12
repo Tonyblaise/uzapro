@@ -69,3 +69,6 @@ a:hover{color:var(--action-hover);text-decoration:underline}
 :focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
 .u-num{font-variant-numeric:tabular-nums}
 }
+
+/* Phones: stat cards two per row (feature mobile pass). */
+@media (max-width: 639px) { :root { --grid-kpi-min: 140px; } }

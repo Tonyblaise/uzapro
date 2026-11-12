@@ -100,7 +100,7 @@ export function ProductsOverview() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(var(--grid-kpi-min),1fr))] gap-4">
         {pd.kpis.map((k) => (
           <button
             key={k.label}
