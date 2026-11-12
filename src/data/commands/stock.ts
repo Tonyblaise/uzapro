@@ -10,6 +10,7 @@ import { nextRef } from "@/lib/refs";
 import {
   fail,
   ok,
+  type GoodsReceipt,
   type NewStockIn,
   type NewStore,
   type NewTransfer,
@@ -59,11 +60,34 @@ export async function addStock(input: NewStockIn): Promise<Result<string>> {
 }
 
 /** "Send to Purchases" (option not ticked). The goods receipt lands in Purchases, which is out of scope. */
-export async function sendStockToPurchases(input: NewStockIn): Promise<Result<void>> {
-  if (input.items.filter((i) => i.qty > 0).length === 0) return fail("No items added");
+/**
+ * "Send to Purchases" (Stock in with "Skip Purchases" unticked): the design adds a Goods receipts
+ * row [GRN-…, "—", supplier, store, line count, Waiting] and leaves stock unchanged (FR-015).
+ */
+export async function sendStockToPurchases(input: NewStockIn): Promise<Result<GoodsReceipt>> {
+  const items = input.items.filter((i) => i.qty > 0);
+  if (items.length === 0) return fail("No items added");
+  const store = getStore();
+  const receipts = store.getState().purchases.receipts;
+  const receipt: GoodsReceipt = {
+    ref: nextRef(receipts.map((g) => g.ref), "GRN-", 4),
+    po: "—",
+    supplier: input.supplier ?? "",
+    store: input.store,
+    date: DEMO_TODAY,
+    dn: "",
+    inv: "",
+    notes: input.notes ?? "",
+    who: ROLES[store.getState().session.role].name,
+    lines: items.map((i) => ({ key: `${i.product} · ${i.variant}`, unit: i.unit, ordered: i.qty, recv: 0, acc: 0, rej: 0, cost: 0 })),
+    lineCount: items.length,
+    status: { label: "Waiting", tone: "warning" },
+    returned: {},
+  };
+  store.setState((s) => ({ purchases: { ...s.purchases, receipts: [receipt, ...s.purchases.receipts] } }));
   const message = "Sent to Purchases.";
   showToast(message);
-  return ok(undefined, message);
+  return ok(receipt, message);
 }
 
 // ---- Transfers --------------------------------------------------------------------------------

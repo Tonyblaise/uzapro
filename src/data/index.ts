@@ -8,12 +8,15 @@ export * from "./queries-dashboard";
 export * from "./queries-sales";
 export * from "./queries-products";
 export * from "./queries-stock";
+export * from "./queries-purchases";
 export * from "./overviews";
 export * from "./commands/session";
 export * from "./commands/catalog";
 export * from "./commands/stock";
 export * from "./commands/sales";
 export * from "./commands/customers";
+export * from "./commands/suppliers";
+export * from "./commands/purchases";
 export { StoreProvider } from "./store/StoreProvider";
 
 // Reference lists the forms need (read-only copies).

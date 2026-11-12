@@ -9,7 +9,10 @@ import { UZ_NONTAX, UZ_UNITS } from "../fixtures/reference";
 import { CREDIT_NOTE_ROWS, INVOICE_ROWS, QUOTATION_ROWS, SALE_NO_START, SALE_ROWS, UZ_TARGETS, VOID_ROWS } from "../fixtures/sales";
 import { STOCK_LINES, STOCK_MOVES, TRANSFER_DETAILS, TRANSFER_ROWS, WAREHOUSE_ROWS, WASTAGE_ROWS } from "../fixtures/stock";
 import type { Product, Sale, SalesTarget, Store, TransferStatus, Variant } from "../types";
-import type { AppState } from "./state";
+import { GRN_ROWS, PO_ROWS, PRT_ROWS, PYB_LAST, REJ_ROWS } from "../fixtures/purchases";
+import { SUPPLIER_ROWS, UZ_NATIONS } from "../fixtures/suppliers";
+import type { GoodsReceipt, PurchaseOrder, Supplier } from "../types";
+import type { AppState, PurchasesState } from "./state";
 
 const MONTHS: Record<string, string> = {
   Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
@@ -182,6 +185,90 @@ export function createSeed(): AppState {
       targets: UZ_TARGETS.map((t) => ({ ...t }) as SalesTarget),
     },
     customers: CUSTOMER_ROWS.map(([name, phone, email, address, status]) => ({ name, phone, email, address, status: { ...status } })),
+    suppliers: SUPPLIER_ROWS.map(
+      ([name, type, phone, email, town, status]): Supplier => ({
+        name,
+        type: (type as string) === "Individual" ? "Individual" : "Business",
+        phone,
+        email,
+        town,
+        nation: "Kenya",
+        address: "",
+        county: "",
+        postal: "",
+        status: { ...status },
+      }),
+    ),
+    purchases: seedPurchases(),
     ui: { toast: null, search: "" },
+  };
+}
+
+/**
+ * Seed purchase orders and receipts, derived exactly as the design's `poDoc` / `grnInfo` do:
+ * one placeholder line "Items on {ref}" (qty 1, cost = total), Main Store, 28 Oct 2026, Cash on
+ * delivery, Bank transfer; receipts received/accepted in full by Grant Jensen on 29 Oct 2026.
+ */
+function seedPurchases(): PurchasesState {
+  const orders: PurchaseOrder[] = PO_ROWS.map(([supplier, ref, total, received, status]) => {
+    const t = parseAmount(total);
+    const draft = status.label === "Draft";
+    return {
+      ref,
+      supplier,
+      store: "Main Store",
+      date: "2026-10-28",
+      expected: "",
+      notes: "",
+      term: "Cash on delivery",
+      method: "Bank transfer",
+      account: "",
+      paid: status.label === "Completed",
+      lines: [{ id: `po${ref}`, key: `Items on ${ref}`, qty: 1, unit: "Piece", cost: t, recv: received.label === "Full" ? 1 : 0 }],
+      total: t,
+      received: { ...received },
+      status: { ...status },
+      activity: [["Order created", "Tony Ashiuma · 28 Oct 2026"] as [string, string]].concat(draft ? [] : [["Sent to supplier", "Tony Ashiuma"]]),
+      grns: GRN_ROWS.filter((g) => g[1] === ref).map((g) => g[0]),
+    };
+  });
+  const receipts: GoodsReceipt[] = GRN_ROWS.map(([ref, po, supplier, store, lines, status]) => {
+    const order = orders.find((o) => o.ref === po);
+    return {
+      ref,
+      po,
+      supplier,
+      store,
+      date: "2026-10-29",
+      dn: "",
+      inv: "",
+      notes: "",
+      who: "Grant Jensen",
+      lines: (order?.lines ?? []).map((l) => ({ key: l.key, unit: l.unit, ordered: l.qty, recv: l.qty, acc: l.qty, rej: 0, cost: l.cost })),
+      lineCount: Number(lines),
+      status: { ...status },
+      returned: {},
+    };
+  });
+  return {
+    orders,
+    receipts,
+    returns: PRT_ROWS.map(([ref, supplier, po, grn, reason, qty, value, status]) => ({
+      ref,
+      supplier,
+      po,
+      grn,
+      reason,
+      notes: "",
+      lines: [],
+      qty: Number(qty),
+      value: parseAmount(value),
+      status: { ...status },
+      store: receipts.find((r) => r.ref === grn)?.store ?? "Main Store",
+      date: "",
+    })),
+    rejected: REJ_ROWS.map(([ref, grn, supplier, item, qty, reason, status]) => ({ ref, grn, supplier, item, qty: Number(qty), reason, status: { ...status } })),
+    nations: [...UZ_NATIONS],
+    pybNo: PYB_LAST,
   };
 }

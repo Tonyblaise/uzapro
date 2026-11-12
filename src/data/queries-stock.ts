@@ -7,7 +7,6 @@
  * - the level filter uses the design's `LOW_STOCK = 20` and `levelTests` (in > 0, low > 0 and < 20,
  *   out = 0), with option counts taken from the store's product lines (`levelFilterOptions`).
  */
-import { SUPPLIER_ROWS } from "./fixtures/suppliers";
 import { useMemo } from "react";
 import { STOCK_LINES } from "./fixtures/stock";
 import { useAppStore } from "./store/StoreProvider";
@@ -170,10 +169,9 @@ export function useTransfer(ref: string | null | undefined) {
 
 /**
  * Active suppliers for the Stock in form (design `stSuppliers`: the Suppliers tab rows with status
- * Active), from the suppliers fixture.
+ * Active), from the suppliers slice (feature 002).
  */
-const ACTIVE_SUPPLIERS: readonly string[] = SUPPLIER_ROWS.filter((r) => r[5].label === "Active").map((r) => r[0]);
-
 export function useSuppliers(): readonly string[] {
-  return ACTIVE_SUPPLIERS;
+  const suppliers = useAppStore((s) => s.suppliers);
+  return useMemo(() => suppliers.filter((x) => x.status.label === "Active").map((x) => x.name), [suppliers]);
 }

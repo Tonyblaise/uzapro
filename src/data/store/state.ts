@@ -1,4 +1,9 @@
 import type {
+  GoodsReceipt,
+  PurchaseOrder,
+  PurchaseReturn,
+  RejectedItem,
+  Supplier,
   Category,
   CreditNote,
   Customer,
@@ -58,11 +63,24 @@ export interface UiState {
   search: string;
 }
 
+export interface PurchasesState {
+  orders: PurchaseOrder[];
+  receipts: GoodsReceipt[];
+  returns: PurchaseReturn[];
+  rejected: RejectedItem[];
+  /** Nationality options for the supplier form (UZ_NATIONS, can grow). */
+  nations: string[];
+  /** Last Payables number used in receipt messages (no Payables records; FR-018). */
+  pybNo: number;
+}
+
 export interface AppState {
   session: SessionState;
   catalog: CatalogState;
   stock: StockState;
   sales: SalesState;
   customers: Customer[];
+  suppliers: Supplier[];
+  purchases: PurchasesState;
   ui: UiState;
 }

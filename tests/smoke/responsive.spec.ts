@@ -13,6 +13,10 @@ const PAGES = [
   "/sales/all-sales",
   "/sales/invoices",
   "/customers/customers",
+  "/purchases/overview",
+  "/purchases/purchase-orders",
+  "/purchases/goods-receipts",
+  "/suppliers/suppliers",
 ];
 
 test("in-scope screens fit a 390px phone without horizontal page scroll", async ({ page, errors }) => {

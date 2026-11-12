@@ -6,8 +6,10 @@ import type { ModuleId } from "@/data";
 import { customersScreens } from "./customers/screens";
 import { dashboardScreens } from "./dashboard/screens";
 import { productsScreens } from "./products/screens";
+import { purchasesScreens } from "./purchases/screens";
 import { salesScreens } from "./sales/screens";
 import { stockScreens } from "./stock/screens";
+import { suppliersScreens } from "./suppliers/screens";
 import type { ScreenDef, ScreenMap } from "./types";
 
 const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
@@ -16,6 +18,8 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   inv: stockScreens,
   sales: salesScreens,
   cust: customersScreens,
+  buy: purchasesScreens,
+  vend: suppliersScreens,
 };
 
 export function screenFor(moduleId: ModuleId, tabSlug: string): ScreenDef | undefined {

@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { addStock, sendStockToPurchases, useProducts, useSuppliers } from "@/data";
+import { SupplierForm } from "@/features/suppliers";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Input } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -25,8 +26,9 @@ export function StockInOverlay() {
 
 /** Design `isStockForm` ("Stock in"). */
 export function StockInForm({ onClose }: { onClose: () => void }) {
-  const baseSuppliers = useSuppliers();
-  const [extraSuppliers, setExtraSuppliers] = useState<string[]>([]);
+  const suppliers = useSuppliers();
+  /** Name typed into "New supplier" while the shared supplier form is open (null = closed). */
+  const [newSupplier, setNewSupplier] = useState<string | null>(null);
   const stores = useStoreNames();
   const products = useProducts();
   const variants = useVariantLookup();
@@ -62,6 +64,7 @@ export function StockInForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
+    <>
     <StockDrawer title="Stock in" onClose={onClose} wide>
       <div className="flex flex-col gap-4">
         <div className="type-title text-text">Storage details</div>
@@ -69,13 +72,10 @@ export function StockInForm({ onClose }: { onClose: () => void }) {
           <SearchSelect
             label="Supplier"
             noun="supplier"
-            options={[...baseSuppliers, ...extraSuppliers]}
+            options={suppliers}
             value={supplier}
             onChange={setSupplier}
-            onCreate={(name) => {
-              setExtraSuppliers((s) => [...s, name]);
-              return name;
-            }}
+            onNew={(typed) => setNewSupplier(typed)}
           />
           <SearchSelect label="Destination store" noun="store" options={stores} value={store} onChange={setStore} onCreate={createStore} />
           <Input label="Default quantity" type="number" min={1} value={defQty} onChange={(e) => setDefQty(e.target.value)} />
@@ -166,5 +166,13 @@ export function StockInForm({ onClose }: { onClose: () => void }) {
         </div>
       </div>
     </StockDrawer>
+    <SupplierForm
+      open={newSupplier !== null}
+      initialName={newSupplier ?? ""}
+      crumb="Stock in"
+      onClose={() => setNewSupplier(null)}
+      onSaved={(name) => setSupplier(name)}
+    />
+    </>
   );
 }
