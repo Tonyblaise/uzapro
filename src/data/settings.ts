@@ -1,6 +1,6 @@
 /** Settings pure helpers (design `bp`, `setCode`, `tm`, the group dialog's `below`; research R4–R5). */
 import { BIZ_REQUIRED } from "./fixtures/settings";
-import type { BizCompletion, BusinessProfile, Group, SlotKind, TerminalsState } from "./types";
+import type { BizCompletion, BusinessProfile, Group, TerminalsState } from "./types";
 
 /** The completion ring over the 10 required details. */
 export function bizCompletion(biz: BusinessProfile): BizCompletion {
@@ -38,33 +38,8 @@ export function storageCode(index: number): string {
   return `BBL-STG-${String(index + 1).padStart(3, "0")}`;
 }
 
-export function slotCapacity(t: Pick<TerminalsState, "included" | "purchased">): number {
-  return t.included + t.purchased;
-}
-
 export function activeTerminals(t: Pick<TerminalsState, "list">): number {
   return t.list.filter((x) => x.active).length;
-}
-
-export function slotsFree(t: TerminalsState): number {
-  return Math.max(0, slotCapacity(t) - activeTerminals(t));
-}
-
-/** Every slot is in use (design `full`). */
-export function slotsFull(t: TerminalsState): boolean {
-  return activeTerminals(t) >= slotCapacity(t);
-}
-
-/** Active terminals fill the included slots first, in list order, then paid ones (design `slotOf`). */
-export function slotKinds(t: TerminalsState): Record<number, SlotKind> {
-  const out: Record<number, SlotKind> = {};
-  let n = 0;
-  for (const x of t.list) {
-    if (!x.active) continue;
-    n++;
-    out[x.id] = n <= t.included ? "plan" : "paid";
-  }
-  return out;
 }
 
 /** Ancestors of a group, nearest first. Stops on a cycle. */

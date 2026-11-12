@@ -383,6 +383,7 @@ Required by Constitution Principle I.
 
 | Deviation | Reason | Reference |
 |---|---|---|
+| Terminals have no slots or payments: no "Active slots" summary, "Add a paid slot", "Add terminal: no free slots" choice, or slot text on cards. Every new terminal is added active, and any terminal can be activated. | User request (2026-11-12): "no need for paying for terminal slot" | Settings › Terminals |
 | The record drawer's Edit, Duplicate and Print buttons are shown disabled | The design gives them no handlers; a button that does nothing is an accessibility problem | FR-016 |
 | The generic form's Cancel resets the fields | The design's Cancel has no handler | FR-016 |
 | Export CSV copies the filtered rows (the design copies every row) | The shared list component from feature 001 | FR-016 |

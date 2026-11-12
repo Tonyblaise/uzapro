@@ -106,30 +106,6 @@ export function Check({ label, sub, checked, disabled, onChange }: { label: stri
   );
 }
 
-/** `isChoice`: two radio cards. */
-export function Choices({ label, items }: { label: string; items: { title: string; text: string; price: string; on: boolean; pick: () => void }[] }) {
-  return (
-    <Cell>
-      <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-3">
-        {items.map((o) => (
-          <button
-            key={o.title}
-            type="button"
-            role="radio"
-            aria-checked={o.on}
-            onClick={o.pick}
-            className={`cursor-pointer rounded-lg p-4 text-left ${o.on ? "border-2 border-green-600 bg-green-50" : "border border-border bg-surface"}`}
-          >
-            <span className="type-label block text-text">{o.title}</span>
-            <span className="type-small mt-1 block text-text-secondary">{o.text}</span>
-            <span className="type-label mt-2 block text-text">{o.price}</span>
-          </button>
-        ))}
-      </div>
-    </Cell>
-  );
-}
-
 /** The design's `setModal`: title and subtitle, a two-column field grid, Cancel and the save button. */
 export function SetModal({
   title,

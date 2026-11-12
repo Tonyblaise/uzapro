@@ -1,22 +1,16 @@
 "use client";
 /**
- * Settings › Terminals (design `isTerminals` with `tm`): the active-slot summary with "Add a paid
- * slot", the bar and the four stats; search and the All / Active / Inactive filter; the terminal
- * cards with Edit, Activate / Deactivate and Delete. The dialog (design `setModal` kind 'term')
- * opens with `?action=new` or `?view=<id>`; when every slot is in use a new terminal offers
- * "Pay and activate" or "Add as inactive".
+ * Settings › Terminals (design `isTerminals` with `tm`): the terminal summary; search and the
+ * All / Active / Inactive filter; the terminal cards with Edit, Activate / Deactivate and Delete.
+ * The dialog (design `setModal` kind 'term') opens with `?action=new` or `?view=<id>`.
+ * Terminals are free: the design's paid slots are removed (user request, 2026-11-12).
  */
 import { useState } from "react";
 import {
   activeTerminals,
-  addPaidSlot,
   deleteTerminal,
   saveTerminal,
   setTerminalActive,
-  slotCapacity,
-  slotKinds,
-  slotsFree,
-  slotsFull,
   toast,
   useBranchNames,
   usePosStores,
@@ -30,8 +24,7 @@ import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { SearchSelect } from "@/components/ui/SearchSelect";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { num } from "@/lib/format";
-import { Cell, Choices, Note, SetModal, useSettingsOverlay } from "./shared";
+import { Cell, Note, SetModal, useSettingsOverlay } from "./shared";
 
 type Filter = "All" | "Active" | "Inactive";
 const ANY = "Any branch";
@@ -42,19 +35,14 @@ export function Terminals() {
   const [q, setQ] = useState("");
   const [flt, setFlt] = useState<Filter>("All");
 
-  const cap = slotCapacity(T);
   const active = activeTerminals(T);
   const inactive = T.list.length - active;
-  const free = slotsFree(T);
-  const slotOf = slotKinds(T);
   const needle = q.toLowerCase();
   const shown = T.list.filter((t) => (flt === "All" || (flt === "Active") === t.active) && (!needle || [t.name, t.code, t.store, t.branch].join(" ").toLowerCase().includes(needle)));
-  const barPct = cap ? Math.min(100, Math.round((100 * active) / cap)) : 0;
   const stats: [string, number, string][] = [
     ["Active", active, "bg-green-600"],
-    ["Paid slots", T.purchased, "bg-warning-text"],
-    ["Free slots", free, "bg-border-strong"],
-    ["Inactive", inactive, "bg-danger-text"],
+    ["Inactive", inactive, "bg-border-strong"],
+    ["All terminals", T.list.length, "bg-info"],
   ];
   const view = params.get("view");
   const editId = view ? Number(view) : undefined;
@@ -62,24 +50,9 @@ export function Terminals() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="type-eyebrow text-text-muted">Active slots</div>
-            <div className="type-body mt-0.5 text-text-secondary">{`Trial · ${T.included} included${T.purchased ? ` · ${T.purchased} paid` : ""}`}</div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="secondary" icon="plus" onClick={() => void addPaidSlot()}>
-              Add a paid slot
-            </Button>
-            <div className="text-right">
-              <span className="text-[32px] font-bold text-text">{active}</span>
-              <span className="type-title text-text-muted">/{cap}</span>
-              <div className="type-eyebrow text-text-muted">Active</div>
-            </div>
-          </div>
-        </div>
-        <div className="h-2 overflow-hidden rounded-pill bg-canvas">
-          <div className="h-full rounded-pill bg-green-600" style={{ width: `${barPct}%` }} />
+        <div>
+          <div className="type-eyebrow text-text-muted">Terminals</div>
+          <div className="type-body mt-0.5 text-text-secondary">Add as many terminals as you need. Each one sells from a storage location with sales (POS) turned on.</div>
         </div>
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
           {stats.map(([label, value, dot]) => (
@@ -91,9 +64,6 @@ export function Terminals() {
               <div className="type-title mt-0.5 text-text">{value}</div>
             </div>
           ))}
-        </div>
-        <div className="type-small text-text-secondary">
-          {free ? `${free} free ${free === 1 ? "slot" : "slots"}. New terminals use a free slot first.` : "All slots are in use. Activating another terminal needs a paid slot, unless you deactivate one first."}
         </div>
       </div>
 
@@ -122,7 +92,7 @@ export function Terminals() {
       {!shown.length && <div className="type-body rounded-lg border border-border bg-surface p-8 text-center text-text-muted">No terminals match.</div>}
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))]">
         {shown.map((t) => (
-          <TerminalCard key={t.id} t={t} T={T} slot={slotOf[t.id]} onEdit={() => open({ view: String(t.id) })} />
+          <TerminalCard key={t.id} t={t} T={T} onEdit={() => open({ view: String(t.id) })} />
         ))}
       </div>
 
@@ -132,7 +102,7 @@ export function Terminals() {
   );
 }
 
-function TerminalCard({ t, T, slot, onEdit }: { t: Terminal; T: TerminalsState; slot?: "plan" | "paid"; onEdit: () => void }) {
+function TerminalCard({ t, T, onEdit }: { t: Terminal; T: TerminalsState; onEdit: () => void }) {
   const toggle = async () => {
     await setTerminalActive(t.id, !t.active);
   };
@@ -156,8 +126,8 @@ function TerminalCard({ t, T, slot, onEdit }: { t: Terminal; T: TerminalsState; 
         {[t.store, t.branch].filter(Boolean).join(" · ") || "No location set"}
       </div>
       <div className="type-small rounded-md bg-canvas p-3 text-text-secondary">
-        <div className={`type-caption font-bold ${t.active ? "text-green-700" : "text-text-muted"}`}>{!t.active ? "Not using a slot" : slot === "plan" ? "✓ Plan included" : "● Paid slot"}</div>
-        {!t.active ? "Activate it when a slot is free." : slot === "plan" ? "Uses one of your included slots." : `Billed KES ${num(T.price)} a month.`}
+        <div className={`type-caption font-bold ${t.active ? "text-green-700" : "text-text-muted"}`}>{t.active ? "✓ Ready to sell" : "Turned off"}</div>
+        {t.active ? "Opens from Point of sale." : "Activate it to sell from it again."}
       </div>
       <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
         <span className="type-caption text-text-muted">Added {t.added}</span>
@@ -177,32 +147,28 @@ function TerminalDialog({ edit, onClose }: { edit?: number; onClose: () => void 
   const T = useTerminals();
   const branches = useBranchNames();
   const editing = edit !== undefined ? T.list.find((t) => t.id === edit) : undefined;
-  const [f, setF] = useState<{ name: string; branch: string; store: string; choice: "pay" | "inactive" }>(() =>
-    editing ? { name: editing.name, branch: editing.branch || ANY, store: editing.store, choice: "inactive" } : { name: "", branch: ANY, store: "", choice: "inactive" },
+  const [f, setF] = useState<{ name: string; branch: string; store: string }>(() =>
+    editing ? { name: editing.name, branch: editing.branch || ANY, store: editing.store } : { name: "", branch: ANY, store: "" },
   );
   const stores = usePosStores(f.branch);
-  const full = slotsFull(T);
   if (edit !== undefined && !editing) return null;
   const set = (patch: Partial<typeof f>) => setF((s) => ({ ...s, ...patch }));
   const name = f.name.trim();
-  const needChoice = !editing && full;
   const blocked = !name || !f.store;
-  const a = activeTerminals(T);
-  const cap = slotCapacity(T);
 
   const save = async () => {
     if (blocked) return;
-    const res = await saveTerminal({ name, branch: f.branch, store: f.store, choice: needChoice ? f.choice : undefined }, editing?.id);
+    const res = await saveTerminal({ name, branch: f.branch, store: f.store }, editing?.id);
     if (res.ok) onClose();
     else toast(res.message);
   };
 
   return (
     <SetModal
-      title={editing ? "Edit terminal" : needChoice ? "Add terminal: no free slots" : "Add terminal"}
+      title={editing ? "Edit terminal" : "Add terminal"}
       sub="A till or device that makes sales."
       width={600}
-      btn={editing ? "Save changes" : needChoice ? (f.choice === "pay" ? "Pay and activate" : "Add inactive terminal") : "Add terminal"}
+      btn={editing ? "Save changes" : "Add terminal"}
       blocked={blocked}
       onClose={onClose}
       onSave={() => void save()}
@@ -217,34 +183,6 @@ function TerminalDialog({ edit, onClose }: { edit?: number; onClose: () => void 
         <SearchSelect label="Storage location" noun="option" options={stores} value={f.store} onChange={(store) => set({ store })} />
       </Cell>
       {!stores.length && <Note label="No POS locations here" sub="Turn on sales (POS) for a storage location in this branch first." className="text-warning-text" />}
-      {!editing && (
-        <Note
-          label={`Active terminals: ${a} of ${cap}`}
-          sub={full ? "Every slot is in use. Pay for one more, or add this terminal inactive and activate it later." : "This terminal will use a free slot."}
-          className={`rounded-md px-4 py-3 ${full ? "border border-warning/50 bg-warning-soft text-warning-text" : "bg-canvas text-text-secondary"}`}
-        />
-      )}
-      {needChoice && (
-        <Choices
-          label="No free slots"
-          items={[
-            {
-              title: "Pay and activate",
-              text: "Adds a paid slot. The terminal is active straight away.",
-              price: `KES ${num(T.price)} / month`,
-              on: f.choice === "pay",
-              pick: () => set({ choice: "pay" }),
-            },
-            {
-              title: "Add as inactive",
-              text: "Set it up now and activate it later, when a slot frees up.",
-              price: "No charge",
-              on: f.choice === "inactive",
-              pick: () => set({ choice: "inactive" }),
-            },
-          ]}
-        />
-      )}
     </SetModal>
   );
 }

@@ -5,9 +5,8 @@
  * disabling the submit button; the `fail()` texts below are its inline notes, or short neutral
  * messages where it has none.
  */
-import { num } from "@/lib/format";
 import { TERMINAL_ADDED } from "../fixtures/settings";
-import { badEmail, groupDescendants, nextCode, slotCapacity, activeTerminals } from "../settings";
+import { badEmail, groupDescendants, nextCode } from "../settings";
 import { getStore, showToast } from "../store";
 import type { AppState } from "../store/state";
 import {
@@ -43,29 +42,23 @@ function storeAdd(s: AppState, name: string, branch: string, pos: boolean): { st
   return { state: { ...s, ...storeSaveState(s, saved, undefined, pos) }, added: true };
 }
 
-/** Design `setTermAdd`: uses a free slot, or buys one with `pay`; otherwise it is added inactive. */
-function termAdd(s: AppState, o: { name: string; branch: string; store: string; pay?: boolean; active?: boolean }): { state: AppState; terminal: Terminal } {
+/** Design `setTermAdd`, without paid slots: a new terminal is always active. */
+function termAdd(s: AppState, o: { name: string; branch: string; store: string }): { state: AppState; terminal: Terminal } {
   const T = s.settings.terminals;
-  let on = o.active !== false && activeTerminals(T) < slotCapacity(T);
-  let purchased = T.purchased;
-  if (o.pay) {
-    purchased++;
-    on = true;
-  }
   const terminal: Terminal = {
     id: Math.max(0, ...T.list.map((t) => t.id)) + 1,
     name: o.name,
     code: nextCode("TRM", T.list),
     branch: o.branch,
     store: o.store,
-    active: on,
+    active: true,
     added: TERMINAL_ADDED,
     main: false,
   };
-  return { state: { ...s, settings: { ...s.settings, terminals: { ...T, purchased, list: [...T.list, terminal] } } }, terminal };
+  return { state: { ...s, settings: { ...s.settings, terminals: { ...T, list: [...T.list, terminal] } } }, terminal };
 }
 
-const termSuffix = (on: boolean) => (on ? " Terminal added." : " Terminal added as inactive.");
+const termSuffix = () => " Terminal added.";
 
 // ---- Business profile -------------------------------------------------------------------------
 
@@ -172,7 +165,7 @@ export async function saveBranch(input: BranchInput, edit?: string): Promise<Res
       if (input.mkTerm) {
         const t = termAdd(s, { name: `${name} Terminal`, branch: name, store: `${name} Store` });
         s = t.state;
-        extra += termSuffix(t.terminal.active);
+        extra += termSuffix();
       }
     }
   }
@@ -255,7 +248,7 @@ export async function saveGroup(input: GroupInput, edit?: string): Promise<Resul
         if (input.mkTerm) {
           const t = termAdd(s, { name: `${name} Terminal`, branch: branchName, store: `${name} Store` });
           s = t.state;
-          extra += termSuffix(t.terminal.active);
+          extra += termSuffix();
         }
       }
     }
@@ -351,11 +344,9 @@ export async function saveTerminal(input: TerminalInput, edit?: number): Promise
     showToast(message);
     return ok(saved, message);
   }
-  const needChoice = activeTerminals(T) >= slotCapacity(T);
-  const pay = needChoice && input.choice === "pay";
-  const r = termAdd(s0, { name, branch, store: input.store, pay, active: !(needChoice && !pay) });
+  const r = termAdd(s0, { name, branch, store: input.store });
   store.setState({ settings: r.state.settings });
-  const message = name + (r.terminal.active ? " added and active." : " added as inactive.");
+  const message = `${name} added and active.`;
   showToast(message);
   return ok(r.terminal, message);
 }
@@ -366,11 +357,6 @@ export async function setTerminalActive(id: number, on: boolean): Promise<Result
   const T = store.getState().settings.terminals;
   const t = T.list.find((x) => x.id === id);
   if (!t) return fail("That terminal is no longer listed.");
-  if (on && !t.active && activeTerminals(T) >= slotCapacity(T)) {
-    const message = "All slots are in use. Deactivate a terminal or add a paid slot first.";
-    showToast(message);
-    return fail(message);
-  }
   const saved: Terminal = { ...t, active: on };
   store.setState((s) => ({ settings: { ...s.settings, terminals: { ...s.settings.terminals, list: s.settings.terminals.list.map((x) => (x.id === id ? saved : x)) } } }));
   const message = t.name + (on ? " activated." : " deactivated.");
@@ -392,12 +378,3 @@ export async function deleteTerminal(id: number): Promise<Result<void>> {
   return ok(undefined, message);
 }
 
-/** "Add a paid slot" (design `tm.buySlot`). */
-export async function addPaidSlot(): Promise<Result<number>> {
-  const store = getStore();
-  store.setState((s) => ({ settings: { ...s.settings, terminals: { ...s.settings.terminals, purchased: s.settings.terminals.purchased + 1 } } }));
-  const T = store.getState().settings.terminals;
-  const message = `Paid slot added (KES ${num(T.price)} a month).`;
-  showToast(message);
-  return ok(T.purchased, message);
-}

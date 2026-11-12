@@ -88,25 +88,22 @@ test("Branches: add Mombasa with its store, which shows everywhere (quickstart 8
   await expect((await options(expense, "Branch (optional)")).filter({ hasText: /^Mombasa$/ })).toBeVisible();
 });
 
-test("Terminals: full slots offer the choices, and a paid slot can be added (quickstart 9)", async ({ page, errors }) => {
+test("Terminals: add as many as you need, no paid slots (user request)", async ({ page, errors }) => {
   void errors;
   await openSettings(page, "Terminals");
-  await expect(page.getByText("All slots are in use.", { exact: false })).toBeVisible();
+  await expect(page.getByText(/slot/i)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add a paid slot" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Add terminal" }).click();
-  const form = page.getByRole("dialog", { name: "Add terminal: no free slots" });
-  await expect(form.getByRole("radio", { name: /Pay and activate/ })).toBeVisible();
-  await expect(form.getByRole("radio", { name: /Add as inactive/ })).toHaveAttribute("aria-checked", "true");
-  await form.getByLabel("Terminal name").fill("Counter 2");
-  await expect(form.getByRole("button", { name: "Add inactive terminal" })).toBeDisabled();
-  await form.getByRole("button", { name: "Storage location", exact: true }).click();
-  await form.getByRole("option", { name: "Main Store", exact: true }).click();
-  await form.getByRole("radio", { name: /Pay and activate/ }).click();
-  await form.getByRole("button", { name: "Pay and activate" }).click();
-  await expect(toast(page)).toContainText("Counter 2 added and active.");
-  await expect(form).toBeHidden();
-
-  await page.getByRole("button", { name: "Add a paid slot" }).click();
-  await expect(toast(page)).toContainText("Paid slot added (KES 1,000 a month).");
-  await expect(page.getByText("1 free slot. New terminals use a free slot first.")).toBeVisible();
+  for (const name of ["Counter 2", "Counter 3"]) {
+    await page.getByRole("button", { name: "Add terminal" }).click();
+    const form = page.getByRole("dialog", { name: "Add terminal" });
+    await expect(form.getByText(/Pay and activate|No charge|free slots/)).toHaveCount(0);
+    await form.getByLabel("Terminal name").fill(name);
+    await form.getByRole("button", { name: "Storage location", exact: true }).click();
+    await form.getByRole("option", { name: "Main Store", exact: true }).click();
+    await form.getByRole("button", { name: "Add terminal" }).click();
+    await expect(toast(page)).toContainText(`${name} added and active.`);
+    await expect(form).toBeHidden();
+  }
+  await expect(page.getByRole("button", { name: /^Active 3/ })).toBeVisible();
 });

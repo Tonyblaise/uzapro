@@ -184,19 +184,10 @@ export interface Terminal {
   main: boolean;
 }
 
-export interface TerminalSlots {
-  included: number;
-  purchased: number;
-  /** KES a month per paid slot. */
-  price: number;
-}
-
-export interface TerminalsState extends TerminalSlots {
+/** Terminals (no paid slots: any number can be active, user request 2026-11-12). */
+export interface TerminalsState {
   list: Terminal[];
 }
-
-/** Which slot an active terminal uses (design `slotOf`). */
-export type SlotKind = "plan" | "paid";
 
 export interface BranchRow extends Branch {
   /** Storage locations in this branch. */
@@ -262,8 +253,6 @@ export interface TerminalInput {
   /** Branch name, or "Any branch" / "". */
   branch: string;
   store: string;
-  /** When every slot is in use (new terminals only): "pay" = Pay and activate, "inactive" = Add as inactive. */
-  choice?: "pay" | "inactive";
 }
 
 // ---- Profile ----------------------------------------------------------------------------------

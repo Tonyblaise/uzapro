@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CAL_TODAY, calStamp, comingUp, monthGrid, shiftMonth, visibleEvents } from "@/data/calendar";
 import { deleteDocText, docSize, fileKind, folderPath, keepExtension, storageTotals, subtree } from "@/data/docs";
 import { currentUserFirst, currentUserName } from "@/data/profile";
-import { bizCompletion, groupAncestors, groupParentOptions, nextCode, slotKinds, slotsFree } from "@/data/settings";
+import { activeTerminals, bizCompletion, groupAncestors, groupParentOptions, nextCode } from "@/data/settings";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
 import { createSeed } from "@/data/store/seed";
-import { addBranchQuick, addPaidSlot, deleteStorageLocation, saveBranch, saveGroup, saveStorageLocation, saveTerminal, setTerminalActive } from "@/data/commands/settings";
+import { addBranchQuick, deleteStorageLocation, saveBranch, saveGroup, saveStorageLocation, saveTerminal, setTerminalActive } from "@/data/commands/settings";
 import { deleteStore, saveStore } from "@/data/commands/stock";
 import { createFolder, deleteDoc, renameDoc, uploadFile } from "@/data/commands/docs";
 import { deleteEvent, saveEvent } from "@/data/commands/calendar";
@@ -106,12 +106,10 @@ describe("settings helpers", () => {
     expect(nextCode("TRM", [{ code: "BBL-TRM-001" }, { code: "BBL-TRM-007" }])).toBe("BBL-TRM-008");
   });
 
-  it("counts slots and assigns plan slots first", () => {
+  it("counts active terminals (no slots: terminals are free)", () => {
     const t = createSeed().settings.terminals;
-    expect(slotsFree(t)).toBe(0);
-    const more = { ...t, purchased: 1, list: [...t.list, { ...t.list[0]!, id: 2, main: false }] };
-    expect(slotKinds(more)).toEqual({ 1: "plan", 2: "paid" });
-    expect(slotsFree({ ...t, purchased: 2 })).toBe(2);
+    expect(activeTerminals(t)).toBe(1);
+    expect(activeTerminals({ list: [...t.list, { ...t.list[0]!, id: 2, main: false, active: false }] })).toBe(1);
   });
 
   it("walks group ancestors and excludes cycles from parent options", () => {
@@ -148,13 +146,13 @@ describe("commands", () => {
     expect(b[2]).toEqual({ name: "Westlands", code: "BBL-BRN-003", group: "Administration", phone: "", email: "", city: "", address: "", hq: false });
   });
 
-  it("creates a branch with its store and an inactive terminal when slots are full", async () => {
+  it("creates a branch with its store and an active terminal", async () => {
     const r = await saveBranch({ name: "Mombasa", phone: "", email: "", group: "Administration", city: "Mombasa", address: "", hq: false, mkStore: true, mkTerm: true });
-    expect(r.message).toBe("Mombasa created. Mombasa Store added. Terminal added as inactive.");
+    expect(r.message).toBe("Mombasa created. Mombasa Store added. Terminal added.");
     const s = store.getState();
     expect(s.stock.stores.find((x) => x.name === "Mombasa Store")).toEqual({ name: "Mombasa Store", branch: "Mombasa", type: "Retail" });
     expect(s.settings.pos["Mombasa Store"]).toBe(true);
-    expect(s.settings.terminals.list.at(-1)).toMatchObject({ name: "Mombasa Terminal", code: "BBL-TRM-002", active: false });
+    expect(s.settings.terminals.list.at(-1)).toMatchObject({ name: "Mombasa Terminal", code: "BBL-TRM-002", active: true });
     expect((await saveBranch({ name: "mombasa", phone: "", email: "", group: "Administration", city: "", address: "", hq: false })).message).toBe("Name already used");
   });
 
@@ -168,8 +166,6 @@ describe("commands", () => {
   });
 
   it("creates a group with a branch, store and terminal", async () => {
-    await addPaidSlot();
-    expect(toast()).toBe("Paid slot added (KES 1,000 a month).");
     const r = await saveGroup({ name: "Coast", parent: "None (top level)", mkBranch: true, mkStore: true, mkTerm: true });
     expect(r.message).toBe("Coast created. Coast Branch added. Store added. Terminal added.");
     expect(store.getState().settings.groups.at(-1)).toEqual({ name: "Coast", parent: "", code: "BBL-GRP-002" });
@@ -177,14 +173,12 @@ describe("commands", () => {
     expect((await saveGroup({ name: "Coast", parent: "Administration" }, "Coast")).message).toBe("A group can't be inside itself.");
   });
 
-  it("guards terminal slots", async () => {
-    const t = await saveTerminal({ name: "Counter 2", branch: "Any branch", store: "Main Store" });
-    expect(t.message).toBe("Counter 2 added as inactive.");
-    const id = t.ok ? t.value.id : 0;
-    expect((await setTerminalActive(id, true)).message).toBe("All slots are in use. Deactivate a terminal or add a paid slot first.");
-    const paid = await saveTerminal({ name: "Counter 3", branch: "", store: "Main Store", choice: "pay" });
-    expect(paid.message).toBe("Counter 3 added and active.");
-    expect(store.getState().settings.terminals.purchased).toBe(1);
+  it("adds terminals active with no slot limit, and toggles them freely", async () => {
+    for (const name of ["Counter 2", "Counter 3", "Counter 4"]) expect((await saveTerminal({ name, branch: "Any branch", store: "Main Store" })).message).toBe(`${name} added and active.`);
+    expect(activeTerminals(store.getState().settings.terminals)).toBe(4);
+    const id = store.getState().settings.terminals.list.at(-1)!.id;
+    expect((await setTerminalActive(id, false)).message).toBe("Counter 4 deactivated.");
+    expect((await setTerminalActive(id, true)).message).toBe("Counter 4 activated.");
   });
 
   it("shares storage locations with Stock › Warehouses", async () => {
@@ -194,7 +188,7 @@ describe("commands", () => {
     const s = store.getState();
     expect(s.settings.pos["Back Shelf 2"]).toBe(true);
     expect(s.settings.pos["Back Shelf"]).toBeUndefined();
-    await saveTerminal({ name: "Shelf till", branch: "Import", store: "Back Shelf 2", choice: "pay" });
+    await saveTerminal({ name: "Shelf till", branch: "Import", store: "Back Shelf 2" });
     expect((await deleteStorageLocation("Back Shelf 2")).message).toBe("Move or delete its terminal first.");
     expect((await deleteStore("Main Store")).ok).toBe(false);
     expect((await deleteStore("Goods in Transit")).message).toBe("Goods in Transit deleted.");

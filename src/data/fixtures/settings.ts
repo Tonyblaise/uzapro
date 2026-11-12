@@ -51,10 +51,8 @@ export const UZ_LOC_TYPES = ["Store", "Manufacturing", "Retail", "Transfer"] as 
 
 export const UZ_LOCPOS: Readonly<Record<string, boolean>> = { "Point of Sale": true, "Main Store": true };
 
+/** The design's slot fields (included 1, purchased 0, KES 1,000 a month) are dropped: terminals are free. */
 export const UZ_TERMS: TerminalsState = {
-  included: 1,
-  purchased: 0,
-  price: 1000,
   list: [{ id: 1, name: "Terminal 1", code: "BBL-TRM-001", branch: "Nairobi HQ", store: "Point of Sale", active: true, added: "22 Oct 2026", main: true }],
 };
 

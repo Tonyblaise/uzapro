@@ -795,7 +795,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     updated: "2026-08-27",
     intro: [
       "A terminal is a till or device that makes sales. Each terminal sells from one storage location that has sales (POS) turned on.",
-      "Your plan includes a number of active terminal **slots**. The demo business has 1 included slot, and Terminal 1 already uses it.",
+      "You can add as many terminals as you need, at no extra cost. The demo business has one, Terminal 1.",
     ],
     sections: [
       {
@@ -822,23 +822,6 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         ],
       },
       {
-        heading: "When all slots are in use",
-        level: 2,
-        blocks: [
-          { kind: "p", text: "If every slot is taken, the form is titled **Add terminal: no free slots** and asks you to choose:" },
-          {
-            kind: "table",
-            head: ["Choice", "What happens", "Button"],
-            rows: [
-              ["Pay and activate", "Adds a paid slot at KES 1,000 a month. The terminal is active straight away.", "Pay and activate"],
-              ["Add as inactive", "No charge. Activate the terminal later, when a slot frees up.", "Add inactive terminal"],
-            ],
-          },
-          { kind: "p", text: "You can also choose **Add a paid slot** at the top of Settings › Terminals. The message reads **Paid slot added (KES 1,000 a month).**" },
-          { kind: "note", tone: "warning", text: "In the demo, Terminal 1 uses the only included slot, so a new terminal needs a paid slot or starts inactive." },
-        ],
-      },
-      {
         heading: "Manage terminals",
         level: 2,
         blocks: [
@@ -846,7 +829,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             kind: "ul",
             items: [
               "Choose **Activate** or **Deactivate** on a terminal's card. The message reads, for example, **Counter 1 activated.**",
-              "If no slot is free, activating shows **All slots are in use. Deactivate a terminal or add a paid slot first.**",
+              "A deactivated terminal can't be opened from Point of sale until you activate it again.",
               "Choose **Edit terminal** to rename it or change its location.",
               "The main terminal can't be deleted.",
             ],
@@ -914,8 +897,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             rows: [
               ["Nothing", "Westlands Branch created."],
               ["Create storage location", "Westlands Branch created. Westlands Branch Store added."],
-              ["Both, with a free slot", "Westlands Branch created. Westlands Branch Store added. Terminal added."],
-              ["Both, with every slot in use", "Westlands Branch created. Westlands Branch Store added. Terminal added as inactive."],
+              ["Both", "Westlands Branch created. Westlands Branch Store added. Terminal added."],
             ],
           },
         ],

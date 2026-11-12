@@ -11,13 +11,11 @@ import {
   saveBranch,
   saveGroup,
   saveStorageLocation,
-  slotsFull,
   toast,
   useBranches,
   useGroups,
   useLocationTypes,
   useStorageLocations,
-  useTerminals,
   type Result,
 } from "@/data";
 import { Input } from "@/components/ui/Field";
@@ -48,7 +46,6 @@ export function SettingsDialog({ kind, edit, onClose }: { kind: SetKind; edit?: 
 function BranchDialog({ edit, onClose }: { edit?: string; onClose: () => void }) {
   const branches = useBranches();
   const groups = useGroups();
-  const full = slotsFull(useTerminals());
   const b = edit ? branches.find((x) => x.name === edit) : undefined;
   const [f, setF] = useState(() =>
     b
@@ -64,7 +61,7 @@ function BranchDialog({ edit, onClose }: { edit?: string; onClose: () => void })
     branches.map((x) => x.name),
   );
   const blocked = !name || taken || !f.group;
-  const termSub = !f.mkStore ? "Needs a storage location to sell from." : full ? "All slots are in use, so it will be added as inactive." : `Named "${name || "…"} Terminal".`;
+  const termSub = !f.mkStore ? "Needs a storage location to sell from." : `Named "${name || "…"} Terminal".`;
 
   return (
     <SetModal
@@ -123,7 +120,6 @@ function BranchDialog({ edit, onClose }: { edit?: string; onClose: () => void })
 
 function GroupDialog({ edit, onClose }: { edit?: string; onClose: () => void }) {
   const groups = useGroups();
-  const full = slotsFull(useTerminals());
   const g = edit ? groups.find((x) => x.name === edit) : undefined;
   const [f, setF] = useState(() => (g ? { name: g.name, parent: g.parent || TOP, mkBranch: false, mkStore: false, mkTerm: false } : { name: "", parent: TOP, mkBranch: false, mkStore: false, mkTerm: false }));
   if (edit && !g) return null;
@@ -161,7 +157,7 @@ function GroupDialog({ edit, onClose }: { edit?: string; onClose: () => void }) 
           <Check label="Create storage location" sub={`Named "${n} Store".`} checked={f.mkStore} disabled={!f.mkBranch} onChange={(mkStore) => set({ mkStore })} />
           <Check
             label="Create terminal"
-            sub={full ? "All slots are in use, so it will be added as inactive." : `Named "${n} Terminal".`}
+            sub={`Named "${n} Terminal".`}
             checked={f.mkTerm}
             disabled={!f.mkStore || !f.mkBranch}
             onChange={(mkTerm) => set({ mkTerm })}
