@@ -36,7 +36,7 @@ export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing t
                 key={c.key}
                 scope="col"
                 style={{ width: c.width }}
-                className={`type-table-head sticky top-0 z-[1] whitespace-nowrap border-b border-border bg-canvas px-4 py-2.5 text-text-muted ${c.numeric ? "text-right" : "text-left"}`}
+                className={`type-table-head sticky top-0 z-[var(--z-raised)] whitespace-nowrap border-b border-border bg-canvas px-4 py-2.5 text-text-muted ${c.numeric ? "text-right" : "text-left"}`}
               >
                 {c.title}
               </th>

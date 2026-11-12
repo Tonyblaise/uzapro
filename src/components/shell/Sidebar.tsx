@@ -15,7 +15,7 @@ export function Sidebar({ activeId, open, onNavigate }: { activeId: ModuleId | n
   return (
     <aside
       aria-label="Main"
-      className={`fixed inset-y-0 left-0 z-40 flex w-[var(--sidebar-width)] flex-none flex-col border-r border-border bg-surface transition-transform duration-200 ease-standard md:sticky md:top-0 md:h-screen md:translate-x-0 ${open ? "translate-x-0 shadow-lg" : "-translate-x-full"}`}
+      className={`fixed inset-y-0 left-0 z-[var(--z-sidebar)] flex w-[var(--sidebar-width)] flex-none flex-col border-r border-border bg-surface transition-transform duration-200 ease-standard md:sticky md:top-0 md:h-screen md:translate-x-0 ${open ? "translate-x-0 shadow-lg" : "-translate-x-full"}`}
     >
       <div className="px-6 pb-4 pt-5">
         <Link href="/dashboard" aria-label="UzaPro home" onClick={onNavigate} className="no-underline hover:no-underline">

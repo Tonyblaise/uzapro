@@ -528,8 +528,8 @@ function SettingsDrawer() {
   const ref = useDialog(true, closeModal);
   return (
     <>
-      <div className="fixed inset-0 z-[270] bg-[var(--pos-scrim)]" onClick={closeModal} aria-hidden="true" />
-      <aside ref={ref} role="dialog" aria-modal="true" aria-label="Terminal settings" className="fixed inset-y-0 right-0 z-[271] flex w-[min(440px,100vw)] flex-col bg-[linear-gradient(180deg,var(--green-50),var(--surface)_200px)] shadow-[var(--shadow-panel)]">
+      <div className="fixed inset-0 z-[var(--z-till-dialog)] bg-[var(--pos-scrim)]" onClick={closeModal} aria-hidden="true" />
+      <aside ref={ref} role="dialog" aria-modal="true" aria-label="Terminal settings" className="fixed inset-y-0 right-0 z-[var(--z-till-drawer)] flex w-[min(440px,100vw)] flex-col bg-[linear-gradient(180deg,var(--green-50),var(--surface)_200px)] shadow-[var(--shadow-panel)]">
         <div className="flex items-start gap-3 p-5">
           <div className="flex-1">
             <h2 className="m-0 text-[22px] font-extrabold tracking-[-0.01em] text-text">Terminal settings</h2>

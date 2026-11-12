@@ -8,7 +8,7 @@ import { useDialog } from "@/components/ui/Overlay";
 export function PosDialog({ title, sub, width = 520, onClose, footer, children, label }: { title: ReactNode; sub?: ReactNode; width?: number; onClose: () => void; footer?: ReactNode; children: ReactNode; label?: string }) {
   const ref = useDialog(true, onClose);
   return (
-    <div className="fixed inset-0 z-[270] grid place-items-center bg-[var(--pos-scrim)] p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[var(--z-till-dialog)] grid place-items-center bg-[var(--pos-scrim)] p-4" onClick={onClose}>
       <div
         ref={ref}
         role="dialog"

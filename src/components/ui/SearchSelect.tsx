@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
+import { useAnchor } from "./useAnchor";
 
 /**
  * Port of the design's `window.UzForms.SearchSelect` (design/canvas/erp-data.js):
@@ -33,6 +34,9 @@ export function SearchSelect({ label, options, value, onChange, onCreate, onNew,
   const root = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  // Fixed under (or above) the trigger so form cards and drawer bodies can't clip the list.
+  const anchor = useAnchor(open, btn, panel, { align: "stretch" });
   const labelId = useId();
 
   const close = () => {
@@ -109,7 +113,7 @@ export function SearchSelect({ label, options, value, onChange, onCreate, onNew,
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 right-0 top-full z-[150] mt-1 overflow-hidden rounded-md bg-surface shadow-lg">
+        <div ref={panel} className="z-[var(--z-popover)] flex flex-col overflow-hidden rounded-md bg-surface shadow-lg" style={anchor}>
           <div className="border-b border-border p-2">
             <input
               ref={search}
@@ -124,7 +128,7 @@ export function SearchSelect({ label, options, value, onChange, onCreate, onNew,
               className="type-body h-[var(--control-height-sm)] w-full rounded-sm border border-border-strong bg-surface px-2 text-text outline-none"
             />
           </div>
-          <div role="listbox" className="max-h-[216px] overflow-y-auto p-1">
+          <div role="listbox" className="max-h-[216px] min-h-0 flex-1 overflow-y-auto p-1">
             {shown.length ? (
               shown.map((o, i) => (
                 <button

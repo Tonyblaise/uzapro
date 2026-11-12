@@ -40,7 +40,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-[var(--header-height)] items-center gap-2 border-b border-border bg-surface px-4 md:gap-4 md:px-6">
+    <header className="sticky top-0 z-[var(--z-header)] flex h-[var(--header-height)] items-center gap-2 border-b border-border bg-surface px-4 md:gap-4 md:px-6">
       <span className="md:hidden">
         <IconButton icon="menu" label="Open menu" onClick={onMenu} />
       </span>
@@ -77,7 +77,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[var(--z-header-menu)]" onClick={() => setOpen(false)}>
           <div
             ref={menu}
             role="menu"

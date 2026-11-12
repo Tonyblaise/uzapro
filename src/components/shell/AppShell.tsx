@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-canvas">
       <Sidebar activeId={activeId} open={menuOpen} onNavigate={() => setMenuOpen(false)} />
-      {menuOpen && <div className="fixed inset-0 z-30 bg-overlay md:hidden" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
+      {menuOpen && <div className="fixed inset-0 z-[var(--z-scrim)] bg-overlay md:hidden" aria-hidden="true" onClick={() => setMenuOpen(false)} />}
       <div className="flex min-w-0 flex-1 flex-col">
         <AppHeader onMenu={() => setMenuOpen(true)} />
         <main className="mx-auto flex w-full max-w-[1360px] flex-col gap-5 p-4 pb-[88px] md:p-6 md:pb-[88px]">{children}</main>

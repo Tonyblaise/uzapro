@@ -256,7 +256,7 @@ function RecordDialog({ label, header, footer, onClose, children }: { label: str
     };
   }, []);
   return (
-    <div className="fixed inset-0 z-[95] grid place-items-center bg-overlay p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[var(--z-drawer-stacked)] grid place-items-center bg-overlay p-4" onClick={onClose}>
       <div
         ref={panel}
         role="dialog"

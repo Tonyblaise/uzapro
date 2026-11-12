@@ -58,7 +58,7 @@ export function Drawer({ open, title, subtitle, onClose, footer, width = 560, ch
   const panel = useDialog(open, onClose);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[90]">
+    <div className="fixed inset-0 z-[var(--z-drawer)]">
       <div className="absolute inset-0 bg-overlay" onClick={onClose} aria-hidden="true" />
       <div
         ref={panel}
@@ -87,7 +87,7 @@ export function Modal({ open, title, subtitle, onClose, footer, width = 480, chi
   const panel = useDialog(open, onClose);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-overlay p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[var(--z-modal)] grid place-items-center bg-overlay p-4" onClick={onClose}>
       <div
         ref={panel}
         role="dialog"

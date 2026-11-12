@@ -50,7 +50,7 @@ export function Till() {
   const railBtn = "flex w-16 flex-col items-center gap-1 rounded-[12px] border-0 px-0 pb-2 pt-2.5 text-[11px] font-semibold";
 
   return (
-    <div className="uz-pos fixed inset-0 z-[250] flex bg-canvas" role="dialog" aria-modal="true" aria-label={`${term.name} till`}>
+    <div className="uz-pos fixed inset-0 z-[var(--z-till)] flex bg-canvas" role="dialog" aria-modal="true" aria-label={`${term.name} till`}>
       <nav aria-label="Point of sale" className="flex w-[76px] flex-none flex-col items-center gap-1.5 overflow-y-auto border-r border-border bg-surface py-3">
         <div className="mb-3">
           <UMark />

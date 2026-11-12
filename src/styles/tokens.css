@@ -50,6 +50,10 @@
 /* Uza AI launcher (canvas .uz-fab): green-tinted lift. */
 --shadow-fab:0 10px 28px rgba(16,94,52,.38);
 --shadow-panel:-16px 0 40px rgba(0,0,0,.14);
+/* Layering ladder (lowest → highest). Use these, never raw z-index values. A popover inside a
+   drawer, modal or the till stacks within that layer. */
+--z-raised:1;--z-header:20;--z-scrim:30;--z-sidebar:40;--z-header-menu:60;--z-popover:70;--z-launcher:80;--z-ai-panel:85;
+--z-drawer:90;--z-drawer-stacked:95;--z-modal:100;--z-till:250;--z-till-dialog:270;--z-till-drawer:271;--z-toast:300;
 /* Point of sale (feature 010): the canvas's content colours, named once (Principle IV). */
 --pos-tint-1:#E8F5EC;--pos-ink-1:#1E6B3A;--pos-tint-2:#EAF1FB;--pos-ink-2:#1F4E8C;--pos-tint-3:#FDF1E7;--pos-ink-3:#9A4A0B;
 --pos-tint-4:#F3EEFB;--pos-ink-4:#5B3A92;--pos-tint-5:#FCEEF1;--pos-ink-5:#9B2C4A;--pos-tint-6:#EEF6F6;--pos-ink-6:#1F6262;

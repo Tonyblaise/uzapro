@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
+import { useAnchor } from "./useAnchor";
 
 export interface MenuItem {
   label: string;
@@ -26,7 +27,7 @@ const ROW_ICONS: Record<string, IconName> = {
 
 export function MenuList({ items, onPick }: { items: MenuItem[]; onPick?: () => void }) {
   return (
-    <div role="menu" className="min-w-[180px] rounded-md border border-border bg-surface p-1 shadow-lg">
+    <div role="menu" className="min-w-[180px] overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-lg" style={{ maxHeight: "inherit" }}>
       {items.map((it) => (
         <button
           key={it.label}
@@ -51,6 +52,10 @@ export function MenuList({ items, onPick }: { items: MenuItem[]; onPick?: () => 
 export function Menu({ trigger, items, align = "right", label }: { trigger: (props: { open: boolean; toggle: () => void }) => ReactNode; items: MenuItem[]; align?: "left" | "right"; label?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerBox = useRef<HTMLSpanElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  // Fixed to the trigger so table scroll boxes and cards can't clip it (layering fix).
+  const anchor = useAnchor(open, triggerBox, panel, { align });
   useEffect(() => {
     if (!open) return;
     const off = (e: MouseEvent) => {
@@ -67,9 +72,11 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
   }, [open]);
   return (
     <div ref={ref} className="relative inline-block" aria-label={label}>
-      {trigger({ open, toggle: () => setOpen((o) => !o) })}
+      <span ref={triggerBox} className="inline-block">
+        {trigger({ open, toggle: () => setOpen((o) => !o) })}
+      </span>
       {open && (
-        <div className={`absolute top-[calc(100%+4px)] z-20 ${align === "right" ? "right-0" : "left-0"}`}>
+        <div ref={panel} className="z-[var(--z-popover)] flex flex-col" style={anchor}>
           <MenuList items={items} onPick={() => setOpen(false)} />
         </div>
       )}

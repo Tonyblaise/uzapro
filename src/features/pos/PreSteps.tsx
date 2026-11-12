@@ -21,7 +21,7 @@ export function PreSteps({ term }: { term: Terminal }) {
   }, [ui.step]);
 
   return (
-    <div className="fixed inset-0 z-[250] flex flex-col overflow-auto" role="dialog" aria-modal="true" aria-label={`${term.name} till`} style={{ background: "radial-gradient(1200px 600px at 90% -10%, var(--green-50), transparent 60%), var(--surface)" }}>
+    <div className="fixed inset-0 z-[var(--z-till)] flex flex-col overflow-auto" role="dialog" aria-modal="true" aria-label={`${term.name} till`} style={{ background: "radial-gradient(1200px 600px at 90% -10%, var(--green-50), transparent 60%), var(--surface)" }}>
       <div className="flex items-center gap-3 border-b border-border bg-surface/70 px-5 py-3 backdrop-blur">
         <UMark />
         <button type="button" onClick={exitTill} className="type-label inline-flex items-center gap-1.5 border-0 bg-transparent text-text">
