@@ -1,4 +1,5 @@
 import type {
+  PermissionsState,
   PosState,
   ReportPeriod,
   AiChat,
@@ -182,6 +183,8 @@ export interface AppState {
   ai: AiState;
   /** Point of sale: shifts, till receipts, held sales, settings and the open till (feature 010). */
   pos: PosState;
+  /** Role definitions and per-module access (feature 011). */
+  permissions: PermissionsState;
 }
 
 export type AiTab = "chat" | "support" | "features";

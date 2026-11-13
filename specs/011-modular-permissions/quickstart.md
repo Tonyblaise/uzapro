@@ -19,17 +19,17 @@ the demo account from the project's seed (`demo@uzapro.com`) as the Owner.
    - Resize to 1440, 1024, 768 and 375px: the grid shows 4, 3, 2 and 1 columns with no sideways
      scrolling.
 2. **Edit and save** (US2): Edit role on Cashier.
-   - 21 rows show, grouped by sidebar section. Inventory shows Read ✓ and Sales shows Write ✓.
+   - 21 rows show, grouped by sidebar section. Stock shows Read ✓ and Sales shows Write ✓.
    - Pick Procurement › Purchases "Read", then Save. The toast reads "Cashier access saved." and the
      card count goes up by 1.
    - Reopen the dialog: Purchases shows Read. Click Read again (it clears), then Cancel. Purchases
      still shows Read.
 3. **Owner locked**: Edit role on Owner / Admin. All rows show Delete ✓ and are disabled, with the
    note "The owner always has full access." Save is disabled.
-4. **Read drives visibility** (US3): set Cashier › Inventory to none and save.
+4. **Read drives visibility** (US3): set Cashier › Stock to none and save.
    - Use Profile to switch to Cashier.
-   - Inventory is gone from the sidebar and search.
-   - `/inventory/stock-management` redirects to the dashboard.
+   - Stock is gone from the sidebar and search.
+   - `/stock/stock-management` redirects to the dashboard.
    - Asking Uza AI "show low stock" gets the no-access reply.
 5. **Write gate**: as the Owner, set Cashier › Sales to Read and save. Switch to Cashier and open
    Sales › All sales:

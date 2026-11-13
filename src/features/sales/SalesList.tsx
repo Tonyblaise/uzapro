@@ -1,7 +1,7 @@
 "use client";
 /** Sales › All sales: the list, plus New sale, sale view, void and credit note overlays. */
 import { useRouter } from "next/navigation";
-import { useRole, useSales, type Sale } from "@/data";
+import { useSales, type Sale, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions } from "@/components/ui/Menu";
@@ -26,9 +26,8 @@ export function NewSaleAction() {
 
 export function SalesList() {
   const sales = useSales();
-  const role = useRole();
   const { params, open, close } = useOverlay();
-  const canVoid = !role.tabs || !!role.figures;
+  const canVoid = useCan("delete");
   const action = params.get("action");
   const view = params.get("view");
   const step = params.get("step");

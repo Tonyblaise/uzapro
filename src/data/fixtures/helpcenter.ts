@@ -175,7 +175,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     id: "finding-your-way-around-uzapro",
     title: "Finding your way around UzaPro",
     category: "getting-started",
-    updated: "2026-08-04",
+    updated: "2026-11-13",
     intro: [
       "UzaPro keeps the whole business in one place: selling, stock, buying, money and settings. This guide shows how the screens are laid out so you can find what you need quickly.",
     ],
@@ -190,7 +190,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             head: ["Section", "Screens"],
             rows: [
               ["Overview", "Dashboard, Products and Stock"],
-              ["Sales", "Sales and Customers"],
+              ["Sales", "Sales, Point of sale and Customers"],
               ["Procurement", "Purchases and Suppliers"],
               ["Financials", "Accounts, Expenses, Receivables, Payables and Reports"],
               ["People", "Team and Permissions"],
@@ -230,6 +230,32 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
           { kind: "p", text: "The Dashboard shows your day at a glance. **What would you like to do?** has shortcuts for your role, such as New sale or Stock in, and **Needs your attention** lists things to follow up." },
           { kind: "note", tone: "info", text: "What you see depends on your role. A Cashier, for example, sees All sales and Refunds (credit notes) in Sales but not Invoices. If a screen mentioned in the Help Center is missing from your menu, ask the business owner." },
           { kind: "links", screens: [{ label: "Open Dashboard › Overview", module: "home", tab: "overview" }] },
+        ],
+      },
+      {
+        heading: "Roles and permissions",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "The business owner decides what each role can do in **People › Permissions**. Each role has a card showing its people and how many modules it can open. Choose **Edit role** to set access module by module." },
+          {
+            kind: "table",
+            head: ["Access", "What the role can do"],
+            rows: [
+              ["Read", "Open the module and view, download and print records"],
+              ["Write", "Everything in Read, plus create and edit records"],
+              ["Delete", "Everything in Write, plus delete, void, cancel and undo"],
+            ],
+          },
+          {
+            kind: "ul",
+            items: [
+              "Each module has one level. Choose the ticked level again to remove access to that module.",
+              "The owner always has full access. Every role can open the Dashboard and Profile, and only the owner manages permissions.",
+              "Choose **Add new role** to create a role, or use the **…** menu on a card to rename, duplicate or delete it. A role with people in it can't be deleted.",
+            ],
+          },
+          { kind: "note", tone: "info", text: "Changes apply straight away. If a button such as **New sale** or **Void** is missing, your role has Read or Write on that module. Ask the business owner." },
+          { kind: "links", screens: [{ label: "Open People › Permissions", module: "perm", tab: "permissions" }] },
         ],
       },
       {

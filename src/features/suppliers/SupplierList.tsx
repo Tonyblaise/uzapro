@@ -5,7 +5,7 @@
  */
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { deleteSupplier, useRole, useSupplierList, type Supplier } from "@/data";
+import { deleteSupplier, useSupplierList, type Supplier, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions } from "@/components/ui/Menu";
@@ -35,8 +35,7 @@ export function NewSupplierAction() {
 
 export function SupplierList() {
   const suppliers = useSupplierList();
-  const role = useRole();
-  const canDelete = !role.tabs;
+  const canDelete = useCan("delete");
   const { params, open, close } = useParamsNav();
   const [confirm, setConfirm] = useState<string | null>(null);
   const viewName = params.get("view");

@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, loginAs, test } from "./fixtures";
 
 /**
- * Feature 005 · US5 generic screens (quickstart 12): Reports, Team, Permissions, Messages and
+ * Feature 005 · US5 generic screens (quickstart 12): Reports, Team, Messages and (Permissions: feature 011)
  * Settings › Staff logins, Taxes, Connected apps, Import and export. Store data resets on a full
  * page load, so flows that change data stay on one page after the first visit.
  */
@@ -19,7 +19,6 @@ const TABS: [path: string, seed: string][] = [
   ["/reports/build-a-report", "Report name"],
   ["/reports/sent-automatically", "Weekly P&L"],
   ["/team/team", "Mary Achieng"],
-  ["/permissions/permissions", "Store / Inventory"],
   ["/messages/send-message", "Audience"],
   ["/messages/saved-messages", "Invoice due"],
   ["/messages/sent-messages", "30 Oct 16:40"],

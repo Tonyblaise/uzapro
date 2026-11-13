@@ -9,13 +9,12 @@ import {
   useCreditNotes,
   useInvoices,
   useQuotations,
-  useRole,
+
   useVoids,
   type CreditNote,
   type Invoice,
   type Quotation,
-  type VoidRecord,
-} from "@/data";
+  type VoidRecord, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { IconButton } from "@/components/ui/IconButton";
@@ -145,12 +144,12 @@ function docActions(kind: "quote" | "invoice" | "credit", canVoid: boolean, owne
 
 export function QuotationList() {
   const rows = useQuotations();
-  const role = useRole();
+  const canDel = useCan("delete");
   const { open } = useOverlay();
   const del = useDelete("quote");
   const pill = useCallback((r: Quotation) => r.status.label, []);
   const filter = useStatusFilter(rows, pill);
-  const items = docActions("quote", false, !role.tabs, open, del.ask);
+  const items = docActions("quote", false, canDel, open, del.ask);
   const columns: DataColumn<Quotation>[] = [
     { key: "number", title: "Quotation #", render: (r) => <Lead>{r.number}</Lead> },
     { key: "customer", title: "Customer" },
@@ -170,12 +169,12 @@ export function QuotationList() {
 
 export function InvoiceList() {
   const rows = useInvoices();
-  const role = useRole();
+  const canDel = useCan("delete");
   const { open } = useOverlay();
   const del = useDelete("invoice");
   const pill = useCallback((r: Invoice) => r.status.label, []);
   const filter = useStatusFilter(rows, pill);
-  const items = docActions("invoice", !role.tabs || !!role.figures, !role.tabs, open, del.ask);
+  const items = docActions("invoice", canDel, canDel, open, del.ask);
   const balance = (r: Invoice) => Math.max(0, r.amount - r.paid);
   const columns: DataColumn<Invoice>[] = [
     { key: "number", title: "Invoice #", render: (r) => <Lead>{r.number}</Lead> },
@@ -209,12 +208,12 @@ export function InvoiceList() {
 
 export function CreditNoteList() {
   const rows = useCreditNotes();
-  const role = useRole();
+  const canDel = useCan("delete");
   const { params, open, close } = useOverlay();
   const del = useDelete("credit");
   const pill = useCallback((r: CreditNote) => r.status.label, []);
   const filter = useStatusFilter(rows, pill);
-  const items = docActions("credit", false, !role.tabs, open, del.ask);
+  const items = docActions("credit", false, canDel, open, del.ask);
   const columns: DataColumn<CreditNote>[] = [
     { key: "number", title: "Credit note", render: (r) => <Lead>{r.number}</Lead> },
     { key: "customer", title: "Customer" },

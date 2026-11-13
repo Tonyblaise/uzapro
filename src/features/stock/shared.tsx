@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import { UZ_UNITS, addStoreQuick, useProducts, useRole, useStores, useUnits, variantNames, type Pill, type TransferStatus } from "@/data";
+import { UZ_UNITS, addStoreQuick, useCan, useProducts, useStores, useUnits, variantNames, type Pill, type TransferStatus } from "@/data";
 import { Drawer } from "@/components/ui/Overlay";
 
 /** The design's drawer subtitle is the module name (`drawerCrumb: m.n`). */
@@ -26,9 +26,9 @@ export function useOverlayParams() {
   return { action: params.get("action"), view: params.get("view"), get: (k: string) => params.get(k), open, close };
 }
 
-/** Owner only: the design shows Delete row actions when the role has no tab restrictions (`!role.tabs`). */
+/** Delete row actions need Delete on the module (feature 011; the design showed them to the owner only). */
 export function useCanDelete(): boolean {
-  return !useRole().tabs;
+  return useCan("delete");
 }
 
 /** Store names for the store pickers (design `stockStores`). */

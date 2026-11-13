@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 /**
  * File details drawer (design `isDocFile`, markup lines 1545–1570): preview box with the extension,
  * Size / Modified / Owner / Linked to, notes, the Folder select that moves the file, then Download
@@ -50,12 +51,16 @@ export function FileDrawer({ file }: { file: DocFile }) {
         <Button icon="download" onClick={() => void downloadFile(file.id)}>
           Download
         </Button>
-        <Button variant="secondary" icon="pencil" onClick={() => go({ view: file.id, step: "edit" })}>
-          Edit
-        </Button>
-        <Button variant="secondary" icon="trash-2" onClick={() => go({ view: file.id, step: "delete" })}>
-          Delete
-        </Button>
+        <Can need="write">
+          <Button variant="secondary" icon="pencil" onClick={() => go({ view: file.id, step: "edit" })}>
+            Edit
+          </Button>
+        </Can>
+        <Can need="delete">
+          <Button variant="secondary" icon="trash-2" onClick={() => go({ view: file.id, step: "delete" })}>
+            Delete
+          </Button>
+        </Can>
       </div>
     </div>
   );

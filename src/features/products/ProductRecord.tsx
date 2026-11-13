@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 
 import { useState } from "react";
 import { useCategories, useProduct, useProductLevels, type StockMovement } from "@/data";
@@ -160,9 +161,11 @@ export function ProductRecord({ name, onClose, onEdit }: { name: string | null; 
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button icon="pencil" onClick={onEdit}>
-            Edit
-          </Button>
+          <Can need="write">
+            <Button icon="pencil" onClick={onEdit}>
+              Edit
+            </Button>
+          </Can>
         </div>
       </div>
     </Drawer>

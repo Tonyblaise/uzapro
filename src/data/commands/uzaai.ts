@@ -2,7 +2,7 @@
  * Uza AI commands — the canvas `aiVals` handlers and `aiAddTicket` (feature 008, contracts/ui-and-data.md).
  * All state lives in the in-memory `ai` slice and resets on reload (Principle III).
  */
-import { ROLES } from "@/config/roles";
+import { effectiveRole } from "../permissions";
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { date } from "@/lib/format";
 import { AI_COPY, REPLY_WITHIN } from "../fixtures/uzaai";
@@ -90,7 +90,7 @@ export function askUzaAi(raw: string, file: string | null, where: string): Promi
       if (file && !text) reply = { text: AI_COPY.file(file) };
       else {
         const a = answer(text, {
-          role: ROLES[s.session.role],
+          role: effectiveRole(s, s.session.role),
           first: currentUserFirst(s),
           awaiting: !!chat?.awaitingDetails,
           receivables: receivableRows(s.money.receivables),

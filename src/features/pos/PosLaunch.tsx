@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { hrefFor } from "@/config/modules";
-import { exitTill, launchTill, posK0, toast, usePos, useTerminals } from "@/data";
+import { exitTill, launchTill, posK0, toast, useCan, usePos, useTerminals } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Till } from "./Till";
@@ -15,7 +15,9 @@ export function PosLaunch() {
   const pathname = usePathname();
   const params = useSearchParams();
   const tillId = Number(params.get("till"));
-  const term = list.find((t) => t.id === tillId && t.active);
+  // Selling creates records, so a till needs Point of sale Write (feature 011, research R5).
+  const canSell = useCan("write", "pos");
+  const term = canSell ? list.find((t) => t.id === tillId && t.active) : undefined;
 
   // This tab is a till tab opened from the cards (`?till=1&tab=1`), as the design's `#pos-term-1`.
   const tillTab = params.get("tab") === "1";
@@ -137,9 +139,13 @@ export function PosLaunch() {
                     <dd className="type-label u-num m-0 mt-0.5 text-text">{open ? `${sh!.refs.length} · ${posK0(sales)}` : sh?.closedAt || "—"}</dd>
                   </div>
                 </dl>
-                <Button size="lg" icon="arrow-up-right" fullWidth disabled={off} onClick={() => openTill(t.id, t.name)}>
-                  {off ? "Terminal is off" : open ? "Launch" : "Open shift"}
-                </Button>
+                {canSell ? (
+                  <Button size="lg" icon="arrow-up-right" fullWidth disabled={off} onClick={() => openTill(t.id, t.name)}>
+                    {off ? "Terminal is off" : open ? "Launch" : "Open shift"}
+                  </Button>
+                ) : (
+                  <p className="type-label m-0 grid h-12 place-items-center rounded-md bg-canvas text-text-muted">View only</p>
+                )}
               </li>
             );
           })}

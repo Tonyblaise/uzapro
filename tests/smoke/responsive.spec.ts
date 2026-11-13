@@ -220,3 +220,38 @@ test.describe("till on phones", () => {
 
   // Accountant / Store keeper visibility is covered by tests/unit/roles.test.ts (canSee pos = false).
 });
+
+test.describe("permissions on phones (feature 011)", () => {
+  test.use({ viewport: { width: 320, height: 700 } });
+  const AXE = require.resolve("axe-core/axe.min.js");
+  async function scan(page: import("@playwright/test").Page, include: string, what: string) {
+    await page.addScriptTag({ path: AXE });
+    const bad = await page.evaluate(async (sel) => {
+      const w = window as unknown as { axe: { run: (ctx: unknown, opts: unknown) => Promise<{ violations: { id: string; impact: string; nodes: unknown[] }[] }> } };
+      const r = await w.axe.run({ include: [[sel]] }, { resultTypes: ["violations"] });
+      return r.violations.filter((v) => v.impact === "serious" || v.impact === "critical").map((v) => `${v.id} (${v.nodes.length})`);
+    }, include);
+    expect(bad, `${what}: serious or critical axe violations`).toEqual([]);
+  }
+  const noSideways = async (page: import("@playwright/test").Page) => expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+
+  test("role cards and the Edit role dialog fit 320px and pass the scan (SC-004)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/permissions/permissions");
+    await expect(page.getByRole("main").getByRole("article")).toHaveCount(4);
+    await noSideways(page);
+    await scan(page, "main", "role cards");
+    await page.getByRole("button", { name: "Edit role: Cashier" }).click();
+    const dialog = page.getByRole("dialog", { name: "Edit role" });
+    await expect(dialog.getByRole("group")).toHaveCount(21);
+    await noSideways(page);
+    const save = await dialog.getByRole("button", { name: "Save" }).boundingBox();
+    expect(save!.y + save!.height).toBeLessThanOrEqual(700);
+    const read = await dialog.getByRole("button", { name: "Sales: Read" }).boundingBox();
+    const del = await dialog.getByRole("button", { name: "Sales: Delete" }).boundingBox();
+    expect(del!.x + del!.width).toBeLessThanOrEqual(320);
+    expect(read!.y).toBe(del!.y);
+    await scan(page, '[role="dialog"]', "Edit role");
+  });
+});

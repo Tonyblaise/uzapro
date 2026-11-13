@@ -37,9 +37,10 @@ Built-in role names:
 
 **Locked rows**:
 - `home` and `prof` are always at least Read for every role.
+- `perm` is locked at none for every role except the owner (only the owner manages permissions).
 - Every row is Delete for the owner.
 
-`lockedRow(roleKey, moduleId)` is true when the role is the owner, or the module is `home` or `prof`.
+`lockedLevel(roleKey, moduleId)` returns the forced level (owner: delete; `perm`: none; `home`/`prof`: read), and `lockedRow` is true when it returns one.
 
 ## PermissionsState (store slice `permissions`)
 

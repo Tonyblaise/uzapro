@@ -255,7 +255,7 @@ export const MODULES: Module[] = [
     "Permissions",
     "What each role can see and do",
     "permissions",
-    [["Permissions", "table", [C("Role"), N("Users"), C("Modules"), C("Scope")]]],
+    [["Permissions", "roles"]],
     true,
   ),
   mod("cal", "Office", "calendar", "Calendar", "What’s coming up for the business", "calendar", [["Calendar", "calendar"]], true),

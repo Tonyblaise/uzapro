@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 /**
  * Purchase order view (design `isPoView`, `pv`): header with status and payment pills, Download PDF
  * and Edit, the four steps, Supplier / Deliver to, Items, Goods receipts, Notes, Next step,
@@ -96,9 +97,11 @@ export function PurchaseOrderView({ refId, onClose, onEdit, onReceive, onOpenRec
               <Button variant="secondary" icon="download" onClick={() => downloadPurchasePdf(order.ref)}>
                 Download PDF
               </Button>
-              <Button variant="secondary" icon="pencil" onClick={onEdit}>
-                Edit
-              </Button>
+              <Can need="write">
+                <Button variant="secondary" icon="pencil" onClick={onEdit}>
+                  Edit
+                </Button>
+              </Can>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-2 border-t border-border pt-4">

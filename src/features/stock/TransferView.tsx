@@ -1,6 +1,6 @@
 "use client";
 
-import { receiveTransfer, type Transfer } from "@/data";
+import { receiveTransfer, useCan, type Transfer } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { date } from "@/lib/format";
@@ -9,6 +9,7 @@ import { StockDrawer, itemKey, transferPill } from "./shared";
 /** Design `isTrLocked`: "Transfer {ref}" for In transit, Received and Cancelled transfers. */
 export function TransferView({ transfer: t, onClose }: { transfer: Transfer; onClose: () => void }) {
   const pill = transferPill(t.status);
+  const canWrite = useCan("write");
   const fields = [
     { label: "From", text: t.from },
     { label: "To", text: t.to },
@@ -44,7 +45,7 @@ export function TransferView({ transfer: t, onClose }: { transfer: Transfer; onC
           <Button variant="secondary" onClick={onClose}>
             Close
           </Button>
-          {t.status === "In transit" && (
+          {t.status === "In transit" && canWrite && (
             <Button
               onClick={async () => {
                 const res = await receiveTransfer(t.ref);

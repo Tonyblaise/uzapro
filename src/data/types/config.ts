@@ -3,6 +3,7 @@ import type { ActionKey, ModuleId, RoleId, Tone } from "./common";
 export type ScreenKind =
   | "stats"
   | "poslaunch"
+  | "roles"
   | "prodboard"
   | "stockboard"
   | "salesdash"

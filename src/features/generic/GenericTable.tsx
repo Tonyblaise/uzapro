@@ -7,7 +7,7 @@
  * asks first in a drawer ("Delete {name}?", `rowConfirm`).
  */
 import { findTab, getModule } from "@/config/modules";
-import { canDeleteGeneric, cellText, deleteGenericRow, useGenericRows, useRole, type GenericRow, type ModuleId } from "@/data";
+import { cellText, deleteGenericRow, useGenericRows, type GenericRow, type ModuleId, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions } from "@/components/ui/Menu";
@@ -18,8 +18,7 @@ import { GenericDrawer, useGenericOverlay } from "./shared";
 
 export function GenericTable({ moduleId, tab }: { moduleId: ModuleId; tab: string }) {
   const rows = useGenericRows(moduleId, tab);
-  const role = useRole();
-  const canDelete = canDeleteGeneric(role.id);
+  const canDelete = useCan("delete");
   const { params, open, close } = useGenericOverlay();
   const cols = findTab(getModule(moduleId), tab)?.columns ?? [];
 

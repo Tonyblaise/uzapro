@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 /** Sale record (design `isPosView`): opened by `?view=SAL-…` on All sales. */
 import type { ReactNode } from "react";
 import { downloadPdf, printDocument } from "@/data";
@@ -66,12 +67,16 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
             </Button>
             {!voided && (
               <>
-                <Button variant="soft" icon="refresh-cw" onClick={onCredit}>
-                  Credit note
-                </Button>
-                <Button variant="danger" icon="x" onClick={onVoid}>
-                  Void
-                </Button>
+                <Can need="write">
+                  <Button variant="soft" icon="refresh-cw" onClick={onCredit}>
+                    Credit note
+                  </Button>
+                </Can>
+                <Can need="delete">
+                  <Button variant="danger" icon="x" onClick={onVoid}>
+                    Void
+                  </Button>
+                </Can>
               </>
             )}
           </div>

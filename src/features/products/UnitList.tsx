@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { deleteUnit, useRole, useUnitList } from "@/data";
+import { deleteUnit, useUnitList, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions } from "@/components/ui/Menu";
@@ -15,10 +15,9 @@ interface UnitRow {
 /** Units of measure tab: the design lists every `UZ_UNITS` entry; a row opens "Edit unit". */
 export function UnitList() {
   const units = useUnitList();
-  const role = useRole();
   const { action, view, open, close } = useOverlayParams();
   const [confirm, setConfirm] = useState<string | null>(null);
-  const canDelete = !role.tabs;
+  const canDelete = useCan("delete");
 
   const columns: DataColumn<UnitRow>[] = [
     { key: "unit", title: "Unit", render: (r) => <span className="font-medium text-text">{r.unit}</span> },

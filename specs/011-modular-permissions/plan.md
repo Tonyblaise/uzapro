@@ -51,7 +51,7 @@ registered yet).
   - `tests/smoke/permissions.spec.ts`: cards, the dialog, save and cancel, the effect on the role
     switch, Read-only gating, Delete gating, add, rename, duplicate and delete.
   - `responsive.spec.ts`: the page and dialog at 320px with the accessibility scan.
-  - The existing `navigation.spec.ts` role coverage stays green, which proves SC-002.
+  - `navigation.spec.ts` now works out visibility from the seeded access (`seedRole`), so Profile counts as visible for every role; it stays green, which proves SC-002.
 
 **Target Platform / Project Type**: unchanged (a static-export web app on the Cloudflare Worker)
 

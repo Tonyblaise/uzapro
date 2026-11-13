@@ -7,3 +7,4 @@ export * from "./purchases";
 export * from "./money";
 export * from "./accounts";
 export * from "./office";
+export * from "./permissions";

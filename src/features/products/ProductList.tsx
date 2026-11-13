@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { deleteProduct, useCategories, useProducts, useRole, type ProductRow } from "@/data";
+import { deleteProduct, useCategories, useProducts, type ProductRow, useCan } from "@/data";
 import { num } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
@@ -29,10 +29,9 @@ interface Row {
 export function ProductList() {
   const products = useProducts();
   const categories = useCategories();
-  const role = useRole();
   const { action, view, get, open, close } = useOverlayParams();
   const [confirm, setConfirm] = useState<string | null>(null);
-  const canDelete = !role.tabs;
+  const canDelete = useCan("delete");
 
   const rows = useMemo<Row[]>(
     () =>

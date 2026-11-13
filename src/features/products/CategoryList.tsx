@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { canDeleteCategory, deleteCategory, toast, useCategories, useProducts, useRole, type Category } from "@/data";
+import { canDeleteCategory, deleteCategory, toast, useCategories, useProducts, type Category, useCan } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions, type MenuItem } from "@/components/ui/Menu";
@@ -23,10 +23,9 @@ interface CategoryRow {
 export function CategoryList() {
   const categories = useCategories();
   const products = useProducts();
-  const role = useRole();
   const { action, view, get, open, close } = useOverlayParams();
   const [confirm, setConfirm] = useState<string | null>(null);
-  const canDelete = !role.tabs;
+  const canDelete = useCan("delete");
 
   const rows = useMemo<CategoryRow[]>(() => {
     const tops = categories.filter((c) => !c.parent);

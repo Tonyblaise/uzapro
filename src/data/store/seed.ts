@@ -3,6 +3,7 @@
  * No browser storage access here; StoreProvider applies uzAuth / uzNavClosed after mount.
  */
 import { parseAmount } from "@/lib/format";
+import { seedPermissions } from "../permissions";
 import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
 import { CUSTOMER_ROWS } from "../fixtures/customers";
@@ -242,6 +243,7 @@ export function createSeed(): AppState {
     ui: { toast: null, search: "", reportPeriod: "This month" },
     ai: seedAi(),
     pos: seedPos(),
+    permissions: seedPermissions(),
   };
 }
 

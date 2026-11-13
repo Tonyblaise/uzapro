@@ -59,6 +59,10 @@
 --pos-tint-4:#F3EEFB;--pos-ink-4:#5B3A92;--pos-tint-5:#FCEEF1;--pos-ink-5:#9B2C4A;--pos-tint-6:#EEF6F6;--pos-ink-6:#1F6262;
 --pos-avatar-1:#E7E4FB;--pos-avatar-ink-1:#4B3FA8;--pos-avatar-2:#DDF3EA;--pos-avatar-ink-2:#1E6B4A;
 --pos-avatar-3:#FBE3EA;--pos-avatar-ink-3:#9B2C4A;--pos-avatar-4:#FDF0DC;--pos-avatar-ink-4:#9A5A0B;
+/* Permissions (feature 011): role tile colours (white icon ≥3:1) and avatar circles, named once (Principle IV). */
+--role-1:#2F80ED;--role-2:#D97706;--role-3:#E5484D;--role-4:#7C5CD6;--role-5:#0B8743;--role-6:#4B3FA8;--role-ink:#FFFFFF;
+--avatar-tint-1:#E7E4FB;--avatar-ink-1:#4B3FA8;--avatar-tint-2:#DDF3EA;--avatar-ink-2:#1E6B4A;
+--avatar-tint-3:#FBE3EA;--avatar-ink-3:#9B2C4A;--avatar-tint-4:#FDF0DC;--avatar-ink-4:#9A5A0B;
 --pos-mpesa:#EEF7E6;--pos-mpesa-ink:#3F7A12;--pos-card:#EEF0FB;--pos-card-ink:#3B47A8;
 --receipt-paper:#FFFEF9;--receipt-ink:#222222;--receipt-muted:#666666;--receipt-rule:#BBBBBB;
 --pos-scrim:rgba(15,23,42,.45);--shadow-pos:0 12px 32px rgba(0,0,0,.06);--shadow-pos-dialog:0 24px 60px rgba(0,0,0,.25);--shadow-charge:0 8px 20px rgba(16,94,52,.25);

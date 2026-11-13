@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { cancelTransfer, createTransfer, isTransferOpen, useStoreQuantities, useTransfer, type Transfer, type TransferMode } from "@/data";
+import { cancelTransfer, createTransfer, useCan, isTransferOpen, useStoreQuantities, useTransfer, type Transfer, type TransferMode } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -62,6 +62,7 @@ function TransferCancel({ transfer, onKeep, onClose }: { transfer: Transfer; onK
 /** Design `isTrForm`: "New stock transfer" / "Edit transfer {ref}". */
 export function TransferForm({ edit, onClose, onAskCancel }: { edit?: Transfer; onClose: () => void; onAskCancel?: () => void }) {
   const stores = useStoreNames();
+  const canDelete = useCan("delete");
   const variants = useVariantLookup();
   const units = useUnitOptions();
   const [from, setFrom] = useState(edit?.from ?? "Main Store");
@@ -153,7 +154,7 @@ export function TransferForm({ edit, onClose, onAskCancel }: { edit?: Transfer; 
           })}
         </ItemsGrid>
         <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-3">
-          {edit && onAskCancel && (
+          {edit && onAskCancel && canDelete && (
             <div className="mr-auto">
               <Button variant="ghost" icon="trash-2" onClick={onAskCancel}>
                 Cancel transfer

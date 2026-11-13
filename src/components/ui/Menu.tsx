@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { has, rowActionNeed, useAccess, type AccessLevel } from "@/data";
 import { Icon, type IconName } from "./Icon";
 import { useAnchor } from "./useAnchor";
 
@@ -10,6 +11,8 @@ export interface MenuItem {
   icon?: IconName;
   danger?: boolean;
   disabled?: boolean;
+  /** Access the action needs in the current module; default from its label (feature 011, research R4). */
+  need?: AccessLevel;
 }
 
 /** Icons the design's RowActions uses for known labels. */
@@ -85,7 +88,10 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
 }
 
 /** The design's row "…" actions (window.UzForms.RowActions). */
-export function RowActions({ items, label = "Actions" }: { items: MenuItem[]; label?: string }) {
+export function RowActions({ items: all, label = "Actions" }: { items: MenuItem[]; label?: string }) {
+  const { level } = useAccess();
+  const items = all.filter((it) => has(level, it.need ?? rowActionNeed(it.label)));
+  if (items.length === 0) return null;
   return (
     <span onClick={(e) => e.stopPropagation()}>
       <Menu

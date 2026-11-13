@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 /**
  * Settings › Business profile (design `isBizProfile` with `bp`): the logo or initials with "Change
  * logo" and "Edit profile", the completion ring with up to 4 "+ {detail}" shortcuts, and the
@@ -193,9 +194,11 @@ export function BusinessProfile() {
                 <Icon name={card.icon} size={16} />
                 {card.title}
               </h2>
-              <Button variant="ghost" size="sm" aria-label={`Edit ${card.title}`} onClick={() => open({ view: card.section })}>
-                Edit
-              </Button>
+              <Can need="write">
+                <Button variant="ghost" size="sm" aria-label={`Edit ${card.title}`} onClick={() => open({ view: card.section })}>
+                  Edit
+                </Button>
+              </Can>
             </div>
             <div className="flex flex-col gap-3 px-5 py-4">
               {card.intro && <div className="type-small text-text-secondary">{card.intro}</div>}

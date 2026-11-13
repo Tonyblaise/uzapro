@@ -17,6 +17,7 @@ import {
   useTerminals,
   type Terminal,
   type TerminalsState,
+  useCan,
 } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
@@ -103,6 +104,8 @@ export function Terminals() {
 }
 
 function TerminalCard({ t, T, onEdit }: { t: Terminal; T: TerminalsState; onEdit: () => void }) {
+  const canWrite = useCan("write");
+  const canDelete = useCan("delete");
   const toggle = async () => {
     await setTerminalActive(t.id, !t.active);
   };
@@ -131,13 +134,15 @@ function TerminalCard({ t, T, onEdit }: { t: Terminal; T: TerminalsState; onEdit
       </div>
       <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
         <span className="type-caption text-text-muted">Added {t.added}</span>
-        <div className="flex gap-1">
-          <IconButton icon="pencil" size="sm" label="Edit terminal" onClick={onEdit} />
-          <Button variant="ghost" size="sm" onClick={() => void toggle()}>
-            {t.active ? "Deactivate" : "Activate"}
-          </Button>
-          <IconButton icon="trash-2" size="sm" label="Delete terminal" disabled={t.main || T.list.length < 2} onClick={() => void deleteTerminal(t.id)} />
-        </div>
+        {canWrite && (
+          <div className="flex gap-1">
+            <IconButton icon="pencil" size="sm" label="Edit terminal" onClick={onEdit} />
+            <Button variant="ghost" size="sm" onClick={() => void toggle()}>
+              {t.active ? "Deactivate" : "Activate"}
+            </Button>
+            {canDelete && <IconButton icon="trash-2" size="sm" label="Delete terminal" disabled={t.main || T.list.length < 2} onClick={() => void deleteTerminal(t.id)} />}
+          </div>
+        )}
       </div>
     </div>
   );

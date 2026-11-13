@@ -5,7 +5,7 @@
  * since then, with Deposit, Withdraw and Edit account. The "Account type" picker filters the cards.
  */
 import { useState } from "react";
-import { useAccounts, type Account } from "@/data";
+import { useAccounts, useCan, type Account } from "@/data";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { SearchSelect } from "@/components/ui/SearchSelect";
@@ -17,6 +17,7 @@ const TYPES = ["All", "Bank", "Mobile money", "Cash", "Petty cash"] as const;
 const ALL_TYPES = "All account types";
 
 function BankCard({ a }: { a: Account }) {
+  const canWrite = useCan("write");
   const { open } = useFinOverlay();
   const look = LOOKS[a.type] ?? LOOKS.Bank;
   const flow = a.balance - a.opening;
@@ -50,23 +51,25 @@ function BankCard({ a }: { a: Account }) {
             <div className={`type-label u-num ${flow < 0 ? "text-danger-text" : "text-success-text"}`}>{(flow < 0 ? "−" : "+") + fmt2(Math.abs(flow))}</div>
           </div>
         </div>
-        <div className="grid gap-2 border-t border-border pt-3 [grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_36px]">
-          <button
-            type="button"
-            onClick={() => open({ action: "deposit", acc: a.name })}
-            className="type-small h-[34px] cursor-pointer rounded-md border border-green-200 bg-green-50 font-semibold text-green-700 hover:bg-green-100"
-          >
-            ↓ Deposit
-          </button>
-          <button
-            type="button"
-            onClick={() => open({ action: "withdrawal", acc: a.name })}
-            className="type-small h-[34px] cursor-pointer rounded-md border border-danger-soft bg-danger-soft font-semibold text-danger-text hover:brightness-95"
-          >
-            ↑ Withdraw
-          </button>
-          <IconButton icon="pencil" variant="secondary" size="sm" label="Edit account" onClick={() => open({ view: a.name })} className="size-[34px]!" />
-        </div>
+        {canWrite && (
+          <div className="grid gap-2 border-t border-border pt-3 [grid-template-columns:minmax(0,1fr)_minmax(0,1fr)_36px]">
+            <button
+              type="button"
+              onClick={() => open({ action: "deposit", acc: a.name })}
+              className="type-small h-[34px] cursor-pointer rounded-md border border-green-200 bg-green-50 font-semibold text-green-700 hover:bg-green-100"
+            >
+              ↓ Deposit
+            </button>
+            <button
+              type="button"
+              onClick={() => open({ action: "withdrawal", acc: a.name })}
+              className="type-small h-[34px] cursor-pointer rounded-md border border-danger-soft bg-danger-soft font-semibold text-danger-text hover:brightness-95"
+            >
+              ↑ Withdraw
+            </button>
+            <IconButton icon="pencil" variant="secondary" size="sm" label="Edit account" onClick={() => open({ view: a.name })} className="size-[34px]!" />
+          </div>
+        )}
       </div>
     </article>
   );

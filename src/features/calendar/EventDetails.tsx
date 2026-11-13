@@ -1,4 +1,5 @@
 "use client";
+import { Can } from "@/components/ui/Can";
 /** The design's "Event details" modal (`isCalEvent`): title, notes, start, end, address, Delete and Edit. */
 import type { ReactNode } from "react";
 import { calStamp, type CalEvent } from "@/data";
@@ -41,12 +42,16 @@ export function EventDetails({ event: e, onClose, onEdit, onDelete }: { event: C
           )}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="secondary" fullWidth onClick={onDelete}>
-            Delete
-          </Button>
-          <Button fullWidth onClick={onEdit}>
-            Edit
-          </Button>
+          <Can need="delete">
+            <Button variant="secondary" fullWidth onClick={onDelete}>
+              Delete
+            </Button>
+          </Can>
+          <Can need="write">
+            <Button fullWidth onClick={onEdit}>
+              Edit
+            </Button>
+          </Can>
         </div>
       </div>
     </Modal>

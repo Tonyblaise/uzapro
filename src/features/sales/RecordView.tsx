@@ -15,10 +15,10 @@ import {
   useInvoices,
   useProducts,
   useQuotations,
-  useRole,
   useVoids,
   type DocLine,
   type Quotation,
+  useAllowed,
 } from "@/data";
 import { Button, type ButtonVariant } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
@@ -126,7 +126,7 @@ export function RecordView({
   onPay?: (doc: Quotation) => void;
 }) {
   const router = useRouter();
-  const role = useRole();
+  const allowed = useAllowed();
   const quotations = useQuotations();
   const invoices = useInvoices();
   const notes = useCreditNotes();
@@ -169,7 +169,7 @@ export function RecordView({
       if (!(kind === "quote" && approved) && onEdit) actions.push({ label: "Edit", icon: "pencil", variant: "secondary", run: () => onEdit(doc) });
       if (kind === "quote" && !converted && onConvert) actions.push({ label: "Convert to invoice", icon: "file-text", variant: "soft", run: () => onConvert(doc) });
       if (kind === "invoice" && !isPaid && onPay) actions.push({ label: "Record payment", icon: "banknote", variant: "primary", run: () => onPay(doc) });
-      if (kind === "invoice" && (!role.tabs || role.figures) && onVoid) actions.push({ label: "Void", icon: "x", variant: "danger", run: () => onVoid(doc) });
+      if (kind === "invoice" && onVoid) actions.push({ label: "Void", icon: "x", variant: "danger", run: () => onVoid(doc) });
       cv = {
         kindLabel: kind === "quote" ? "Quotation" : "Invoice",
         itemsTitle: "Items",
@@ -407,12 +407,12 @@ export function RecordView({
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {c.actions.map((a) => (
+              {c.actions.filter((a) => allowed(a.label)).map((a) => (
                 <Button key={a.label} variant={a.variant} icon={a.icon} onClick={a.run}>
                   {a.label}
                 </Button>
               ))}
-              {c.canApprove && (
+              {c.canApprove && allowed("Approve") && (
                 <Button icon="check" onClick={c.approve}>
                   Approve
                 </Button>

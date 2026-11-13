@@ -1,7 +1,9 @@
 /**
  * Verbatim port of the `UZ_MODS` rows, form fields and card items for the standard list, form and
- * card screens (design/canvas/erp-data.js): Reports, Team, Permissions, Messages and Settings ›
+ * card screens (design/canvas/erp-data.js): Reports, Team, Messages and Settings ›
  * Staff logins, Taxes, Connected apps, Import and export. Keys are "{moduleId}/{tabSlug}".
+ * Permissions moved to role cards in feature 011 (canvas rows: Owner / Admin 1 Full, Accountant 2
+ * Edit, Cashier 4 Limited, Store / Inventory 3 Edit — see src/data/fixtures/permissions.ts).
  */
 import type { GenericField, GenericRow, ReportCard } from "../types";
 import { P } from "./_helpers";
@@ -19,12 +21,6 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
     ["Grant Jensen", "Store keeper", "Nairobi HQ", P("Active", "good")],
     ["Mary Achieng", "Accountant", "Nairobi HQ", P("Active", "good")],
     ["Jane Smith", "Cashier", "New Jersey", P("Active", "good")],
-  ],
-  "perm/permissions": [
-    ["Owner / Admin", "1", "All", P("Full", "good")],
-    ["Accountant", "2", "Finance + reports", P("Edit", "info")],
-    ["Cashier", "4", "Sales (POS) + customers", P("Limited", "warn")],
-    ["Store / Inventory", "3", "Inventory + products", P("Edit", "info")],
   ],
   "comm/saved-messages": [
     ["Order ready", "SMS", "name, ref", P("Active", "good")],

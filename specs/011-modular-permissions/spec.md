@@ -23,7 +23,7 @@ Today Permissions (People › Permissions) is a static four-row table copied fro
 
 This feature replaces that table:
 
-- **Modular**: access is set per app module (Dashboard, Products, Inventory, Sales, Point of sale, and so on), grouped by the sidebar sections. Each module gets Read, Write and Delete.
+- **Modular**: access is set per app module (Dashboard, Products, Stock, Sales, Point of sale, and so on), grouped by the sidebar sections. Each module gets Read, Write and Delete.
 - **Fixed**: the starting permissions come from what each demo role can actually see today. So the Permissions page and the app agree, and newer modules are included.
 - **Matches the screenshots**: a role-card grid and an "Edit Role" dialog in the screenshots' style, drawn with UzaPro's design-system tokens. The Edit Role rows are modules; in the screenshot they are role names.
 
@@ -59,7 +59,7 @@ An owner opens People › Permissions. They see one card per role (Owner / Admin
    - it shows up to four avatars (initials on a tinted circle) for that role's people;
    - "+N" stands in for any beyond four;
    - the user count reads "Total 1 user" (singular) or "Total N users".
-3. **Given** the Cashier card, **When** it renders, **Then** its summary counts only the modules the Cashier can read: Dashboard, Calendar, Sales, Point of sale, Customers, Inventory, Help Center and Profile ("Can open 8 of 21 modules").
+3. **Given** the Cashier card, **When** it renders, **Then** its summary counts only the modules the Cashier can read: Dashboard, Calendar, Sales, Point of sale, Customers, Stock, Help and Profile ("Can open 8 of 21 modules").
 
 ---
 
@@ -93,16 +93,16 @@ The owner clicks "Edit Role" on a card. A dialog titled "Edit Role" opens, showi
 
 ### User Story 3 - Permissions change what a role sees (Priority: P2)
 
-After the owner removes Inventory from the Cashier and saves, they switch the demo role to Cashier (Profile › switch role). Inventory is no longer in the sidebar, the dashboard tasks or Uza AI answers. Opening an Inventory link directly shows the existing "not available for your role" state.
+After the owner removes Stock from the Cashier and saves, they switch the demo role to Cashier (Profile › switch role). Stock is no longer in the sidebar, the dashboard tasks or Uza AI answers. Opening a Stock link directly shows the existing "not available for your role" state.
 
 **Why this priority**: it "fixes" permissions so the page and the app agree, instead of being a decoration. It builds on Story 2.
 
-**Independent Test**: remove Cashier › Inventory, save, switch to Cashier, check the sidebar and visit `/inventory/stock-management`.
+**Independent Test**: remove Cashier › Stock, save, switch to Cashier, check the sidebar and visit `/stock/stock-management`.
 
 **Acceptance Scenarios**:
 
 1. **Given** the seed, **When** each role is used, **Then** it sees exactly the modules it saw before this feature. Nothing changes until someone edits a role.
-2. **Given** Cashier's Inventory set to none, **When** the user switches to Cashier, **Then** Inventory is gone from the sidebar, search, quick tasks and dashboard alerts that link to Inventory.
+2. **Given** Cashier's Stock set to none, **When** the user switches to Cashier, **Then** Stock is gone from the sidebar, search, quick tasks and dashboard alerts that link to Stock.
 3. **Given** a module set to Read only for a role, **When** that role opens it, **Then** its create and edit controls are hidden and its delete, void and cancel actions are hidden (FR-011). Viewing, downloading and running reports still work.
 
 ---
@@ -127,8 +127,8 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
 ### Edge Cases
 
 - **The Owner / Admin role is locked to full access** on every module. The Edit Role dialog shows its rows as selected but disabled, with the note "The owner always has full access." This keeps anyone from locking themselves out of Permissions.
-- **Permissions, Profile and Help Center**:
-  - Read on Permissions is only offered to the owner.
+- **Permissions, Profile and Help**:
+  - The Permissions row is locked at none for every role except the owner, shown disabled with the caption "Owner only".
   - Profile is always readable by every role, because people must be able to sign out and switch roles. Its row shows Read locked.
 - **No-access role**: a custom role with no access still sees Dashboard and Profile. Dashboard is locked to Read for every role so there is always a home screen.
 - **Long role names**: they wrap to two lines on the card and in the dialog title, and are not cut off. Names are limited to 40 characters.
@@ -152,7 +152,7 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
   - a "…" menu;
   - an avatar stack (at most 4, then "+N") and "Total N user(s)";
   - a one-line module summary, "Can open X of Y modules";
-  - a full-width outline "Edit Role" button with the user-settings icon.
+  - a full-width outline "Edit Role" button with the user-cog icon.
 - **FR-003**: Access MUST be set per module for every module in the app registry. Modules are grouped under the sidebar section headings in sidebar order. The dialog body scrolls; its header and footer stay put.
 - **FR-004**: Each module row MUST show three outline buttons: Read, Write and Delete.
   - A selected button shows a ✓ icon before its label, a 2px primary-colour border and a primary-tinted label.
@@ -170,9 +170,10 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
 - **FR-007**: The starting access MUST come from each role's current visibility (the modules each role sees today). Seeded levels:
   - Owner / Admin: full access everywhere.
   - Accountant: Write on the Financials modules, Sales, Purchases, Customers, Suppliers, Reports and File Manager; Read on the others it sees now.
-  - Cashier: Write on Sales, Point of sale and Customers; Read on Inventory, Calendar, Dashboard and Help Center.
-  - Store keeper: Write on Inventory, Products, Purchases, Suppliers and File Manager; Read on the others it sees now.
+  - Cashier: Write on Sales, Point of sale and Customers; Read on Stock, Calendar, Dashboard and Help.
+  - Store keeper: Write on Stock, Products, Purchases, Suppliers and File Manager; Read on the others it sees now.
   - Modules a role can't see today start with no access.
+  - Exact lists: research R2.
 - **FR-008**: Saving MUST update the role's access for the rest of the session and show the toast "{Role} access saved." Cancel, ✕ and Escape MUST discard changes. Save MUST be disabled until something changes.
 - **FR-009**: Module visibility for a role MUST come from that role's Read access. This covers the sidebar, search, dashboard quick tasks and alerts, Uza AI answers and direct links, so the Permissions page and the app never disagree.
 - **FR-010**: Within a module, tab-level limits that exist today MUST stay as they are. For example, the Cashier only sees "All sales" and "Refunds" in Sales. A newly granted module shows all of its tabs.
@@ -213,7 +214,7 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
 - **SC-002**: Before any edit, every role sees exactly the same modules and tabs as it did before this feature, checked across all 4 roles.
 - **SC-003**: After an edit that removes a module, that module is gone from every place the role could reach it (sidebar, search, quick tasks, alerts, Uza AI, direct link): 0 leaks.
 - **SC-004**: The page and dialog show no sideways scrolling and no clipped controls at 320, 375, 390, 414, 768 and 1440px widths, and pass the automated accessibility scan with no serious or critical issues.
-- **SC-005**: All 21 modules are listed in the Edit Role dialog. None is missing, including Point of sale, Help Center and Profile.
+- **SC-005**: All 21 modules are listed in the Edit Role dialog. None is missing, including Point of sale, Help and Profile.
 
 ## Assumptions
 
@@ -234,4 +235,7 @@ Required by Constitution Principle I. The canvas still shows the static four-row
 | Scope is one word per role (Full, Edit, Limited) | Read, Write and Delete per module | The user asked for modular permissions |
 | Role visibility is fixed per demo role | Derived from each role's saved Read access | "Fix the permissions": the page and the app must agree |
 | The Edit Role rows in the screenshot are roles | Rows are modules, grouped by sidebar section | Modular permissions, set per role |
+| The canvas Scope (Full, Edit, Limited) | Seed levels: Delete for the owner; Write on each role's working modules and Read elsewhere (research R2) | The canvas has no per-module levels |
+| The screenshot's selected buttons and primary button are blue | Brand green (`--action`) | Green is the only brand colour (Principle IV) |
+| The screenshot's "+N" avatar overlaps the stack | "+N" sits next to the stack | Keeps the initials readable |
 | The screenshot's labels are in title case: "Add New Role", "Edit Role", "Role Access" | Sentence case: "Add new role", "Edit role", "Role access" | Design-system content rule (Principle IV) |

@@ -15,6 +15,7 @@ import {
   useProducts,
   usePurchaseReturn,
   useRejectedItem,
+  useAllowed,
 } from "@/data";
 import { Button, type ButtonVariant } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
@@ -79,6 +80,7 @@ const step = (done: boolean, title: string, sub: string): Step => ({ done, title
 
 export function PurchaseRecordView({ kind, refId, onClose, onOpenReceipt }: { kind: PurchaseRecordKind; refId: string; onClose: () => void; onOpenReceipt: (grn: string) => void }) {
   const ret = usePurchaseReturn(kind === "return" ? refId : null);
+  const allowed = useAllowed();
   const rej = useRejectedItem(kind === "rejected" ? refId : null);
   const receipts = useGoodsReceipts();
   const products = useProducts();
@@ -237,12 +239,12 @@ export function PurchaseRecordView({ kind, refId, onClose, onOpenReceipt }: { ki
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {c.actions.map((a) => (
+              {c.actions.filter((a) => allowed(a.label)).map((a) => (
                 <Button key={a.label} variant={a.variant} icon={a.icon} onClick={a.run}>
                   {a.label}
                 </Button>
               ))}
-              {c.canApprove && (
+              {c.canApprove && allowed("Approve") && (
                 <Button icon="check" onClick={c.approve}>
                   Approve
                 </Button>

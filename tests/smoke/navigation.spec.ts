@@ -1,5 +1,6 @@
 import { MODULES } from "@/config/modules";
 import { ROLES, canSee, visibleModules, visibleTabs } from "@/config/roles";
+import { seedRole } from "@/data/permissions";
 import type { RoleId } from "@/data/types";
 import { expect, loginAs, test } from "./fixtures";
 
@@ -7,9 +8,11 @@ import { expect, loginAs, test } from "./fixtures";
 const ROLE_LIST: RoleId[] = ["owner", "accountant", "cashier", "store"];
 
 for (const roleId of ROLE_LIST) {
-  const role = ROLES[roleId];
+  // Visibility comes from the seeded per-module access (feature 011): Profile is open to every role.
+  const role = seedRole(roleId);
 
   test(`${role.label}: every visible in-scope tab renders`, async ({ page, errors }) => {
+    test.setTimeout(90_000); // the owner visits every tab; slow under a full parallel run
     void errors;
     await loginAs(page, roleId);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(`Welcome back, ${role.name}`);
@@ -76,9 +79,10 @@ test("reload keeps the session and role; sign out returns to login", async ({ pa
 const OFFICE = ["Reports", "Team", "Permissions", "Calendar", "Messages", "File Manager", "Profile", "Settings"];
 const SEES: Record<RoleId, string[]> = {
   owner: OFFICE,
-  accountant: ["Reports", "Team", "Calendar", "File Manager"],
-  store: ["Calendar", "File Manager"],
-  cashier: ["Calendar"],
+  // Feature 011: Profile is locked open for every role (spec › Edge cases).
+  accountant: ["Reports", "Team", "Calendar", "File Manager", "Profile"],
+  store: ["Calendar", "File Manager", "Profile"],
+  cashier: ["Calendar", "Profile"],
 };
 for (const roleId of ROLE_LIST) {
   test(`${ROLES[roleId].label}: sees exactly the design's office, people and account modules`, async ({ page, errors }) => {

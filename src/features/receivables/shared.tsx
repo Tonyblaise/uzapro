@@ -6,7 +6,7 @@
  */
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import type { Pill, Priority, Side } from "@/data";
+import { useCan, type Pill, type Priority, type Side } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions, type MenuItem } from "@/components/ui/Menu";
@@ -169,6 +169,7 @@ export function MoneyTable<R>({
  * with one line per column, and the Edit / Duplicate / Print buttons (no actions in the design).
  */
 export function RecordDrawer<R>({ side, columns, row, onClose }: { side: Side; columns: MoneyCol<R>[]; row: R; onClose: () => void }) {
+  const canWrite = useCan("write");
   const first = columns[0];
   const status = columns.find((c) => c.pill)?.pill?.(row);
   return (
@@ -193,8 +194,8 @@ export function RecordDrawer<R>({ side, columns, row, onClose }: { side: Side; c
         </div>
         {/* The design's generic record drawer shows these buttons without actions. */}
         <div className="flex flex-wrap gap-2">
-          <Button icon="pencil">Edit</Button>
-          <Button variant="secondary">Duplicate</Button>
+          {canWrite && <Button icon="pencil">Edit</Button>}
+          {canWrite && <Button variant="secondary">Duplicate</Button>}
           <Button variant="secondary" icon="printer">
             Print
           </Button>

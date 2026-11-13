@@ -191,3 +191,22 @@ Unselected: `1px var(--border)`.
 - Owner / Admin's menu shows only Duplicate.
 
 The "…" menu uses the existing `Menu`, with `need` unset because this page is owner-only.
+
+## R11. Implementation notes (2026-11-13)
+
+- **Analysis fixes folded in during implementation** (the analysis remediation wasn't applied separately):
+  - I1: the docs use the app's module names: Stock, Help and Accounts.
+  - C1: the Permissions row is locked at none for every non-owner role (`lockedLevel`).
+  - C2: dashboard quick tasks and alerts are filtered by access (`useHomeItems`).
+  - I2: `navigation.spec.ts` uses `seedRole`.
+  - U1: avatar tokens are `--avatar-tint-*` / `--avatar-ink-*`.
+  - U2: the Edit role dialog closes if the session leaves the owner role.
+- **Step and cancel links**: data-changing record steps are also gated centrally in `ModuleScreen`:
+  - `step=void|delete`, `confirm=delete` and `cancel=1` need Delete;
+  - `step=edit|pay|receive|credit` needs Write.
+- **Legacy owner-only checks** now read Delete access: `!role.tabs` in Products, Suppliers, Stock, the Sales lists and generic tables. The Sales invoice "Void" (`role.figures`) now needs Delete.
+- **R5 sweep exceptions**: these are deliberately not gated:
+  - till-internal controls (Point of sale Write already covers them);
+  - Uza AI tickets and ideas (personal);
+  - File Manager stars (personal);
+  - header actions that only navigate, such as Products › "Manage categories", which hide with the Actions slot.

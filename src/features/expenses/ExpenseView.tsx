@@ -6,7 +6,7 @@
  * Opens with `?view=<EXP>` on Expenses and Voided (contracts/routes.md).
  */
 import type { ReactNode } from "react";
-import { approveExpense, useAccounts, useExpenses, useLedger, useRole, useUnvoidableExpenses, useVoidedExpenses } from "@/data";
+import { approveExpense, useCan, useAccounts, useExpenses, useLedger, useRole, useUnvoidableExpenses, useVoidedExpenses } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Overlay";
@@ -38,6 +38,8 @@ function Panel({ children }: { children: ReactNode }) {
 export function ExpenseView({ refId, onClose, onVoid }: { refId: string; onClose: () => void; onVoid: () => void }) {
   const expenses = useExpenses();
   const voidedList = useVoidedExpenses();
+  const canWrite = useCan("write");
+  const canDelete = useCan("delete");
   const accounts = useAccounts();
   const ledger = useLedger();
   const unvoidable = useUnvoidableExpenses();
@@ -105,14 +107,14 @@ export function ExpenseView({ refId, onClose, onVoid }: { refId: string; onClose
       width={1000}
       footer={
         <>
-          {canReverse && (
+          {canReverse && canDelete && (
             <span className="mr-auto">
               <Button variant="danger" icon="trash-2" onClick={onVoid}>
                 Void
               </Button>
             </span>
           )}
-          {waiting && (
+          {waiting && canWrite && (
             <Button icon="check" onClick={() => void approveExpense(refId)}>
               Approve
             </Button>

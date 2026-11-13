@@ -1,6 +1,6 @@
 "use client";
 
-import { useRole } from "@/data";
+import { useHomeItems, useRole } from "@/data";
 import { AttentionList } from "./AttentionList";
 import { BannerRow } from "./BannerRow";
 import { CashflowPanel } from "./CashflowPanel";
@@ -23,13 +23,14 @@ const PANEL_GRID = "grid grid-cols-[repeat(auto-fit,minmax(min(var(--grid-panel-
  */
 export function DashboardScreen() {
   const role = useRole();
+  const { tasks, attention } = useHomeItems();
   const homeDash = !role.tabs?.home || !!role.figures;
 
   if (!homeDash) {
     return (
       <div className="flex flex-col gap-6">
-        <QuickTasks tasks={role.tasks} />
-        <AttentionList items={role.attention} />
+        {tasks.length > 0 && <QuickTasks tasks={tasks} />}
+        {attention.length > 0 && <AttentionList items={attention} />}
       </div>
     );
   }
