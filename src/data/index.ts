@@ -39,7 +39,7 @@ export * from "./commands/reports";
 export { REPORT_NAMES, REPORT_PERIOD_NAMES, REPORT_DEFAULT_EMPTY, REPORT_DEFAULT_NOTE } from "./fixtures/reports";
 export * from "./commands/uzaai";
 export * from "./commands/permissions";
-export { ACCESS_LEVELS, LEVEL_LABEL, ROLE_NAME_MAX, has, lockedLevel, pickLevel, rowActionNeed } from "./permissions";
+export { ACCESS_LEVELS, FULL_ACCESS, LEVEL_LABEL, NO_ACCESS, ROLE_NAME_MAX, has, lockedAccess, rowActionNeed, sameAccess, toggleRight } from "./permissions";
 export { AI_PROMPTS } from "./fixtures/uzaai";
 export type { AiState, AiTab, FeaturesTabName } from "./store/state";
 export { HELP_ARTICLES, HELP_CATEGORIES } from "./fixtures/helpcenter";

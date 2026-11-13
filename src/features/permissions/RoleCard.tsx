@@ -35,9 +35,7 @@ export function RoleCard({ role, onEdit, menu }: { role: RoleCardView; onEdit: (
         )}
         <span className="type-body text-text-muted">{usersLabel(role.users)}</span>
       </div>
-      <p className="type-caption m-0 -mt-2 text-text-muted">
-        Can open {role.open} of {role.total} modules
-      </p>
+      <p className="type-caption m-0 -mt-2 text-text-muted">{role.locked ? "Full access to everything" : `Can open ${role.open} of ${role.total} modules`}</p>
       <Button variant="secondary" icon="user-cog" fullWidth onClick={onEdit} aria-label={`Edit role: ${role.name}`} className="mt-auto">
         Edit role
       </Button>

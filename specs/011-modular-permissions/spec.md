@@ -31,7 +31,9 @@ This feature replaces that table:
 
 ### Session 2026-11-13
 
-- Q: Are Read, Write and Delete a single level per module or three independent switches? → A: A single level per module. Delete includes Write and Read; Write includes Read. One ✓ per row.
+- Q (revised after release, 2026-11-13): Can a module have more than one of Read, Write and Delete? → A: Yes. They are independent switches, so for example an Accountant can have Read, Write and Delete on Expenses. Write or Delete turns Read on, and turning Read off removes the module. The Owner / Admin dialog shows the note "Admin has access to everything".
+
+- Q: Are Read, Write and Delete a single level per module or three independent switches? → A: (Superseded, see the revision above.) A single level per module.
 - Q: What do Write and Delete do? → A: They are enforced. With Read only, create and edit controls are hidden. Without Delete, delete, void and cancel actions are hidden.
 
 ## User Scenarios & Testing *(mandatory)*
@@ -77,7 +79,7 @@ The owner clicks "Edit Role" on a card. A dialog titled "Edit Role" opens, showi
 **Acceptance Scenarios**:
 
 1. **Given** the Edit Role dialog for Accountant, **When** it opens, **Then** every module row shows the Accountant's current access, and modules the Accountant can't open show no button selected.
-2. **Given** a row, **When** the owner picks an access button, **Then** the row's selection updates according to the access rules in FR-006.
+2. **Given** a row, **When** the owner picks an access button, **Then** that switch turns on or off according to FR-006.
 3. **Given** unsaved changes, **When** the owner clicks Cancel, presses Escape or clicks ✕, **Then** the dialog closes and nothing changes.
 4. **Given** changes, **When** the owner clicks Save, **Then**:
    - the dialog closes;
@@ -162,11 +164,10 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
   - **Read**: the module shows in the sidebar and can be opened.
   - **Write**: the role can create and edit records there.
   - **Delete**: the role can delete, void or cancel records there.
-- **FR-006**: Access MUST be a single level per module: none, Read, Write or Delete. Each level includes the ones below it, so Delete also grants Write and Read, and Write also grants Read.
-  - Only the picked level's button shows as selected (one ✓ per row, as in the screenshot).
-  - Picking another button changes the level.
-  - Clicking the selected button again sets the module to none.
-  - Each button's accessible name is "{Module}: {Level}" and its pressed state is true only for the picked level.
+- **FR-006**: Read, Write and Delete MUST be independent switches per module (revised 2026-11-13). Any mix can be on, for example Read, Write and Delete together.
+  - Turning Write or Delete on also turns Read on, because a role must open a module to act in it.
+  - Turning Read off turns the whole module off.
+  - Each switch's accessible name is "{Module}: {Right}" and its pressed state shows whether that right is on.
 - **FR-007**: The starting access MUST come from each role's current visibility (the modules each role sees today). Seeded levels:
   - Owner / Admin: full access everywhere.
   - Accountant: Write on the Financials modules, Sales, Purchases, Customers, Suppliers, Reports and File Manager; Read on the others it sees now.
@@ -191,7 +192,7 @@ The owner clicks "Add New Role" and enters a name, for example "Supervisor". A n
   - Delete (only with 0 users, after a confirm dialog). Otherwise it is refused with "Move {N} people to another role first."
 
   Owner / Admin offers only Duplicate.
-- **FR-014**: The Owner / Admin role MUST always have full access. Its Edit Role rows are shown selected and disabled, with the note "The owner always has full access."
+- **FR-014**: The Owner / Admin role MUST always have full access. Its Edit role rows are shown on and disabled, under an info note "Admin has access to everything", and its card reads "Full access to everything".
 - **FR-015**: Only the owner role MUST be able to open Permissions. This is unchanged: other demo roles don't have the module.
 - **FR-016**: All new state MUST stay in memory for the session. No new storage keys.
 - **FR-017**: The page and dialog MUST work from 320px wide without sideways scrolling, pass automated accessibility checks, and follow the design-system tokens (colours, radius, type, spacing). The screenshot's look is reproduced with UzaPro's tokens, not copied pixel for pixel.

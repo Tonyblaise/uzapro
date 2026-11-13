@@ -21,6 +21,7 @@ async function go(page: Page, url: string) {
   await page.waitForURL(`**${url.split("?")[0]}*`);
 }
 
+/** Flips Read / Write / Delete switches for a role and saves. */
 async function setLevel(page: Page, role: string, changes: [string, "Read" | "Write" | "Delete"][]) {
   await openPermissions(page);
   await main(page).getByRole("button", { name: `Edit role: ${role}` }).click();
@@ -45,7 +46,7 @@ test("four role cards with users, avatars and module summaries (US1)", async ({ 
   await expect(cards).toHaveCount(4);
   expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")))).toEqual(["Owner / Admin", "Accountant", "Cashier", "Store keeper"]);
   await expect(card(page, "Owner / Admin")).toContainText("Total 1 user");
-  await expect(card(page, "Owner / Admin")).toContainText("Can open 21 of 21 modules");
+  await expect(card(page, "Owner / Admin")).toContainText("Full access to everything");
   const cashier = card(page, "Cashier");
   await expect(cashier).toContainText("Total 4 users");
   await expect(cashier).toContainText("JS");
@@ -57,7 +58,7 @@ test("four role cards with users, avatars and module summaries (US1)", async ({ 
   await expect(page.getByRole("button", { name: "Add new role" })).toBeVisible();
 });
 
-test("Edit role: 21 modules, one level per row, save and cancel (US2)", async ({ page, errors }) => {
+test("Edit role: 21 modules, any mix of Read, Write and Delete, save and cancel (US2)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/permissions/permissions");
@@ -67,7 +68,9 @@ test("Edit role: 21 modules, one level per row, save and cancel (US2)", async ({
   await expect(dialog).toContainText("Cashier");
   await expect(dialog.getByRole("group")).toHaveCount(21);
   for (const s of ["Overview", "Sales", "Procurement", "Financials", "People", "Office", "Account"]) await expect(dialog.getByRole("heading", { name: s, exact: true })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Sales: Read" })).toHaveAttribute("aria-pressed", "true");
   await expect(dialog.getByRole("button", { name: "Sales: Write" })).toHaveAttribute("aria-pressed", "true");
+  await expect(dialog.getByRole("button", { name: "Sales: Delete" })).toHaveAttribute("aria-pressed", "false");
   await expect(dialog.getByRole("button", { name: "Stock: Read" })).toHaveAttribute("aria-pressed", "true");
   await expect(dialog.getByRole("button", { name: "Permissions: Read" })).toBeDisabled();
   await expect(dialog.getByRole("button", { name: "Save" })).toBeDisabled();
@@ -78,7 +81,16 @@ test("Edit role: 21 modules, one level per row, save and cancel (US2)", async ({
   await expect(page.getByText("Cashier access saved.")).toBeVisible();
   await expect(card(page, "Cashier")).toContainText("Can open 9 of 21 modules");
 
-  // Clearing then cancelling keeps the saved level.
+  // Several switches on one module: Read, Write and Delete together.
+  await trigger.click();
+  await dialog.getByRole("button", { name: "Customers: Delete" }).click();
+  for (const r of ["Read", "Write", "Delete"]) await expect(dialog.getByRole("button", { name: `Customers: ${r}` })).toHaveAttribute("aria-pressed", "true");
+  await dialog.getByRole("button", { name: "Customers: Write" }).click();
+  await expect(dialog.getByRole("button", { name: "Customers: Write" })).toHaveAttribute("aria-pressed", "false");
+  await expect(dialog.getByRole("button", { name: "Customers: Delete" })).toHaveAttribute("aria-pressed", "true");
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+
+  // Clearing then cancelling keeps the saved access.
   await trigger.click();
   await dialog.getByRole("button", { name: "Purchases: Read" }).click();
   await expect(dialog.getByRole("button", { name: "Purchases: Read" })).toHaveAttribute("aria-pressed", "false");
@@ -91,7 +103,7 @@ test("Edit role: 21 modules, one level per row, save and cancel (US2)", async ({
 
   // The owner is locked to full access.
   await main(page).getByRole("button", { name: "Edit role: Owner / Admin" }).click();
-  await expect(dialog).toContainText("The owner always has full access.");
+  await expect(dialog.getByRole("note")).toContainText("Admin has access to everything");
   await expect(dialog.getByRole("button", { name: "Sales: Delete" })).toBeDisabled();
   await expect(dialog.getByRole("button", { name: "Sales: Delete" })).toHaveAttribute("aria-pressed", "true");
 });
@@ -99,7 +111,7 @@ test("Edit role: 21 modules, one level per row, save and cancel (US2)", async ({
 test("Read controls what a role sees: Stock removed from the Cashier (US3)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await setLevel(page, "Cashier", [["Stock", "Read"]]); // clicking the picked level clears it
+  await setLevel(page, "Cashier", [["Stock", "Read"]]); // Read off turns the module off
   await expect(card(page, "Cashier")).toContainText("Can open 7 of 21 modules");
   await viewAs(page, "cashier");
   const nav = page.getByRole("complementary", { name: "Main" });
@@ -113,7 +125,7 @@ test("Read controls what a role sees: Stock removed from the Cashier (US3)", asy
 test("Write gate: Sales at Read hides create, edit and void (US3)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await setLevel(page, "Cashier", [["Sales", "Read"]]);
+  await setLevel(page, "Cashier", [["Sales", "Write"]]); // Write off, Read stays on
   await viewAs(page, "cashier");
   await expect(main(page).getByText("New sale")).toHaveCount(0); // quick task hidden
   await page.getByRole("complementary", { name: "Main" }).getByRole("link", { name: "Sales", exact: true }).click();
@@ -163,7 +175,7 @@ test("Delete gate: the Accountant voids expenses only with Delete (US3)", async 
 test("POS gate: Point of sale at Read shows View only (US3)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await setLevel(page, "Cashier", [["Point of sale", "Read"]]);
+  await setLevel(page, "Cashier", [["Point of sale", "Write"]]); // Write off, Read stays on
   await viewAs(page, "cashier");
   await page.getByRole("complementary", { name: "Main" }).getByRole("link", { name: "Point of sale", exact: true }).click();
   await page.waitForURL("**/point-of-sale/**");

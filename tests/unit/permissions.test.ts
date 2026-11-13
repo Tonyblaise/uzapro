@@ -3,16 +3,19 @@ import { MODULES } from "@/config/modules";
 import { ROLES, canSee, visibleModules, visibleTabs } from "@/config/roles";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
 import {
+  FULL_ACCESS,
+  NO_ACCESS,
+  READ_ONLY,
+  accessOn,
   effectiveRole,
   has,
-  levelFor,
-  lockedLevel,
+  lockedAccess,
   lockedRow,
   moduleSummary,
-  pickLevel,
   rowActionNeed,
   seedAccess,
   seedRole,
+  toggleRight,
   validateRoleName,
 } from "@/data/permissions";
 import { ROLE_DEFS } from "@/data/fixtures/permissions";
@@ -38,30 +41,40 @@ describe("seed parity with today's role visibility (SC-002)", () => {
   });
 
   it("seeds Write on working modules, Read elsewhere, Delete only for the owner", () => {
-    expect(seedAccess("cashier")).toMatchObject({ sales: "write", pos: "write", cust: "write", inv: "read", home: "read", prof: "read", buy: "none", perm: "none" });
-    expect(seedAccess("accountant")).toMatchObject({ fin: "write", exp: "write", ppl: "read", inv: "none" });
-    expect(seedAccess("store")).toMatchObject({ inv: "write", prod: "write", sales: "none" });
-    expect(Object.values(seedAccess("owner")).every((l) => l === "delete")).toBe(true);
+    const RW = { read: true, write: true, delete: false };
+    expect(seedAccess("cashier")).toMatchObject({ sales: RW, pos: RW, cust: RW, inv: READ_ONLY, home: READ_ONLY, prof: READ_ONLY, buy: NO_ACCESS, perm: NO_ACCESS });
+    expect(seedAccess("accountant")).toMatchObject({ fin: RW, exp: RW, ppl: READ_ONLY, inv: NO_ACCESS });
+    expect(seedAccess("store")).toMatchObject({ inv: RW, prod: RW, sales: NO_ACCESS });
+    expect(Object.values(seedAccess("owner")).every((a) => a.read && a.write && a.delete)).toBe(true);
   });
 });
 
-describe("levels", () => {
-  it("orders none < read < write < delete", () => {
-    expect(has("delete", "write")).toBe(true);
-    expect(has("write", "delete")).toBe(false);
-    expect(has("read", "read")).toBe(true);
-    expect(has("none", "read")).toBe(false);
+describe("Read, Write and Delete switches (Q1 revised)", () => {
+  it("checks each right on its own", () => {
+    expect(has({ read: true, write: false, delete: true }, "delete")).toBe(true);
+    expect(has({ read: true, write: false, delete: true }, "write")).toBe(false);
+    expect(has(READ_ONLY, "read")).toBe(true);
+    expect(has(NO_ACCESS, "read")).toBe(false);
+    expect(has(undefined, "read")).toBe(false);
+    expect(has(NO_ACCESS, "none")).toBe(true);
   });
-  it("picking the same level again clears the row", () => {
-    expect(pickLevel("write", "write")).toBe("none");
-    expect(pickLevel("read", "delete")).toBe("delete");
-    expect(pickLevel("none", "read")).toBe("read");
+  it("allows any mix: Read, Write and Delete together", () => {
+    let a = toggleRight(NO_ACCESS, "read");
+    a = toggleRight(a, "write");
+    a = toggleRight(a, "delete");
+    expect(a).toEqual(FULL_ACCESS);
+    expect(toggleRight(FULL_ACCESS, "write")).toEqual({ read: true, write: false, delete: true });
+  });
+  it("Write or Delete turns Read on; Read off turns the module off", () => {
+    expect(toggleRight(NO_ACCESS, "delete")).toEqual({ read: true, write: false, delete: true });
+    expect(toggleRight(NO_ACCESS, "write")).toEqual({ read: true, write: true, delete: false });
+    expect(toggleRight(FULL_ACCESS, "read")).toEqual(NO_ACCESS);
   });
   it("locks the owner, Dashboard, Profile and (for others) Permissions", () => {
-    expect(lockedLevel("owner", "sales")).toBe("delete");
-    expect(lockedLevel("cashier", "home")).toBe("read");
-    expect(lockedLevel("cashier", "prof")).toBe("read");
-    expect(lockedLevel("cashier", "perm")).toBe("none");
+    expect(lockedAccess("owner", "sales")).toEqual(FULL_ACCESS);
+    expect(lockedAccess("cashier", "home")).toEqual(READ_ONLY);
+    expect(lockedAccess("cashier", "prof")).toEqual(READ_ONLY);
+    expect(lockedAccess("cashier", "perm")).toEqual(NO_ACCESS);
     expect(lockedRow("cashier", "sales")).toBe(false);
     expect(lockedRow("r-1", "perm")).toBe(true);
   });
@@ -102,7 +115,7 @@ describe("effective role in the store", () => {
   });
   it("starts from the seed", () => {
     const s = store.getState();
-    expect(levelFor(s, "cashier", "inv")).toBe("read");
+    expect(accessOn(s, "cashier", "inv")).toEqual(READ_ONLY);
     expect(canSee(effectiveRole(s, "cashier"), "inv")).toBe(true);
     expect(canSee(effectiveRole(s, "owner"), "perm")).toBe(true);
   });

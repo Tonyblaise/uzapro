@@ -1,10 +1,23 @@
 /** Modular role permissions (feature 011, data-model.md). */
 import type { ModuleId } from "./common";
 
-/** One level per module; each level includes the ones below it (Clarification Q1). */
+/** What an action needs ("none" = always allowed). */
 export type AccessLevel = "none" | "read" | "write" | "delete";
 
-export type RoleAccess = Record<ModuleId, AccessLevel>;
+/** One switch in the Edit role dialog. */
+export type AccessRight = Exclude<AccessLevel, "none">;
+
+/**
+ * Read, Write and Delete are independent switches per module (Clarification Q1, revised
+ * 2026-11-13). Write or Delete always comes with Read: a role must open a module to act in it.
+ */
+export interface ModuleAccess {
+  read: boolean;
+  write: boolean;
+  delete: boolean;
+}
+
+export type RoleAccess = Record<ModuleId, ModuleAccess>;
 
 export interface RoleDef {
   /** "owner" | "accountant" | "cashier" | "store" for built-in roles; "r-{n}" for custom ones. */

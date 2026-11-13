@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { getModule, hrefFor } from "@/config/modules";
-import { AccessContext, has, setSearch, showNotice, useCurrentUserName, useModuleLevel, useVisibleTabs, type AccessLevel, type ModuleId } from "@/data";
+import { AccessContext, has, setSearch, showNotice, useCurrentUserName, useModuleAccess, useVisibleTabs, type AccessLevel, type ModuleId } from "@/data";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { screenFor } from "@/features/screens";
@@ -24,14 +24,14 @@ export function ModuleScreen({ moduleId, tabSlug }: { moduleId: ModuleId; tabSlu
   const screen = m.inScope ? screenFor(moduleId, tabSlug) : undefined;
   const Body = screen?.Body ?? ModulePlaceholder;
   const Actions = screen?.Actions;
-  const level = useModuleLevel(moduleId);
-  const canWrite = has(level, "write");
+  const access = useModuleAccess(moduleId);
+  const canWrite = has(access, "write");
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const step = params.get("step") ?? "";
   const stepNeed = params.get("confirm") === "delete" || params.get("cancel") === "1" ? "delete" : STEP_NEED[step];
-  const blocked = (!canWrite && (params.has("action") || params.has("edit"))) || (!!stepNeed && !has(level, stepNeed));
+  const blocked = (!canWrite && (params.has("action") || params.has("edit"))) || (!!stepNeed && !has(access, stepNeed));
 
   // Forms and void/delete steps opened from a link need Write / Delete (FR-011, research R4.2, R6).
   useEffect(() => {
@@ -49,7 +49,7 @@ export function ModuleScreen({ moduleId, tabSlug }: { moduleId: ModuleId; tabSlu
   }, [moduleId, tabSlug]);
 
   return (
-    <AccessContext.Provider value={{ module: moduleId, level }}>
+    <AccessContext.Provider value={{ module: moduleId, access }}>
       <PageHeader
         eyebrow={isHome || m.section === m.name ? undefined : m.section}
         title={isHome ? `Welcome back, ${userName}` : m.name}

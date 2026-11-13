@@ -89,8 +89,8 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
 
 /** The design's row "…" actions (window.UzForms.RowActions). */
 export function RowActions({ items: all, label = "Actions" }: { items: MenuItem[]; label?: string }) {
-  const { level } = useAccess();
-  const items = all.filter((it) => has(level, it.need ?? rowActionNeed(it.label)));
+  const { access } = useAccess();
+  const items = all.filter((it) => has(access, it.need ?? rowActionNeed(it.label)));
   if (items.length === 0) return null;
   return (
     <span onClick={(e) => e.stopPropagation()}>

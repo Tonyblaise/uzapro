@@ -242,15 +242,15 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             head: ["Access", "What the role can do"],
             rows: [
               ["Read", "Open the module and view, download and print records"],
-              ["Write", "Everything in Read, plus create and edit records"],
-              ["Delete", "Everything in Write, plus delete, void, cancel and undo"],
+              ["Write", "Create and edit records"],
+              ["Delete", "Delete, void, cancel and undo records"],
             ],
           },
           {
             kind: "ul",
             items: [
-              "Each module has one level. Choose the ticked level again to remove access to that module.",
-              "The owner always has full access. Every role can open the Dashboard and Profile, and only the owner manages permissions.",
+              "Turn on any mix of Read, Write and Delete for each module. For example, an Accountant can have Read, Write and Delete on Expenses. Write and Delete also turn on Read, and turning Read off removes the module.",
+              "The owner (admin) has access to everything and this can't be changed. Every role can open the Dashboard and Profile, and only the owner manages permissions.",
               "Choose **Add new role** to create a role, or use the **…** menu on a card to rename, duplicate or delete it. A role with people in it can't be deleted.",
             ],
           },

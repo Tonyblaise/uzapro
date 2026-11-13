@@ -1,43 +1,51 @@
 /**
- * Pure permission helpers (feature 011, contracts/data-access.md). Access is one level per
- * module (none < read < write < delete); Read decides visibility, Write gates create/edit,
- * Delete gates delete/void/cancel/undo.
+ * Pure permission helpers (feature 011, contracts/data-access.md). Each module has independent
+ * Read, Write and Delete switches; Read decides visibility, Write gates create/edit, Delete gates
+ * delete/void/cancel/undo.
  */
 import { MODULES } from "@/config/modules";
 import { ROLES } from "@/config/roles";
 import { LOCKED_READ, OWNER_ONLY, ROLE_DEFS, SEED_WRITE } from "./fixtures/permissions";
-import type { AccessLevel, ModuleId, Role, RoleAccess, RoleDef, RoleId } from "./types";
+import type { AccessLevel, AccessRight, ModuleAccess, ModuleId, Role, RoleAccess, RoleDef, RoleId } from "./types";
 import type { AppState } from "./store/state";
 
-/** Button order in the Edit role dialog. */
-export const ACCESS_LEVELS: readonly Exclude<AccessLevel, "none">[] = ["read", "write", "delete"];
+/** Switch order in the Edit role dialog. */
+export const ACCESS_LEVELS: readonly AccessRight[] = ["read", "write", "delete"];
 export const LEVEL_LABEL: Record<AccessLevel, string> = { none: "No access", read: "Read", write: "Write", delete: "Delete" };
 
-const RANK: Record<AccessLevel, number> = { none: 0, read: 1, write: 2, delete: 3 };
-export const rank = (l: AccessLevel) => RANK[l];
-export const has = (level: AccessLevel, need: AccessLevel) => RANK[level] >= RANK[need];
+export const NO_ACCESS: ModuleAccess = { read: false, write: false, delete: false };
+export const FULL_ACCESS: ModuleAccess = { read: true, write: true, delete: true };
+export const READ_ONLY: ModuleAccess = { read: true, write: false, delete: false };
 
-/** Clicking the picked level again clears the row (research R3). */
-export const pickLevel = (current: AccessLevel, clicked: AccessLevel): AccessLevel => (clicked === current ? "none" : clicked);
+/** Whether `access` allows an action that needs `need`. */
+export const has = (access: ModuleAccess | undefined, need: AccessLevel): boolean => need === "none" || !!access?.[need];
 
-/** The forced level of a locked row, or undefined when the row can be edited. */
-export function lockedLevel(roleKey: string, moduleId: ModuleId): AccessLevel | undefined {
-  if (roleKey === "owner") return "delete";
-  if (OWNER_ONLY.includes(moduleId)) return "none";
-  if (LOCKED_READ.includes(moduleId)) return "read";
+/**
+ * Flips one switch. Turning Write or Delete on also turns Read on; turning Read off turns the
+ * module off (a role can't write or delete where it can't look).
+ */
+export function toggleRight(a: ModuleAccess, right: AccessRight): ModuleAccess {
+  const on = !a[right];
+  if (right === "read") return on ? { ...a, read: true } : { ...NO_ACCESS };
+  return { ...a, [right]: on, read: on ? true : a.read };
+}
+
+export const sameAccess = (a: ModuleAccess | undefined, b: ModuleAccess | undefined): boolean =>
+  (a?.read ?? false) === (b?.read ?? false) && (a?.write ?? false) === (b?.write ?? false) && (a?.delete ?? false) === (b?.delete ?? false);
+
+/** The forced access of a locked row, or undefined when the row can be edited. */
+export function lockedAccess(roleKey: string, moduleId: ModuleId): ModuleAccess | undefined {
+  if (roleKey === "owner") return FULL_ACCESS;
+  if (OWNER_ONLY.includes(moduleId)) return NO_ACCESS;
+  if (LOCKED_READ.includes(moduleId)) return READ_ONLY;
   return undefined;
 }
-export const lockedRow = (roleKey: string, moduleId: ModuleId) => lockedLevel(roleKey, moduleId) !== undefined;
+export const lockedRow = (roleKey: string, moduleId: ModuleId) => lockedAccess(roleKey, moduleId) !== undefined;
 
-/** Applies locked rows to an access map (save and seed). */
-export function withLocks(roleKey: string, access: RoleAccess): RoleAccess {
-  const out = { ...access };
-  for (const m of MODULES) {
-    const l = lockedLevel(roleKey, m.id);
-    if (l === "read") out[m.id] = has(out[m.id] ?? "none", "read") ? out[m.id] : "read";
-    else if (l) out[m.id] = l;
-    else out[m.id] ??= "none";
-  }
+/** Applies locked rows and fills missing modules (save and seed). */
+export function withLocks(roleKey: string, access: Partial<RoleAccess>): RoleAccess {
+  const out = {} as RoleAccess;
+  for (const m of MODULES) out[m.id] = { ...(lockedAccess(roleKey, m.id) ?? access[m.id] ?? NO_ACCESS) };
   return out;
 }
 
@@ -47,9 +55,9 @@ export function seedAccess(roleId: RoleId): RoleAccess {
   const write: readonly ModuleId[] = roleId === "owner" ? [] : SEED_WRITE[roleId];
   const access = Object.fromEntries(
     MODULES.map((m) => {
-      if (roleId === "owner") return [m.id, "delete"];
-      if (write.includes(m.id)) return [m.id, "write"];
-      return [m.id, !role.mods || role.mods.includes(m.id) ? "read" : "none"];
+      if (roleId === "owner") return [m.id, FULL_ACCESS];
+      if (write.includes(m.id)) return [m.id, { read: true, write: true, delete: false }];
+      return [m.id, !role.mods || role.mods.includes(m.id) ? READ_ONLY : NO_ACCESS];
     }),
   ) as RoleAccess;
   return withLocks(roleId, access);
@@ -57,18 +65,18 @@ export function seedAccess(roleId: RoleId): RoleAccess {
 
 /** Access for a role key, filling any module the map lacks with none. */
 export function accessFor(s: Pick<AppState, "permissions">, key: string): RoleAccess {
-  return s.permissions.access[key] ?? withLocks(key, {} as RoleAccess);
+  return s.permissions.access[key] ?? withLocks(key, {});
 }
 
-export function levelFor(s: Pick<AppState, "permissions">, key: string, moduleId: ModuleId): AccessLevel {
-  return accessFor(s, key)[moduleId] ?? "none";
+export function accessOn(s: Pick<AppState, "permissions">, key: string, moduleId: ModuleId): ModuleAccess {
+  return accessFor(s, key)[moduleId] ?? NO_ACCESS;
 }
 
 /** The config role with `mods` taken from saved Read access (research R1). */
 export function roleWithAccess(roleId: RoleId, access: RoleAccess): Role {
   const base = ROLES[roleId];
   if (roleId === "owner") return base;
-  return { ...base, mods: MODULES.filter((m) => has(access[m.id] ?? "none", "read")).map((m) => m.id) };
+  return { ...base, mods: MODULES.filter((m) => has(access[m.id], "read")).map((m) => m.id) };
 }
 
 export function effectiveRole(s: Pick<AppState, "permissions">, roleId: RoleId): Role {
@@ -79,7 +87,7 @@ export function effectiveRole(s: Pick<AppState, "permissions">, roleId: RoleId):
 export const seedRole = (roleId: RoleId): Role => roleWithAccess(roleId, seedAccess(roleId));
 
 export function moduleSummary(access: RoleAccess): { open: number; total: number } {
-  return { open: MODULES.filter((m) => has(access[m.id] ?? "none", "read")).length, total: MODULES.length };
+  return { open: MODULES.filter((m) => has(access[m.id], "read")).length, total: MODULES.length };
 }
 
 export function initials(name: string): string {

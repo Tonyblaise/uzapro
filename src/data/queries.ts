@@ -7,8 +7,8 @@ import { createContext, useCallback, useContext, useMemo } from "react";
 import { MODULES } from "@/config/modules";
 import { canSee, visibleModules, visibleTabs } from "@/config/roles";
 import { ROLE_COLOURS } from "./fixtures/permissions";
-import { accessFor, has, initials, moduleSummary, roleWithAccess, rowActionNeed, withLocks } from "./permissions";
-import type { AccessLevel, ModuleId, Product, Role, RoleAccess, StockLevel } from "./types";
+import { FULL_ACCESS, NO_ACCESS, accessFor, has, initials, moduleSummary, roleWithAccess, rowActionNeed, withLocks } from "./permissions";
+import type { AccessLevel, ModuleAccess, ModuleId, Product, Role, RoleAccess, StockLevel } from "./types";
 import { useAppStore } from "./store/StoreProvider";
 
 // ---- Session & config -------------------------------------------------------------------------
@@ -23,13 +23,13 @@ export function useSession(): { authed: boolean; hydrated: boolean; role: Role; 
 export function useRole(): Role {
   const id = useAppStore((s) => s.session.role);
   const access = useAppStore((s) => s.permissions.access[id]);
-  return useMemo(() => roleWithAccess(id, access ?? withLocks(id, {} as RoleAccess)), [id, access]);
+  return useMemo(() => roleWithAccess(id, access ?? withLocks(id, {})), [id, access]);
 }
 
 // ---- Permissions (feature 011) ----------------------------------------------------------------
 
 /** The module screen's access, provided by ModuleScreen. Outside a module: no limits. */
-export const AccessContext = createContext<{ module?: ModuleId; level: AccessLevel }>({ level: "delete" });
+export const AccessContext = createContext<{ module?: ModuleId; access: ModuleAccess }>({ access: FULL_ACCESS });
 
 export function useAccess() {
   return useContext(AccessContext);
@@ -37,22 +37,22 @@ export function useAccess() {
 
 /** A checker for labelled actions in the current module (row menus, record-view buttons; research R4). */
 export function useAllowed(): (label: string, need?: AccessLevel) => boolean {
-  const { level } = useContext(AccessContext);
-  return useCallback((label: string, need?: AccessLevel) => has(level, need ?? rowActionNeed(label)), [level]);
+  const { access } = useContext(AccessContext);
+  return useCallback((label: string, need?: AccessLevel) => has(access, need ?? rowActionNeed(label)), [access]);
 }
 
 /** Whether the signed-in role has `need` on a module (default: the current module screen's). */
 export function useCan(need: AccessLevel, moduleId?: ModuleId): boolean {
   const ctx = useContext(AccessContext);
   const id = useAppStore((s) => s.session.role);
-  const level = useAppStore((s) => (moduleId ? (s.permissions.access[id]?.[moduleId] ?? "none") : undefined));
-  return has(moduleId ? (level ?? "none") : ctx.level, need);
+  const own = useAppStore((s) => (moduleId ? s.permissions.access[id]?.[moduleId] : undefined));
+  return has(moduleId ? own : ctx.access, need);
 }
 
-/** The signed-in role's level on one module. */
-export function useModuleLevel(moduleId: ModuleId): AccessLevel {
+/** The signed-in role's Read / Write / Delete on one module. */
+export function useModuleAccess(moduleId: ModuleId): ModuleAccess {
   const id = useAppStore((s) => s.session.role);
-  return useAppStore((s) => s.permissions.access[id]?.[moduleId] ?? "none");
+  return useAppStore((s) => s.permissions.access[id]?.[moduleId]) ?? NO_ACCESS;
 }
 
 export interface RoleCardView {
@@ -279,7 +279,7 @@ export function useHomeItems() {
   const access = useAppStore((s) => s.permissions.access[s.session.role]);
   return useMemo(
     () => ({
-      tasks: role.tasks.filter((t) => canSee(role, t.module, t.tab) && (!t.action || has(access?.[t.module] ?? "none", "write"))),
+      tasks: role.tasks.filter((t) => canSee(role, t.module, t.tab) && (!t.action || has(access?.[t.module], "write"))),
       attention: role.attention.filter((a) => canSee(role, a.module, a.tab)),
     }),
     [role, access],
