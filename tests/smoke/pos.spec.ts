@@ -3,7 +3,7 @@ import { expect, loginAs, test } from "./fixtures";
 
 /**
  * Feature 010 · Point of Sale (quickstart 1–9). Store data resets on a full page load, so each flow
- * logs in once and moves with in-app links. "Continue selling" opens the till in a new tab
+ * logs in once and moves with in-app links. "Launch" opens the till in a new tab
  * (`?till=1&tab=1`) that shares the main tab's data, so its sales show up back in the main tab.
  */
 
@@ -24,7 +24,7 @@ async function popTill(main: Page, button: string): Promise<Page> {
 async function openTill(main: Page): Promise<Page> {
   await nav(main).getByRole("link", { name: "Point of sale" }).click();
   await main.waitForURL("**/point-of-sale/terminals");
-  const page = await popTill(main, "Continue selling");
+  const page = await popTill(main, "Launch");
   await expect(page.getByRole("group", { name: "Enter your PIN" })).toBeFocused();
   for (const k of "1234") await page.keyboard.press(k);
   await expect(rail(page)).toBeVisible();
@@ -49,7 +49,7 @@ test("terminal card, PIN, and a cash sale with change and receipt (quickstart 1�
   await expect(page.getByRole("button", { name: "Open Uza AI" })).toBeVisible();
 
   const main = page;
-  page = await popTill(main, "Continue selling");
+  page = await popTill(main, "Launch");
   await expect(toast(main)).toHaveText("Terminal 1 opened in a new tab.");
   await expect(page).toHaveURL(/till=1&tab=1/);
   await expect(page).toHaveTitle("UzaPro POS · Terminal 1");
@@ -275,5 +275,5 @@ test("the Cashier can open Point of sale (quickstart 9)", async ({ page, errors 
   void errors;
   await loginAs(page, "cashier");
   await nav(page).getByRole("link", { name: "Point of sale" }).click();
-  await expect(card(page).getByRole("button", { name: "Continue selling" })).toBeEnabled();
+  await expect(card(page).getByRole("button", { name: "Launch" })).toBeEnabled();
 });

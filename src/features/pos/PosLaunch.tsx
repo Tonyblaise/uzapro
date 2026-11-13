@@ -138,7 +138,7 @@ export function PosLaunch() {
                   </div>
                 </dl>
                 <Button size="lg" icon="arrow-up-right" fullWidth disabled={off} onClick={() => openTill(t.id, t.name)}>
-                  {off ? "Terminal is off" : open ? "Continue selling" : "Open shift"}
+                  {off ? "Terminal is off" : open ? "Launch" : "Open shift"}
                 </Button>
               </li>
             );

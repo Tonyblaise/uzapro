@@ -467,6 +467,7 @@ Required by Constitution Principle I. These are the only intended differences fr
 | Till settings last for the session; the subtitle reads "Saved for {terminal} in this session" instead of "on this device" | Constitution Principle III forbids new browser-storage keys (Clarification Q2) | FR-014 |
 | The receipt footer reads "Thank you for shopping with us." instead of the canvas's "Thank you for shopping with us!" | Constitution Principle IV forbids exclamation marks | FR-017 |
 | Below 860px the slide-in cart has its own "Close cart" button | The canvas's cart panel covers the header button that opens it, leaving no way to close it on a phone (Principle IV) | FR-019 |
+| The open-shift card button reads "Launch", not "Continue selling" | The user asked for this (2026-11-13) | FR-003 |
 | The till (entry steps and app) is a modal dialog named "{terminal} till", and the toast layer sits above it | Screen readers stay inside the till, and the till's toasts stay visible (analysis U1) | FR-018 |
 
 Visual review (T029, 2026-11-12): the terminals, PIN, sell, cart, checkout, receipt, Today, Orders, People, Shift and Settings views were compared with the canvas markup at 1440px and 375px. There are no differences beyond the rows above.
