@@ -123,3 +123,8 @@ New features use the Spec Kit flow, which writes each feature's documents to `sp
 5. `/speckit-implement`
 
 Every plan must include a Constitution Check.
+
+## Licence
+
+Copyright (c) 2026 Tony Blaise. All rights reserved. You may not use, copy or distribute this
+code without written permission. See [LICENSE](LICENSE).
