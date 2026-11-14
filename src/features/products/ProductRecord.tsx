@@ -3,7 +3,7 @@ import { Can } from "@/components/ui/Can";
 
 import { useState } from "react";
 import Link from "next/link";
-import { groupName, useCategories, useCustomerGroups, usePriceEntries, useProduct, useProductLevels, type StockMovement } from "@/data";
+import { containsLabel, groupName, useCategories, useCustomerGroups, usePriceEntries, useProduct, useProductLevels, type StockMovement } from "@/data";
 import { date, money, num } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Overlay";
@@ -38,6 +38,7 @@ export function ProductRecord({ name, onClose, onEdit }: { name: string | null; 
   const groups = useCustomerGroups();
   const allPrices = usePriceEntries();
   const groupPrices = allPrices.filter((e) => e.product === name);
+  const bulk = (data?.product.variants ?? []).flatMap((v) => v.extraUnits.map((u) => `${v.name}: ${containsLabel(v, u)}`));
   if (!name || !data) return null;
   const { product, history } = data;
 
@@ -102,6 +103,18 @@ export function ProductRecord({ name, onClose, onEdit }: { name: string | null; 
             </tbody>
           </table>
         </div>
+
+        {bulk.length > 0 && (
+          <section aria-label="Bulk units" className="flex flex-col gap-1">
+            <h3 className="type-card-title m-0 text-text">Bulk units</h3>
+            <p className="type-small m-0 text-text-secondary">Stock is counted in the base unit. Selling or receiving a bulk unit moves this many:</p>
+            <ul className="type-small m-0 list-none p-0 text-text">
+              {bulk.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {groupPrices.length > 0 && (
           <section aria-label="Group prices" className="flex flex-col gap-2">

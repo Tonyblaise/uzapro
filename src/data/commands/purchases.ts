@@ -188,7 +188,7 @@ export async function receiveGoods(ref: string, input: NewReceipt): Promise<Resu
     gl.push({ key: x.line.key, unit: x.line.unit, ordered: x.line.qty, recv: x.recv, acc, rej, cost: x.line.cost });
     recvBy.set(x.line.id, (recvBy.get(x.line.id) ?? 0) + x.recv);
     const item = split(x.line.key);
-    if (acc && item) changes.push({ product: item.product, variant: item.variant, store: input.store, change: acc, kind: KIND.received, ref: grnRef, by });
+    if (acc && item) changes.push({ product: item.product, variant: item.variant, store: input.store, change: acc, kind: KIND.received, ref: grnRef, by, unit: x.line.unit });
     if (rej) {
       const rejRef = nextRef(rejRefs, "REJ-", 4);
       rejRefs.push(rejRef);
@@ -262,7 +262,7 @@ export async function receiveGoods(ref: string, input: NewReceipt): Promise<Resu
 function returnChanges(r: Pick<PurchaseReturn, "lines" | "store" | "ref">, by: string): StockChange[] {
   return r.lines.flatMap((l) => {
     const item = split(l.key);
-    return item && l.qty ? [{ product: item.product, variant: item.variant, store: r.store, change: -l.qty, kind: RETURNED_TO_SUPPLIER, ref: r.ref, by }] : [];
+    return item && l.qty ? [{ product: item.product, variant: item.variant, store: r.store, change: -l.qty, kind: RETURNED_TO_SUPPLIER, ref: r.ref, by, unit: l.unit }] : [];
   });
 }
 

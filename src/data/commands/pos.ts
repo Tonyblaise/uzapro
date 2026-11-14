@@ -469,7 +469,7 @@ export function completePosSale(): string | null {
     session: true,
     ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
-  const changes: StockChange[] = doc.lines.map((l) => ({ product: l.product, variant: l.variant, store, change: -l.qty, kind: KIND.sold, ref, by: ui.who }));
+  const changes: StockChange[] = doc.lines.map((l) => ({ product: l.product, variant: l.variant, store, change: -l.qty, kind: KIND.sold, ref, by: ui.who, unit: l.unit }));
   getStore().setState((st) => {
     let next: AppState = { ...st, ...applyStockChanges(st, changes), sales: { ...st.sales, sales: [sale, ...st.sales.sales], saleNo } };
     for (const p of pays) next = post(next, { date: DEMO_TODAY, account: ACCOUNT_FOR[p.method], ref, desc: `POS sale, ${term?.name ?? "Terminal"}`, kind: "Sale", amt: p.amount });

@@ -88,19 +88,20 @@ describe("order commands (feature 013)", () => {
   });
 
   it("dispatches in parts: stock falls by exactly what is sent and never more than ordered (SC-003)", async () => {
-    await createOrder(pumps(3));
+    // A box holds 12 Bike Pump (feature 014), and Main Store holds 30: two boxes is the most it can send.
+    await createOrder(pumps(2));
     const start = qtyAt("Bike Pump", "Main Store");
-    const first = await send("SO-0002", [2]);
-    expect(first).toMatchObject({ ok: true, message: "DN-0002 created. 2 items left Main Store.", value: { number: "DN-0002", delivered: false, driver: "Peter Kamau" } });
-    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 2);
-    expect(s().stock.movements[0]).toMatchObject({ ref: "DN-0002", change: -2, store: "Main Store" });
+    const first = await send("SO-0002", [1]);
+    expect(first).toMatchObject({ ok: true, message: "DN-0002 created. 1 item left Main Store.", value: { number: "DN-0002", delivered: false, driver: "Peter Kamau" } });
+    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 12);
+    expect(s().stock.movements[0]).toMatchObject({ ref: "DN-0002", change: -12, store: "Main Store" });
     expect(orderStatus(order("SO-0002")).label).toBe("Part dispatched");
     expect((await send("SO-0002", [2])).message).toBe("You can send at most 1 Box of Bike Pump · Standard");
     expect((await send("SO-0002", [1])).message).toBe("DN-0003 created. 1 item left Main Store.");
-    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 3);
+    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 24);
     expect(orderStatus(order("SO-0002")).label).toBe("Dispatched");
     expect((await send("SO-0002", [1])).ok).toBe(false);
-    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 3);
+    expect(qtyAt("Bike Pump", "Main Store")).toBe(start - 24);
   });
 
   it("refuses a dispatch the store cannot cover and changes nothing", async () => {

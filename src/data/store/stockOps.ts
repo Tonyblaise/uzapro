@@ -3,6 +3,7 @@
  * Quantities never go below zero (FR-016).
  */
 import { DEMO_TODAY } from "@/lib/demo-clock";
+import { unitFactor } from "../units";
 import type { Pill, StockLevel, StockMovement } from "../types";
 import type { AppState } from "./state";
 
@@ -14,19 +15,29 @@ export interface StockChange {
   product: string;
   variant: string;
   store: string;
-  change: number; // signed
+  change: number; // signed, in `unit`
+  /**
+   * The line's unit (feature 014). Stock is counted in base units, so a change in a bulk unit is
+   * multiplied by what the unit contains. Left out = base units.
+   */
+  unit?: string;
   kind: Pill;
   ref: string;
   by: string;
 }
 
-/** Returns the first product that would go negative, or null if every change fits. */
+/** A change in base units (feature 014, research R2). */
+export function baseChange(state: Pick<AppState, "catalog">, c: StockChange): number {
+  return c.change * unitFactor(state.catalog.products, c.product, c.variant, c.unit);
+}
+
+/** Returns the first product that would go negative, or null if every change fits. `available` is in base units. */
 export function findShortfall(state: AppState, changes: readonly StockChange[]): { product: string; store: string; available: number } | null {
   const running = new Map<string, number>();
   for (const c of changes) {
     const key = `${c.product}@@${c.store}`;
     const current = running.get(key) ?? qtyAt(state, c.product, c.store);
-    const next = current + c.change;
+    const next = current + baseChange(state, c);
     if (next < 0) return { product: c.product, store: c.store, available: current };
     running.set(key, next);
   }
@@ -40,7 +51,8 @@ export function applyStockChanges(state: AppState, changes: readonly StockChange
   changes.forEach((c, i) => {
     const idx = levels.findIndex((l) => l.product === c.product && l.store === c.store);
     const current = idx >= 0 ? levels[idx]!.quantity : 0;
-    const left = Math.max(0, current + c.change);
+    const change = baseChange(state, c);
+    const left = Math.max(0, current + change);
     if (idx >= 0) levels[idx] = { ...levels[idx]!, quantity: left };
     else levels = [...levels, { product: c.product, store: c.store, quantity: left }];
     newMoves.unshift({
@@ -50,7 +62,7 @@ export function applyStockChanges(state: AppState, changes: readonly StockChange
       variant: c.variant,
       kind: c.kind,
       store: c.store,
-      change: c.change,
+      change,
       left,
       by: c.by,
       ref: c.ref,

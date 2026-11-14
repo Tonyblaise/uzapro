@@ -35,6 +35,7 @@ export type ModuleId =
   | "docs"
   | "sup"
   | "prof"
+  | "intg"
   | "set";
 
 /** Quick-task / deep-link action keys (contracts/routes.md). */

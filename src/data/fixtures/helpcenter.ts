@@ -1125,4 +1125,81 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     ],
     related: ["wholesale-prices-and-credit-limits", "sending-an-invoice-and-recording-its-payment", "moving-stock-between-stores"],
   },
+  {
+    id: "bulk-units-and-reorder-points",
+    title: "Bulk units and reorder points",
+    category: "stock-and-products",
+    updated: "2026-11-15",
+    intro: [
+      "Sell the same product by the piece and by the carton from one stock figure, and let UzaPro tell you when to buy more.",
+      "**Who can do this:** anyone with Write on Products can set what a unit contains. Anyone with Write on Stock can set reorder points, and creating purchase orders from them also needs Write on Purchases.",
+    ],
+    sections: [
+      {
+        heading: "Say what a bulk unit contains",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "Stock is counted in a product's base unit, for example Piece. A price in another unit, such as Carton, says how many base units it contains." },
+          {
+            kind: "ol",
+            items: [
+              "Go to Products › All products and open the product, then choose **Edit**.",
+              "In **Product variants**, use **+** on a variant to price it in another unit.",
+              "Pick the unit, enter the prices, and enter **Contains**: how many base units are in it.",
+              "Choose **Save**.",
+            ],
+          },
+          { kind: "p", text: "From then on, selling, dispatching, receiving, moving or writing off that unit changes stock by what it contains. Selling 2 cartons of 10 takes 20 off the stock figure." },
+          { kind: "note", tone: "info", text: "If the store does not hold enough, the message counts in the base unit, for example **Only 24 Helmet left at Point of Sale.**" },
+          { kind: "links", screens: [{ label: "Open Products › All products", module: "prod", tab: "all-products" }] },
+        ],
+      },
+      {
+        heading: "Set a reorder point",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Stock › Reorder and choose **Set reorder point**.",
+              "Pick the **Product**, the **Variant to order** and the **Store**.",
+              "Enter **Reorder at** and **Order up to**, both in the base unit.",
+              "Pick the **Order unit** and, if you want purchase orders made for you, the **Supplier**.",
+              "Choose **Save**. The message reads **Reorder point saved.**",
+            ],
+          },
+          {
+            kind: "table",
+            head: ["Status", "What it means"],
+            rows: [
+              ["OK", "Stock is above the reorder point."],
+              ["Reorder now", "Stock on hand and on order is at or below the reorder point."],
+              ["Out of stock", "The same, and nothing is on hand."],
+              ["On order", "Stock is low, but purchase orders already cover it."],
+            ],
+          },
+          { kind: "links", screens: [{ label: "Open Stock › Reorder", module: "inv", tab: "reorder" }] },
+        ],
+      },
+      {
+        heading: "Create purchase orders from the list",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "Choose **Create draft purchase orders**. UzaPro makes one draft per supplier and store, with each suggested quantity rounded up to whole order units. Lines with no supplier are skipped. Check the drafts under Purchases, then approve and send them." },
+          { kind: "links", screens: [{ label: "Open Purchases › Purchase orders", module: "buy", tab: "purchase-orders" }] },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "Why does a product with sizes have one reorder point?", a: ["Stock is counted per product and store, not per size. The reorder point names the variant to order, and you can change the draft purchase order before you send it."] },
+          { kind: "faq", q: "I pressed Create draft purchase orders twice. Did it order twice?", a: ["No. The first drafts count as on order, so the lines show **On order** and nothing more is suggested."] },
+          { kind: "links", articles: ["adding-a-product", "ordering-from-a-supplier-and-receiving-goods"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["adding-a-product", "ordering-from-a-supplier-and-receiving-goods", "moving-stock-between-stores"],
+  },
 ];

@@ -1,7 +1,7 @@
 /**
  * Verbatim port of the `UZ_MODS` rows, form fields and card items for the standard list, form and
  * card screens (design/canvas/erp-data.js): Reports, Team, Messages and Settings ›
- * Staff logins, Taxes, Connected apps, Import and export. Keys are "{moduleId}/{tabSlug}".
+ * Staff logins and Taxes. Keys are "{moduleId}/{tabSlug}".
  * Permissions moved to role cards in feature 011 (canvas rows: Owner / Admin 1 Full, Accountant 2
  * Edit, Cashier 4 Limited, Store / Inventory 3 Edit — see src/data/fixtures/permissions.ts).
  */
@@ -50,12 +50,6 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
     ["Zero-rated", "0%", "Sales", P("Active", "good")],
     ["Exempt", "—", "Sales", P("Active", "good")],
   ],
-  "set/connected-apps": [
-    ["M-Pesa", "Payments", P("Connected", "good")],
-    ["Shopify", "Sales channel", P("Connected", "good")],
-    ["SMS gateway", "Messaging", P("Connected", "good")],
-    ["Amazon", "Sales channel", P("Connected", "good")],
-  ],
 };
 
 /** `[label, value, 'ph'?, full?]` as in the design; 'ph' means the value is a placeholder. */
@@ -79,14 +73,6 @@ export const GENERIC_FORMS: Readonly<Record<string, readonly GenericField[]>> = 
     ["Template", "Order ready"],
     ["Send", "Now"],
     ["Message", "Hi {{name}}, your order {{ref}} is ready for pickup.", "ph", 1],
-  ]),
-  "set/import-and-export": F([
-    ["Action", "Import"],
-    ["Record type", "Products"],
-    ["File", "products.csv", "ph"],
-    ["Mapping", "Auto-detected"],
-    ["Mode", "Create & update"],
-    ["Notes", "Dry run first", "ph", 1],
   ]),
 };
 

@@ -51,14 +51,14 @@ test("four role cards with users, avatars and module summaries (US1)", async ({ 
   await expect(cashier).toContainText("Total 4 users");
   await expect(cashier).toContainText("JS");
   await expect(cashier).toContainText("+3");
-  await expect(cashier).toContainText("Can open 8 of 21 modules");
-  await expect(card(page, "Accountant")).toContainText("Can open 15 of 21 modules");
-  await expect(card(page, "Store keeper")).toContainText("Can open 9 of 21 modules");
+  await expect(cashier).toContainText("Can open 8 of 22 modules");
+  await expect(card(page, "Accountant")).toContainText("Can open 15 of 22 modules");
+  await expect(card(page, "Store keeper")).toContainText("Can open 9 of 22 modules");
   await expect(page.getByRole("columnheader", { name: "Scope" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add new role" })).toBeVisible();
 });
 
-test("Edit role: 21 modules, any mix of Read, Write and Delete, save and cancel (US2)", async ({ page, errors }) => {
+test("Edit role: 22 modules, any mix of Read, Write and Delete, save and cancel (US2)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/permissions/permissions");
@@ -66,7 +66,7 @@ test("Edit role: 21 modules, any mix of Read, Write and Delete, save and cancel 
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Edit role" });
   await expect(dialog).toContainText("Cashier");
-  await expect(dialog.getByRole("group")).toHaveCount(21);
+  await expect(dialog.getByRole("group")).toHaveCount(22);
   for (const s of ["Overview", "Sales", "Procurement", "Financials", "People", "Office", "Account"]) await expect(dialog.getByRole("heading", { name: s, exact: true })).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Sales: Read" })).toHaveAttribute("aria-pressed", "true");
   await expect(dialog.getByRole("button", { name: "Sales: Write" })).toHaveAttribute("aria-pressed", "true");
@@ -79,7 +79,7 @@ test("Edit role: 21 modules, any mix of Read, Write and Delete, save and cancel 
   await expect(dialog.getByRole("button", { name: "Purchases: Read" })).toHaveAttribute("aria-pressed", "true");
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Cashier access saved.")).toBeVisible();
-  await expect(card(page, "Cashier")).toContainText("Can open 9 of 21 modules");
+  await expect(card(page, "Cashier")).toContainText("Can open 9 of 22 modules");
 
   // Several switches on one module: Read, Write and Delete together.
   await trigger.click();
@@ -112,7 +112,7 @@ test("Read controls what a role sees: Stock removed from the Cashier (US3)", asy
   void errors;
   await loginAs(page, "owner");
   await setLevel(page, "Cashier", [["Stock", "Read"]]); // Read off turns the module off
-  await expect(card(page, "Cashier")).toContainText("Can open 7 of 21 modules");
+  await expect(card(page, "Cashier")).toContainText("Can open 7 of 22 modules");
   await viewAs(page, "cashier");
   const nav = page.getByRole("complementary", { name: "Main" });
   await expect(nav.getByRole("link", { name: "Stock", exact: true })).toHaveCount(0);
@@ -201,11 +201,11 @@ test("add, duplicate, rename and delete roles (US4)", async ({ page, errors }) =
   await edit.getByRole("button", { name: "Sales: Write" }).click();
   await edit.getByRole("button", { name: "Save" }).click();
   await expect(card(page, "Supervisor")).toContainText("Total 0 users");
-  await expect(card(page, "Supervisor")).toContainText("Can open 3 of 21 modules");
+  await expect(card(page, "Supervisor")).toContainText("Can open 3 of 22 modules");
 
   await card(page, "Supervisor").getByRole("button", { name: "Supervisor options" }).click();
   await page.getByRole("menuitem", { name: "Duplicate" }).click();
-  await expect(card(page, "Supervisor copy")).toContainText("Can open 3 of 21 modules");
+  await expect(card(page, "Supervisor copy")).toContainText("Can open 3 of 22 modules");
   await card(page, "Supervisor copy").getByRole("button", { name: "Supervisor copy options" }).click();
   await page.getByRole("menuitem", { name: "Rename" }).click();
   const rename = page.getByRole("dialog", { name: "Rename role" });

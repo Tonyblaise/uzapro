@@ -5,8 +5,8 @@ const tabs = (r: keyof typeof ROLES, m: Parameters<typeof visibleTabs>[1]) => vi
 
 describe("roles (contracts/routes.md › Role visibility)", () => {
   it("owner sees every module and tab", () => {
-    // 21 with Point of sale (feature 010).
-    expect(visibleModules(ROLES.owner)).toHaveLength(21);
+    // 21 with Point of sale (feature 010), 22 with Integrations (feature 015).
+    expect(visibleModules(ROLES.owner)).toHaveLength(22);
     expect(tabs("owner", "sales")).toHaveLength(9); // + Sales orders and Deliveries (feature 013)
   });
   it("accountant: sales without quotations, no products or stock", () => {
@@ -25,7 +25,7 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   });
   it("store keeper: products and stock, no sales or customers", () => {
     expect(tabs("store", "prod")).toHaveLength(5); // + Price lists (feature 012)
-    expect(tabs("store", "inv")).toHaveLength(5);
+    expect(tabs("store", "inv")).toHaveLength(6); // + Reorder (feature 014)
     expect(canSee(ROLES.store, "sales")).toBe(false);
     expect(canSee(ROLES.store, "cust")).toBe(false);
   });

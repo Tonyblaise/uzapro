@@ -4,12 +4,18 @@ import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttribu
 import { Icon, type IconName } from "./Icon";
 
 /** Label + control + hint/error (DS Field). */
-export function Field({ label, hint, error, htmlFor, children }: { label?: ReactNode; hint?: ReactNode; error?: ReactNode; htmlFor?: string; children: ReactNode }) {
+export function Field({ label, hint, error, htmlFor, required, children }: { label?: ReactNode; hint?: ReactNode; error?: ReactNode; htmlFor?: string; /** Marks the label with an asterisk. */ required?: boolean; children: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       {label && (
         <label htmlFor={htmlFor} className="type-label text-text">
           {label}
+          {required && (
+            <span aria-hidden="true" className="text-danger-text">
+              {" "}
+              *
+            </span>
+          )}
         </label>
       )}
       {children}
@@ -33,19 +39,19 @@ export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 
   boxClassName?: string;
 }
 
-export function Input({ label, hint, error, icon, suffix, size = "md", id, boxClassName = "", disabled, ...rest }: InputProps) {
+export function Input({ label, hint, error, icon, suffix, size = "md", id, boxClassName = "", disabled, required, ...rest }: InputProps) {
   const auto = useId();
   const inputId = id ?? auto;
   const box = (
     <div className={`${CONTROL} ${HEIGHT[size]} flex items-center gap-2 px-3 text-text-muted ${error ? "border-danger" : ""} ${disabled ? "bg-grey-50" : ""} ${boxClassName}`}>
       {icon && <Icon name={icon} size={16} />}
-      <input id={inputId} disabled={disabled} aria-invalid={error ? true : undefined} className="type-body h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-text outline-none" {...rest} />
+      <input id={inputId} disabled={disabled} required={required} aria-invalid={error ? true : undefined} className="type-body h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-text outline-none" {...rest} />
       {suffix && <span className="type-small text-text-muted">{suffix}</span>}
     </div>
   );
   if (!label && !hint && !error) return box;
   return (
-    <Field label={label} hint={hint} error={error} htmlFor={inputId}>
+    <Field label={label} hint={hint} error={error} htmlFor={inputId} required={required}>
       {box}
     </Field>
   );
@@ -77,12 +83,12 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   size?: "sm" | "md" | "lg";
 }
 
-export function Select({ label, hint, error, options, size = "md", id, className = "", ...rest }: SelectProps) {
+export function Select({ label, hint, error, options, size = "md", id, className = "", required, ...rest }: SelectProps) {
   const auto = useId();
   const sid = id ?? auto;
   const box = (
     <div className={`relative ${className}`}>
-      <select id={sid} className={`${CONTROL} ${HEIGHT[size]} appearance-none pl-3 pr-9 ${error ? "border-danger" : ""}`} {...rest}>
+      <select id={sid} className={`${CONTROL} ${HEIGHT[size]} appearance-none pl-3 pr-9 ${error ? "border-danger" : ""}`} required={required} aria-invalid={error ? true : undefined} {...rest}>
         {options.map((o) =>
           typeof o === "string" ? (
             <option key={o}>{o}</option>
@@ -100,7 +106,7 @@ export function Select({ label, hint, error, options, size = "md", id, className
   );
   if (!label && !hint && !error) return box;
   return (
-    <Field label={label} hint={hint} error={error} htmlFor={sid}>
+    <Field label={label} hint={hint} error={error} htmlFor={sid} required={required}>
       {box}
     </Field>
   );

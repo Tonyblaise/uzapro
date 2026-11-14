@@ -72,6 +72,8 @@ export const MODULES: Module[] = [
       ["Transfer stock", "table", [C("Ref"), C("From"), C("To"), N("Items"), C("Status")]],
       ["Wastage", "table", [C("Ref"), C("Item"), N("Qty"), C("Reason"), N("Value")]],
       ["Warehouses", "table", [C("Warehouse"), C("Branch"), C("Type"), N("Items")]],
+      // Feature 014 (spec › Design deviations).
+      ["Reorder", "table", [C("Product"), C("Store"), N("On hand"), N("On order"), N("Reorder at"), N("Order up to"), C("Suggested order"), C("Supplier"), C("Status")]],
     ],
     true,
   ),
@@ -296,6 +298,21 @@ export const MODULES: Module[] = [
     true,
   ),
   mod("prof", "Account", "users", "Profile", "Your personal details, photo and password", "profile", [["Profile", "profile"]], true),
+  // Feature 015 (spec › Design deviations): its own module. Settings › Connected apps and Import and export were removed with it.
+  mod(
+    "intg",
+    "Account",
+    "plug",
+    "Integrations",
+    "Connect M-Pesa, QuickBooks and other services to your business",
+    "integrations",
+    [
+      ["M-Pesa (Daraja)", "form"],
+      ["M-Pesa bank integrations", "form"],
+      ["QuickBooks", "form"],
+    ],
+    true,
+  ),
   mod(
     "set",
     "Account",
@@ -311,8 +328,6 @@ export const MODULES: Module[] = [
       ["Terminals", "terminals"],
       ["Staff logins", "table", [C("User"), C("Role"), C("Branch"), C("Status")]],
       ["Taxes", "table", [C("Tax"), N("Rate"), C("Type"), C("Status")]],
-      ["Connected apps", "table", [C("Integration"), C("Type"), C("Status")]],
-      ["Import and export", "form"],
     ],
     true,
   ),

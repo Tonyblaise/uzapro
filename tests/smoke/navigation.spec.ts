@@ -76,7 +76,7 @@ test("reload keeps the session and role; sign out returns to login", async ({ pa
 });
 
 /** Feature 005 · quickstart 13: Office, People and Account modules per role (design UZ_ROLES). */
-const OFFICE = ["Reports", "Team", "Permissions", "Calendar", "Messages", "File Manager", "Profile", "Settings"];
+const OFFICE = ["Reports", "Team", "Permissions", "Calendar", "Messages", "File Manager", "Profile", "Integrations", "Settings"];
 const SEES: Record<RoleId, string[]> = {
   owner: OFFICE,
   // Feature 011: Profile is locked open for every role (spec › Edge cases).

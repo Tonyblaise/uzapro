@@ -3,7 +3,7 @@ import { expect, loginAs, test } from "./fixtures";
 
 /**
  * Feature 005 · US5 generic screens (quickstart 12): Reports, Team, Messages and (Permissions: feature 011)
- * Settings › Staff logins, Taxes, Connected apps, Import and export. Store data resets on a full
+ * Settings › Staff logins and Taxes. Store data resets on a full
  * page load, so flows that change data stay on one page after the first visit.
  */
 
@@ -26,8 +26,6 @@ const TABS: [path: string, seed: string][] = [
   ["/messages/scheduled", "Statement reminder"],
   ["/settings/staff-logins", "Grant Jensen"],
   ["/settings/taxes", "Zero-rated"],
-  ["/settings/connected-apps", "SMS gateway"],
-  ["/settings/import-and-export", "Record type"],
 ];
 
 test("every generic tab shows its seed content and the New button", async ({ page, errors }) => {

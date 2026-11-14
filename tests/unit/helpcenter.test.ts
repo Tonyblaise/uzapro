@@ -89,8 +89,8 @@ describe("content integrity", () => {
     }
   });
 
-  it("has the 14 planned articles with unique ids, including the design's three guides", () => {
-    expect(HELP_ARTICLES).toHaveLength(14); // + price lists and credit (012), sales orders (013)
+  it("has the 15 planned articles with unique ids, including the design's three guides", () => {
+    expect(HELP_ARTICLES).toHaveLength(15); // + price lists and credit (012), sales orders (013), bulk units and reorder (014)
     expect(ids.size).toBe(HELP_ARTICLES.length);
     const titles = HELP_ARTICLES.map((a) => a.title);
     for (const t of ["Setting up a POS terminal", "How to give a refund", "Reconciling a bank feed"]) expect(titles).toContain(t);

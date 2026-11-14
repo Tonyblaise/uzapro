@@ -1,5 +1,7 @@
 # Quickstart: Sales orders and dispatch
 
+> Since feature 014 a Box of Bike Pump is 12 pieces and Main Store holds 30, so use 2 boxes (send 1, then 1) in steps 2 to 4 and 7; stock ends at 6.
+
 **Prerequisites**: `npm install`, `npm run dev`, sign in as the demo Owner.
 
 1. **Seed**: Sales › Sales orders lists SO-0001 (Morningview Bicycles, Part dispatched, 16,560).

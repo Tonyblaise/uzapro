@@ -4,6 +4,8 @@ export interface ExtraUnitPrice {
   unit: string;
   price: number;
   cost: number;
+  /** How many base units one of this unit contains (feature 014); a whole number, 1 or more. */
+  contains: number;
 }
 
 export interface Variant {

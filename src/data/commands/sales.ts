@@ -69,7 +69,7 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
   const by = who();
   const saleNo = state.sales.saleNo + 1;
   const ref = `SAL-${String(saleNo).padStart(6, "0")}`;
-  const changes: StockChange[] = input.lines.map((l) => ({ product: l.product, variant: l.variant, store: saleStore, change: -l.qty, kind: KIND.sold, ref, by }));
+  const changes: StockChange[] = input.lines.map((l) => ({ product: l.product, variant: l.variant, store: saleStore, change: -l.qty, kind: KIND.sold, ref, by, unit: l.unit }));
   const short = findShortfall(state, changes);
   if (short) {
     const m = `Only ${short.available} ${short.product} left at ${short.store}.`;
@@ -139,7 +139,7 @@ export async function voidSale(ref: string, reason: string): Promise<Result<Void
     sale,
   };
   const back: StockChange[] =
-    sale && sale.session ? sale.lines.map((l) => ({ product: l.product, variant: l.variant, store: sale.store, change: l.qty, kind: RETURNED, ref: voidRef, by })) : [];
+    sale && sale.session ? sale.lines.map((l) => ({ product: l.product, variant: l.variant, store: sale.store, change: l.qty, kind: RETURNED, ref: voidRef, by, unit: l.unit })) : [];
   store.setState((s) => ({
     ...(back.length ? applyStockChanges(s, back) : {}),
     sales: {
@@ -216,7 +216,7 @@ export async function createInvoice(input: NewDocument, opts: { fromOrder?: stri
   // Invoices take their items out of the chosen sales store (design `qFinish`).
   const changes: StockChange[] = (opts.fromOrder ? [] : input.lines).flatMap((l) => {
     const k = splitKey(l.description);
-    return k && l.qty > 0 ? [{ product: k.product, variant: k.variant, store: input.store, change: -l.qty, kind: KIND.sold, ref: number, by }] : [];
+    return k && l.qty > 0 ? [{ product: k.product, variant: k.variant, store: input.store, change: -l.qty, kind: KIND.sold, ref: number, by, unit: l.unit }] : [];
   });
   const sale: Sale = {
     ref: number,
@@ -356,10 +356,10 @@ export async function createCreditNote(input: NewCreditNote): Promise<Result<Cre
 function restock(cn: CreditNote, by: string): StockChange[] {
   if (!cn.returnToStock) return [];
   const store = cn.store ?? "Main Store";
-  if (cn.items.length) return cn.items.filter((i) => i.qty > 0).map((i) => ({ product: i.product, variant: i.variant, store, change: i.qty, kind: RETURNED, ref: cn.number, by }));
+  if (cn.items.length) return cn.items.filter((i) => i.qty > 0).map((i) => ({ product: i.product, variant: i.variant, store, change: i.qty, kind: RETURNED, ref: cn.number, by, unit: i.unit }));
   return (cn.lines ?? []).flatMap((l) => {
     const k = splitKey(l.description);
-    return k && l.qty > 0 ? [{ product: k.product, variant: k.variant, store, change: l.qty, kind: RETURNED, ref: cn.number, by }] : [];
+    return k && l.qty > 0 ? [{ product: k.product, variant: k.variant, store, change: l.qty, kind: RETURNED, ref: cn.number, by, unit: l.unit }] : [];
   });
 }
 

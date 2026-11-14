@@ -14,8 +14,7 @@ import {
   type Product,
   type ProductImage,
   type ProductTax,
-  type Variant,
-} from "@/data";
+  type Variant, defaultContains } from "@/data";
 import { num } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
@@ -31,17 +30,19 @@ interface Row {
   cost: string;
   price: string;
   unit: string;
+  /** Feature 014: base units in this unit, for a row that prices the variant in another unit. */
+  contains: string;
 }
 
 let rowSeq = 0;
-const blank = (unit: string, name = ""): Row => ({ id: ++rowSeq, name, cost: "", price: "", unit });
+const blank = (unit: string, name = ""): Row => ({ id: ++rowSeq, name, cost: "", price: "", unit, contains: "" });
 
 /** Design `prodEdit`: one row per variant, then one row per extra unit price under it. */
 function rowsFor(p: Product, base: string): Row[] {
   const rows: Row[] = [];
   for (const v of p.variants) {
     rows.push({ ...blank(base), name: v.name, price: v.price ? String(v.price) : "", cost: v.cost ? String(v.cost) : "", unit: v.unit || base });
-    for (const u of v.extraUnits) rows.push({ ...blank(base), name: v.name, unit: u.unit, price: String(u.price), cost: u.cost ? String(u.cost) : "" });
+    for (const u of v.extraUnits) rows.push({ ...blank(base), name: v.name, unit: u.unit, price: String(u.price), cost: u.cost ? String(u.cost) : "", contains: String(u.contains) });
   }
   return rows.length ? rows : [blank(base)];
 }
@@ -84,7 +85,11 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
 
   const rowDone = (r: Row) => (!hasVar || !!r.name.trim()) && Number(r.price) > 0;
   const rowBlank = (r: Row) => !(r.name.trim() || r.cost || r.price);
-  const blocked = !name.trim() || !cat || !rows.some(rowDone) || rows.some((r) => !rowBlank(r) && !rowDone(r));
+  /** A row that prices a variant already listed above it in another unit (a bulk unit). */
+  const isExtra = (r: Row, at: number) => rows.slice(0, at).some((x) => rowDone(x) && (!hasVar || x.name.trim() === r.name.trim()));
+  const basePrice = (r: Row) => Number(rows.find((x) => rowDone(x) && (!hasVar || x.name.trim() === r.name.trim()))?.price) || 0;
+  const containsBad = (r: Row) => r.contains !== "" && !(Number.isInteger(Number(r.contains)) && Number(r.contains) >= 1);
+  const blocked = !name.trim() || !cat || !rows.some(rowDone) || rows.some((r) => !rowBlank(r) && !rowDone(r)) || rows.some((r, i) => isExtra(r, i) && containsBad(r));
 
   const setRow = (id: number, key: keyof Row, val: string) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [key]: val } : r)));
 
@@ -95,7 +100,8 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
       const vName = hasVar ? r.name.trim() : "Standard";
       const unit = r.unit || baseUnit;
       const hit = variants.find((v) => v.name === vName);
-      if (hit) hit.extraUnits.push({ unit, price: Number(r.price), cost: Number(r.cost) || 0 });
+      // A blank "Contains" is 0 here; the command defaults it from the price ratio.
+      if (hit) hit.extraUnits.push({ unit, price: Number(r.price), cost: Number(r.cost) || 0, contains: Number(r.contains) || 0 });
       else variants.push({ name: vName, price: Number(r.price), cost: Number(r.cost) || 0, unit, extraUnits: [] });
     }
     const input = {
@@ -142,7 +148,7 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
     );
   }
 
-  const grid = "grid grid-cols-[minmax(130px,1fr)_140px_150px_140px_58px_30px_30px] items-center gap-2";
+  const grid = "grid grid-cols-[minmax(130px,1fr)_140px_150px_96px_140px_58px_30px_30px] items-center gap-2";
 
   return (
     <Drawer open title={edit ? "Edit product" : "New product"} subtitle={CRUMB} width={9999} onClose={onClose}>
@@ -175,17 +181,18 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
         <div className="flex flex-col gap-2">
           <span className="type-label text-text">Product variants</span>
           <div className="overflow-x-auto">
-            <div className="flex min-w-[600px] flex-col gap-2">
+            <div className="flex min-w-[700px] flex-col gap-2">
               <div className={`${grid} type-table-head border-b border-border pb-2 text-text-muted`}>
                 <span>Variant</span>
                 <span className="text-right">Base buying price</span>
                 <span>Unit of measure</span>
+                <span className="text-right">Contains</span>
                 <span className="text-right">Base selling price</span>
                 <span className="text-right">Margin</span>
                 <span />
                 <span />
               </div>
-              {rows.map((r) => (
+              {rows.map((r, at) => (
                 <div key={r.id} className={grid}>
                   {hasVar ? (
                     <Input size="sm" aria-label="Variant name" placeholder="Size 42" value={r.name} onChange={(e) => setRow(r.id, "name", e.target.value)} />
@@ -194,6 +201,20 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
                   )}
                   <Input size="sm" aria-label="Cost in KES" type="number" min={0} value={r.cost} onChange={(e) => setRow(r.id, "cost", e.target.value)} />
                   <SearchSelect noun="unit" options={units} value={r.unit} onChange={(v) => setRow(r.id, "unit", v)} onCreate={(n) => (void createUnit(n, { silent: true }), n)} />
+                  {isExtra(r, at) ? (
+                    <Input
+                      size="sm"
+                      aria-label="Base units in this unit"
+                      type="number"
+                      min={1}
+                      step={1}
+                      placeholder={String(defaultContains(basePrice(r), Number(r.price)))}
+                      value={r.contains}
+                      onChange={(e) => setRow(r.id, "contains", e.target.value)}
+                    />
+                  ) : (
+                    <span className="type-small text-right text-text-muted">Base unit</span>
+                  )}
                   <Input size="sm" aria-label="Price in KES" type="number" min={0} value={r.price} onChange={(e) => setRow(r.id, "price", e.target.value)} />
                   <span className="type-small u-num text-right text-text-muted">{marginText(Number(r.cost), Number(r.price))}</span>
                   <IconButton
@@ -221,7 +242,7 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
               </Button>
             </div>
           )}
-          <span className="type-caption text-text-muted">Each product needs at least one price. Use + to price it in another unit.</span>
+          <span className="type-caption text-text-muted">Each product needs at least one price. Use + to price it in another unit, and say how many base units it contains: stock is counted in the base unit.</span>
         </div>
 
         <ImageDrop label="Product image (optional)" image={image} onChange={setImage} mode="dataUrl" />

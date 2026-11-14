@@ -20,6 +20,7 @@ import { receivablesScreens } from "./receivables/screens";
 import { salesScreens } from "./sales/screens";
 import { stockScreens } from "./stock/screens";
 import { helpScreens } from "./help/screens";
+import { integrationsScreens } from "./integrations/screens";
 import { posScreens } from "./pos/screens";
 import { suppliersScreens } from "./suppliers/screens";
 import type { ScreenDef, ScreenMap } from "./types";
@@ -45,6 +46,7 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   comm: messagesScreens,
   docs: filesScreens,
   prof: profileScreens,
+  intg: integrationsScreens,
   set: { ...genericSettingsScreens, ...settingsScreens },
 };
 

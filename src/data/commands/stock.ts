@@ -52,7 +52,7 @@ export async function addStock(input: NewStockIn): Promise<Result<string>> {
   // The design logs the movement against the notes, or the supplier when there are none.
   const ref = input.notes?.trim() || input.supplier || nextRef(store.getState().stock.movements.map((m) => m.ref), "STK-", 4);
   const by = who();
-  const changes: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.store, change: i.qty, kind: KIND.received, ref, by }));
+  const changes: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.store, change: i.qty, kind: KIND.received, ref, by, unit: i.unit }));
   store.setState((s) => applyStockChanges(s, changes));
   const message = `Stock added to ${input.store}.`;
   showToast(message);
@@ -114,8 +114,8 @@ export async function createTransfer(input: NewTransfer, mode: TransferMode, edi
   if (editRef && (!existing || !isTransferOpen(existing.status))) return fail("That transfer can no longer be changed.");
   const ref = existing?.ref ?? nextRef(state.stock.transfers.map((t) => t.ref), "TRF-", 4);
   const by = who();
-  const out: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.from, change: -i.qty, kind: KIND.movedOut, ref, by }));
-  const inn: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.to, change: i.qty, kind: KIND.movedIn, ref, by }));
+  const out: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.from, change: -i.qty, kind: KIND.movedOut, ref, by, unit: i.unit }));
+  const inn: StockChange[] = items.map((i) => ({ product: i.product, variant: i.variant, store: input.to, change: i.qty, kind: KIND.movedIn, ref, by, unit: i.unit }));
   // The design blocks every submit button while a quantity is more than the source store holds.
   const short = findShortfall(state, out);
   if (short) return fail(shortfallMessage(short));
@@ -140,7 +140,7 @@ export async function shipTransfer(ref: string): Promise<Result<Transfer>> {
   const t = state.stock.transfers.find((x) => x.ref === ref);
   if (!t || !isTransferOpen(t.status)) return fail("That transfer cannot be shipped.");
   const by = who();
-  const out: StockChange[] = t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.from, change: -i.qty, kind: KIND.movedOut, ref, by }));
+  const out: StockChange[] = t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.from, change: -i.qty, kind: KIND.movedOut, ref, by, unit: i.unit }));
   const short = findShortfall(state, out);
   if (short) return fail(shortfallMessage(short));
   const updated: Transfer = { ...t, status: "In transit" };
@@ -162,11 +162,11 @@ export async function receiveTransfer(ref: string): Promise<Result<Transfer>> {
   const by = who();
   const changes: StockChange[] = [];
   if (isTransferOpen(t.status)) {
-    changes.push(...t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.from, change: -i.qty, kind: KIND.movedOut, ref, by })));
+    changes.push(...t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.from, change: -i.qty, kind: KIND.movedOut, ref, by, unit: i.unit })));
     const short = findShortfall(state, changes);
     if (short) return fail(shortfallMessage(short));
   }
-  changes.push(...t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.to, change: i.qty, kind: KIND.movedIn, ref, by })));
+  changes.push(...t.items.map((i) => ({ product: i.product, variant: i.variant, store: t.to, change: i.qty, kind: KIND.movedIn, ref, by, unit: i.unit })));
   const updated: Transfer = { ...t, status: "Received" };
   store.setState((s) => {
     const applied = applyStockChanges(s, changes);
@@ -219,7 +219,7 @@ export async function recordWastage(input: NewWastage): Promise<Result<Wastage>>
       value: Math.round(i.qty * unitCost(state, i.product, i.variant, i.unit)),
       session: true,
     });
-    changes.push({ product: i.product, variant: i.variant, store: input.location, change: -i.qty, kind: KIND.damaged, ref: notes || ref, by });
+    changes.push({ product: i.product, variant: i.variant, store: input.location, change: -i.qty, kind: KIND.damaged, ref: notes || ref, by, unit: i.unit });
   }
   const short = findShortfall(state, changes);
   if (short) return fail(shortfallMessage(short));
@@ -240,7 +240,7 @@ export async function undoWastage(ref: string): Promise<Result<void>> {
   const w = store.getState().stock.wastage.find((x) => x.ref === ref);
   if (!w) return fail("That wastage entry is no longer listed.");
   const by = who();
-  const changes: StockChange[] = w.session ? w.items.map((i) => ({ product: i.product, variant: i.variant, store: w.location, change: i.qty, kind: WASTAGE_UNDONE, ref, by })) : [];
+  const changes: StockChange[] = w.session ? w.items.map((i) => ({ product: i.product, variant: i.variant, store: w.location, change: i.qty, kind: WASTAGE_UNDONE, ref, by, unit: i.unit })) : [];
   store.setState((s) => {
     const base = changes.length ? applyStockChanges(s, changes).stock : s.stock;
     return { stock: { ...base, wastage: s.stock.wastage.filter((x) => x.ref !== ref) } };

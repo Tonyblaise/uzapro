@@ -10,3 +10,4 @@ export * from "./office";
 export * from "./permissions";
 export * from "./pricing";
 export * from "./orders";
+export * from "./integrations";

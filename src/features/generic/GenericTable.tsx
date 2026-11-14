@@ -1,7 +1,7 @@
 "use client";
 /**
  * The design's generic table (`isTable`, design lines 761–824) for Reports › Sent automatically,
- * Team, Permissions, the Messages lists and Settings › Staff logins, Taxes and Connected apps.
+ * Team, Permissions, the Messages lists and Settings › Staff logins and Taxes.
  * Columns come from the module registry; pills render as status pills. Row click and "View" open
  * the record drawer (`?view=<first cell>`); "Delete" is the Owner's only (design `canDelete`) and
  * asks first in a drawer ("Delete {name}?", `rowConfirm`).

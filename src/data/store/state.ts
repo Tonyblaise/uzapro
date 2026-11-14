@@ -1,7 +1,9 @@
 import type {
+  IntegrationsState,
   DeliveryNote,
   SalesOrder,
   PermissionsState,
+  ReorderRule,
   PricingState,
   PosState,
   ReportPeriod,
@@ -79,6 +81,8 @@ export interface StockState {
   movements: StockMovement[];
   transfers: Transfer[];
   wastage: Wastage[];
+  /** Reorder points per product and store (feature 014). */
+  reorder: ReorderRule[];
 }
 
 export interface SalesState {
@@ -194,6 +198,8 @@ export interface AppState {
   permissions: PermissionsState;
   /** Customer groups and price lists (feature 012). */
   pricing: PricingState;
+  /** Payment integration credentials and their status (feature 015). */
+  integrations: IntegrationsState;
 }
 
 export type AiTab = "chat" | "support" | "features";

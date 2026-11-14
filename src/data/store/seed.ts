@@ -3,10 +3,12 @@
  * No browser storage access here; StoreProvider applies uzAuth / uzNavClosed after mount.
  */
 import { parseAmount } from "@/lib/format";
+import { seedIntegrations } from "../integrations";
 import { seedPermissions } from "../permissions";
 import { RETAIL_GROUP, seedPricing } from "../pricing";
 import { CUSTOMER_CREDIT } from "../fixtures/pricing";
 import { DELIVERY_SEED, ORDER_SEED } from "../fixtures/orders";
+import { REORDER_SEED } from "../fixtures/reorder";
 import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
 import { CUSTOMER_ROWS } from "../fixtures/customers";
@@ -74,7 +76,8 @@ function variantsFor(name: string): Variant[] {
     price,
     cost,
     unit: "Piece",
-    extraUnits: extras.map(([unit, mult]) => ({ unit, price: price * mult, cost: cost * mult })),
+    // Feature 014: the design's multiplier is also what the unit contains.
+    extraUnits: extras.map(([unit, mult]) => ({ unit, price: price * mult, cost: cost * mult, contains: mult })),
   }));
 }
 
@@ -164,6 +167,7 @@ export function createSeed(): AppState {
       movements,
       transfers,
       wastage,
+      reorder: REORDER_SEED.map((r) => ({ ...r })),
     },
     sales: {
       sales,
@@ -253,6 +257,7 @@ export function createSeed(): AppState {
     pos: seedPos(),
     permissions: seedPermissions(),
     pricing: seedPricing(),
+    integrations: seedIntegrations(),
   };
 }
 

@@ -99,7 +99,7 @@ export async function dispatchOrder(input: NewDispatch): Promise<Result<Delivery
   const by = currentUserName(state);
   const number = nextRef(state.sales.deliveries.map((d) => d.number), "DN-", 4);
   const sent = order.lines.map((l, i) => ({ l, q: input.qty[i] ?? 0 })).filter((x) => x.q > 0);
-  const changes: StockChange[] = sent.map(({ l, q }) => ({ product: l.product, variant: l.variant, store: order.store, change: -q, kind: KIND.sold, ref: number, by }));
+  const changes: StockChange[] = sent.map(({ l, q }) => ({ product: l.product, variant: l.variant, store: order.store, change: -q, kind: KIND.sold, ref: number, by, unit: l.unit }));
   const short = findShortfall(state, changes);
   if (short) return refuse(`Only ${short.available} ${short.product} left at ${short.store}.`);
   const note: DeliveryNote = {

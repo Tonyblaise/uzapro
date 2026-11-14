@@ -29,6 +29,9 @@ const PAGES = [
   "/file-manager/all-documents",
   "/settings/business-profile",
   "/settings/terminals",
+  "/integrations/m-pesa-daraja",
+  "/integrations/m-pesa-bank-integrations",
+  "/integrations/quickbooks",
   "/profile/profile",
   "/reports/popular",
   "/help/help-center",
@@ -244,7 +247,7 @@ test.describe("permissions on phones (feature 011)", () => {
     await scan(page, "main", "role cards");
     await page.getByRole("button", { name: "Edit role: Cashier" }).click();
     const dialog = page.getByRole("dialog", { name: "Edit role" });
-    await expect(dialog.getByRole("group")).toHaveCount(21);
+    await expect(dialog.getByRole("group")).toHaveCount(22);
     await noSideways(page);
     const save = await dialog.getByRole("button", { name: "Save" }).boundingBox();
     expect(save!.y + save!.height).toBeLessThanOrEqual(700);
@@ -311,6 +314,25 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await expect(page.getByRole("dialog", { name: "DN-0001" })).toBeVisible();
     await noSideways(page, "delivery note");
     await scan(page, '[role="dialog"]', "delivery note");
+  });
+
+  test("the reorder list and form fit 320px and pass the scan (feature 014, SC-006)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/stock/reorder");
+    await expect(page.getByRole("row").filter({ hasText: "Muthokinju Paint" })).toBeVisible();
+    await noSideways(page, "reorder list");
+    await scan(page, "main", "reorder list");
+    await page.goto("/stock/reorder?edit=Muthokinju%20Paint%7CMain%20Store");
+    const form = page.getByRole("dialog", { name: "Edit reorder point" });
+    await expect(form.getByLabel("Reorder at")).toHaveValue("24");
+    await noSideways(page, "reorder form");
+    const save = await form.getByRole("button", { name: "Save" }).boundingBox();
+    expect(save!.x + save!.width).toBeLessThanOrEqual(320);
+    await scan(page, '[role="dialog"]', "reorder form");
+    await page.goto("/products/all-products?action=new");
+    await expect(page.getByRole("dialog").last().getByText("Contains", { exact: true })).toBeVisible();
+    await noSideways(page, "product form");
   });
 
   test("price lists, customer groups, the customer form and the credit stop fit 320px and pass the scan (SC-007)", async ({ page, errors }) => {

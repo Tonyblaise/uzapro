@@ -84,6 +84,22 @@ export interface NewStockIn {
   items: StockItem[];
 }
 
+/** A reorder point for a product at a store (feature 014). Quantities are in base units. */
+export interface ReorderRule {
+  product: string;
+  /** The variant to order (stock is counted per product and store). */
+  variant: string;
+  store: string;
+  /** Reorder at or below this. */
+  min: number;
+  /** Order up to this. */
+  max: number;
+  /** Order unit: the base unit or one of the variant's bulk units. */
+  unit: string;
+  /** "" = not set. */
+  supplier: string;
+}
+
 export interface NewStore {
   name: string;
   branch: string;

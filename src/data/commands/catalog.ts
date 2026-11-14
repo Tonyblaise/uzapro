@@ -3,6 +3,7 @@
  * (`prodSave`, `catSave`, `unitSave`, `removeRow` and the Categories row "Delete" action).
  */
 import { unitsOf } from "../pricing";
+import { defaultContains } from "../units";
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { num } from "@/lib/format";
 import { currentUserName } from "../profile";
@@ -40,7 +41,12 @@ export function unitList(units: readonly string[]): string[] {
 function cleanVariants(input: NewProduct): Product["variants"] {
   return input.variants
     .filter((v) => (input.hasVariants === false || v.name.trim()) && v.price > 0)
-    .map((v) => ({ ...v, name: input.hasVariants === false ? "Standard" : v.name.trim(), extraUnits: v.extraUnits.filter((u) => u.price > 0) }));
+    .map((v) => ({
+      ...v,
+      name: input.hasVariants === false ? "Standard" : v.name.trim(),
+      // Feature 014: a bulk unit says how many base units it contains; blank falls back to the price ratio.
+      extraUnits: v.extraUnits.filter((u) => u.price > 0).map((u) => ({ ...u, contains: u.contains >= 1 ? Math.round(u.contains) : defaultContains(v.price, u.price) })),
+    }));
 }
 
 export async function createProduct(input: NewProduct): Promise<Result<Product>> {
@@ -113,6 +119,7 @@ export async function updateProduct(original: string, input: NewProduct): Promis
         ? s.stock
         : {
             ...s.stock,
+            reorder: s.stock.reorder.map((r) => ({ ...r, product: rename(r.product) })),
             levels: s.stock.levels.map((l) => ({ ...l, product: rename(l.product) })),
             movements: s.stock.movements.map((m) => ({ ...m, product: rename(m.product) })),
           },
@@ -128,6 +135,7 @@ export async function deleteProduct(name: string): Promise<Result<void>> {
   store.setState((s) => ({
     catalog: { ...s.catalog, products: s.catalog.products.filter((p) => p.name !== name) },
     pricing: { ...s.pricing, prices: s.pricing.prices.filter((e) => e.product !== name) },
+    stock: { ...s.stock, reorder: s.stock.reorder.filter((r) => r.product !== name) },
   }));
   const message = `${name} deleted.`;
   showToast(message);

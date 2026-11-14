@@ -57,18 +57,19 @@ test("the seed order and delivery note are listed (quickstart 1)", async ({ page
 test("take an order, dispatch it in two parts, confirm delivery and invoice it (US1–US4)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  const line = await startOrder(page, "3");
+  // A box holds 12 Bike Pump (feature 014) and Main Store holds 30, so two boxes is the most it can send.
+  const line = await startOrder(page, "2");
   await expect(line.getByLabel("Rate")).toHaveValue("3800");
   await expect(line).toContainText("Distributor price");
-  await expect(drawer(page)).toContainText("KES 11,400.00");
+  await expect(drawer(page)).toContainText("KES 7,600.00");
   await drawer(page).getByRole("button", { name: "Save", exact: true }).click();
   await expect(toast(page)).toHaveText("SO-0002 saved.");
   await expect(row(page, "SO-0002")).toContainText("Open");
 
-  // Part dispatch: 2 of 3 boxes leave Main Store.
+  // Part dispatch: 1 of 2 boxes leaves Main Store.
   await row(page, "SO-0002").click();
-  await dispatch(page, "2");
-  await expect(toast(page)).toHaveText("DN-0002 created. 2 items left Main Store.");
+  await dispatch(page, "1");
+  await expect(toast(page)).toHaveText("DN-0002 created. 1 item left Main Store.");
   await expect(drawer(page)).toContainText("Part dispatched");
   await expect(drawer(page).getByRole("link", { name: "DN-0002" })).toBeVisible();
 
@@ -87,12 +88,12 @@ test("take an order, dispatch it in two parts, confirm delivery and invoice it (
   await expect(drawer(page).getByRole("button", { name: "Dispatch" })).toHaveCount(0);
   await expect(drawer(page).getByRole("button", { name: "Edit" })).toHaveCount(0);
 
-  // Invoice: exactly the 3 boxes, and stock does not move again.
+  // Invoice: exactly the 2 boxes, and stock does not move again.
   await drawer(page).getByRole("button", { name: "Create invoice" }).click();
   await expect(toast(page)).toHaveText("INV-0356 saved. RCV-0013 added to Receivables.");
   await expect(drawer(page)).toContainText("Invoiced");
   await drawer(page).getByRole("link", { name: "INV-0356" }).click();
-  await expect(drawer(page)).toContainText("11,400");
+  await expect(drawer(page)).toContainText("7,600");
   await drawer(page).getByRole("button", { name: "Close" }).click();
 
   // Proof of delivery.
@@ -108,10 +109,10 @@ test("take an order, dispatch it in two parts, confirm delivery and invoice it (
   await drawer(page).getByRole("button", { name: "Close" }).click();
   await expect(row(page, "DN-0003")).toContainText("Delivered");
 
-  // Stock: 30 at Main Store, less 3 dispatched; the invoice took nothing more.
+  // Stock: 30 at Main Store, less 2 boxes of 12; the invoice took nothing more.
   await nav(page).getByRole("link", { name: "Stock" }).click();
   await tab(page, "Stock management");
-  await expect(page.getByRole("row").filter({ hasText: "Bike Pump" }).filter({ hasText: "Main Store" })).toContainText("27");
+  await expect(page.getByRole("row").filter({ hasText: "Bike Pump" }).filter({ hasText: "Main Store" })).toContainText("6");
   await nav(page).getByRole("link", { name: "Receivables" }).click();
   await expect(row(page, "RCV-0013")).toContainText("INV-0356");
 });
