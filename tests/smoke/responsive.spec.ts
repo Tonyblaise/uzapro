@@ -316,6 +316,43 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "delivery note");
   });
 
+  test("the stock count list, form and view fit 320px and pass the scan (feature 017)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/stock/stock-counts");
+    await expect(page.getByRole("row").filter({ hasText: "CNT-0001" })).toBeVisible();
+    await noSideways(page, "count list");
+    await scan(page, "main", "count list");
+    await page.goto("/stock/stock-counts?view=CNT-0001");
+    await expect(page.getByRole("dialog", { name: "CNT-0001" })).toBeVisible();
+    await noSideways(page, "count view");
+    await scan(page, '[role="dialog"]', "count view");
+    await page.goto("/stock/stock-counts?action=new");
+    await pick(page, "Store", "Main Store");
+    const form = page.getByRole("dialog", { name: "New stock count" });
+    await expect(form.getByText("Full count")).toBeVisible();
+    await noSideways(page, "new count");
+    await scan(page, '[role="dialog"]', "new count");
+    await form.getByRole("button", { name: "Start count" }).click();
+    await expect(page.getByRole("dialog", { name: "CNT-0002" }).getByLabel("Counted: Bike Pump")).toBeVisible();
+    await noSideways(page, "count in progress");
+    await scan(page, '[role="dialog"]', "count in progress");
+  });
+
+  test("the expiry list and batch form fit 320px and pass the scan (feature 016)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/stock/expiry");
+    await expect(page.getByRole("row").filter({ hasText: "MP-2409" })).toBeVisible();
+    await noSideways(page, "expiry list");
+    await scan(page, "main", "expiry list");
+    await page.goto("/stock/expiry?action=new");
+    const form = page.getByRole("dialog", { name: "Record batch" });
+    await expect(form.getByLabel("Batch number")).toBeVisible();
+    await noSideways(page, "batch form");
+    await scan(page, '[role="dialog"]', "batch form");
+  });
+
   test("the reorder list and form fit 320px and pass the scan (feature 014, SC-006)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");

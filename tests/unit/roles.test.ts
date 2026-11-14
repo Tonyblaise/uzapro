@@ -25,7 +25,7 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   });
   it("store keeper: products and stock, no sales or customers", () => {
     expect(tabs("store", "prod")).toHaveLength(5); // + Price lists (feature 012)
-    expect(tabs("store", "inv")).toHaveLength(6); // + Reorder (feature 014)
+    expect(tabs("store", "inv")).toHaveLength(8); // + Reorder (014), Expiry (016), Stock counts (017)
     expect(canSee(ROLES.store, "sales")).toBe(false);
     expect(canSee(ROLES.store, "cust")).toBe(false);
   });

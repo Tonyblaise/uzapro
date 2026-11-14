@@ -1202,4 +1202,131 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     ],
     related: ["adding-a-product", "ordering-from-a-supplier-and-receiving-goods", "moving-stock-between-stores"],
   },
+  {
+    id: "batches-and-expiry-dates",
+    title: "Batches and expiry dates",
+    category: "stock-and-products",
+    updated: "2026-11-15",
+    intro: [
+      "Record which stock belongs to which batch and when it expires. UzaPro then sells the earliest expiry first, keeps expired stock out of sales, and shows you what to deal with.",
+      "**Who can do this:** anyone with Write on Stock can record and write off batches. Removing a batch record needs Delete on Stock.",
+    ],
+    sections: [
+      {
+        heading: "Record a batch",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Stock › Expiry and choose **Record batch**.",
+              "Pick the **Product** and the **Store**.",
+              "Enter the **Batch number** and the **Expiry date**.",
+              "Enter the **Quantity** in the base unit. It can't be more than the stock there that is not in a batch yet.",
+              "Choose **Save**. The message reads, for example, **Batch MP-2411 recorded.**",
+            ],
+          },
+          { kind: "note", tone: "info", text: "Stock that arrives is not in a batch until you record one. A transfer arrives at the other store not in a batch, so record it again there." },
+          { kind: "links", screens: [{ label: "Open Stock › Expiry", module: "inv", tab: "expiry" }] },
+        ],
+      },
+      {
+        heading: "What the list shows",
+        level: 2,
+        blocks: [
+          {
+            kind: "table",
+            head: ["Status", "What it means"],
+            rows: [
+              ["OK", "More than 30 days left."],
+              ["Expires soon", "30 days or fewer left."],
+              ["Expired", "The expiry date has passed. This stock can't be sold."],
+            ],
+          },
+          { kind: "p", text: "A sale, an invoice, the till and a dispatch all take the batch that expires first. Expired stock still counts in stock on hand until you write it off, but it is left out of what can be sold." },
+        ],
+      },
+      {
+        heading: "Write off an expired batch",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: ["On the expired batch, open the row menu and choose **Write off**.", "Confirm. The message reads, for example, **Batch MP-2409 written off.**"],
+          },
+          { kind: "p", text: "The batch's quantity is recorded under Stock › Wastage with the reason **Expired**, and stock on hand falls by that amount." },
+          { kind: "links", screens: [{ label: "Open Stock › Wastage", module: "inv", tab: "wastage" }] },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "A sale says fewer are left than the stock list shows. Why?", a: ["Part of the stock has expired. The sale counts only what is in date, for example **Only 5 Muthokinju Paint left at Point of Sale.**"] },
+          { kind: "faq", q: "Do I have to put all my stock in batches?", a: ["No. Stock that is not in a batch is treated as in date and is used after the batches."] },
+          { kind: "links", articles: ["bulk-units-and-reorder-points", "moving-stock-between-stores"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["bulk-units-and-reorder-points", "moving-stock-between-stores"],
+  },
+  {
+    id: "counting-your-stock",
+    title: "Counting your stock",
+    category: "stock-and-products",
+    updated: "2026-11-15",
+    intro: [
+      "A stock count compares what UzaPro says you have with what is on the shelf, shows the difference, and corrects stock once it is approved.",
+      "**Who can do this:** anyone with Write on Stock can start a count, enter quantities and submit it. Approving, sending back and cancelling need Delete on Stock.",
+    ],
+    sections: [
+      {
+        heading: "Start a count and enter what you find",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Stock › Stock counts and choose **New count**.",
+              "Pick the **Store**. Leave every product ticked for a full count, or untick some for a partial count.",
+              "Choose **Start count**. The count opens with the system quantity for each product.",
+              "Enter what you counted under **Counted**, in the base unit.",
+              "Choose **Save** to keep your place, or **Submit for approval** when every line is counted.",
+            ],
+          },
+          { kind: "note", tone: "info", text: "A store can have one count open at a time. Stock does not change while you count." },
+          { kind: "links", screens: [{ label: "Open Stock › Stock counts", module: "inv", tab: "stock-counts" }] },
+        ],
+      },
+      {
+        heading: "Review and approve",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "Each line shows its **Variance**: counted less system. The totals show how many units are over, how many are short, and the net value at the buying price." },
+          {
+            kind: "table",
+            head: ["Action", "What happens"],
+            rows: [
+              ["Approve", "Stock at the store changes by each line's variance. The stock history shows Counted with the count's number."],
+              ["Send back", "The count returns to In progress for a recount."],
+              ["Cancel count", "The count is kept as Cancelled. Stock does not change."],
+            ],
+          },
+          { kind: "p", text: "If stock was sold or received while the count was open, the variance is applied to the stock as it is now." },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "Why can't I submit the count?", a: ["Every line needs a counted quantity. The message says how many are left, for example **Count every line first. 2 left.** Enter 0 for a product that has none."] },
+          { kind: "faq", q: "Why is there no Approve button?", a: ["Your role can count but not approve. Ask someone with Delete on Stock, such as the Owner."] },
+          { kind: "links", articles: ["batches-and-expiry-dates", "bulk-units-and-reorder-points"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["batches-and-expiry-dates", "bulk-units-and-reorder-points", "moving-stock-between-stores"],
+  },
 ];

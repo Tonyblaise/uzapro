@@ -4,6 +4,8 @@ import { useRole } from "@/data";
 import { Button } from "@/components/ui/Button";
 import type { ScreenMap } from "../types";
 import { useOverlayParams } from "./shared";
+import { CountActions, CountList } from "./CountList";
+import { ExpiryActions, ExpiryList } from "./ExpiryList";
 import { ReorderActions, ReorderList } from "./ReorderList";
 import { StockLevels } from "./StockLevels";
 import { StockOverview } from "./StockOverview";
@@ -34,4 +36,6 @@ export const stockScreens: ScreenMap = {
   wastage: { Body: WastageList, Actions: action("Record wastage", "waste") },
   warehouses: { Body: WarehouseList, Actions: action("New warehouse", "warehouse") },
   reorder: { Body: ReorderList, Actions: ReorderActions },
+  expiry: { Body: ExpiryList, Actions: ExpiryActions },
+  "stock-counts": { Body: CountList, Actions: CountActions },
 };

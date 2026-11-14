@@ -32,6 +32,19 @@ export interface StockItem {
   variant: string;
   qty: number;
   unit: string;
+  /** Take the stock from this batch first (feature 016: writing off an expired batch). */
+  batchId?: string;
+}
+
+/** Part of a store's stock of a product, with its expiry date (feature 016). `qty` is in base units. */
+export interface StockBatch {
+  id: string;
+  product: string;
+  store: string;
+  /** Batch number, unique per product and store. */
+  batch: string;
+  expiry: string; // ISO
+  qty: number;
 }
 
 /** "Confirmed" is what the design's "Confirm transfer" button sets (trFinish); the seed uses "Not finished". */
@@ -98,6 +111,29 @@ export interface ReorderRule {
   unit: string;
   /** "" = not set. */
   supplier: string;
+}
+
+export interface CountLine {
+  product: string;
+  /** Stock on hand when the count started, in base units. */
+  system: number;
+  /** null until the line is counted. */
+  counted: number | null;
+}
+
+/** A stock count (feature 017). Only approving it changes stock. */
+export interface StockCount {
+  /** CNT-0001 … */
+  ref: string;
+  store: string;
+  date: string; // ISO
+  by: string;
+  status: "In progress" | "Waiting approval" | "Approved" | "Cancelled";
+  /** Every product in stock at the store was included. */
+  full: boolean;
+  lines: CountLine[];
+  approvedBy?: string;
+  approvedAt?: string;
 }
 
 export interface NewStore {

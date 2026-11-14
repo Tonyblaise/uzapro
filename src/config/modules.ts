@@ -74,6 +74,10 @@ export const MODULES: Module[] = [
       ["Warehouses", "table", [C("Warehouse"), C("Branch"), C("Type"), N("Items")]],
       // Feature 014 (spec › Design deviations).
       ["Reorder", "table", [C("Product"), C("Store"), N("On hand"), N("On order"), N("Reorder at"), N("Order up to"), C("Suggested order"), C("Supplier"), C("Status")]],
+      // Feature 017 (spec › Design deviations).
+      ["Stock counts", "table", [C("Count"), C("Store"), C("Date"), C("Type"), C("Lines counted"), N("Variance"), N("Variance value (KES)"), C("Status")]],
+      // Feature 016 (spec › Design deviations).
+      ["Expiry", "table", [C("Product"), C("Store"), C("Batch"), C("Expiry date"), C("Days left"), N("Quantity"), C("Status")]],
     ],
     true,
   ),
