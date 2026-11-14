@@ -406,6 +406,7 @@ function seedMoney(): MoneyState {
     payPlans: plans(PAY_PLAN_ROWS),
     customerCredits: credits(CUSTOMER_CREDIT_ROWS),
     supplierCredits: credits(SUPPLIER_CREDIT_ROWS),
+    reminders: {},
     statement: { from: "2026-01-01", to: "2026-11-10", customer: "All customers" },
   };
 }

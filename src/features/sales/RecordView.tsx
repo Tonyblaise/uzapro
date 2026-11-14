@@ -114,6 +114,7 @@ export function RecordView({
   onEdit,
   onConvert,
   onConvertOrder,
+  onWhatsApp,
   onVoid,
   onPay,
 }: {
@@ -122,6 +123,8 @@ export function RecordView({
   onClose: () => void;
   onEdit?: (doc: Quotation) => void;
   onConvert?: (doc: Quotation) => void;
+  /** Feature 020: send this invoice on WhatsApp (amount and balance due). */
+  onWhatsApp?: (doc: Quotation, amount: number, balance: number) => void;
   /** Feature 019: open the order form filled from this quotation. */
   onConvertOrder?: (doc: Quotation) => void;
   onVoid?: (doc: Quotation) => void;
@@ -173,6 +176,7 @@ export function RecordView({
       if (kind === "quote" && !converted && onConvert) actions.push({ label: "Convert to invoice", icon: "file-text", variant: "soft", run: () => onConvert(doc) });
       if (kind === "quote" && !converted && onConvertOrder) actions.push({ label: "Convert to order", icon: "truck", variant: "soft", run: () => onConvertOrder(doc) });
       if (kind === "invoice" && !isPaid && onPay) actions.push({ label: "Record payment", icon: "banknote", variant: "primary", run: () => onPay(doc) });
+      if (kind === "invoice" && onWhatsApp) actions.push({ label: "WhatsApp", icon: "message-square", variant: "secondary", run: () => onWhatsApp(doc, tot, bal) });
       if (kind === "invoice" && onVoid) actions.push({ label: "Void", icon: "x", variant: "danger", run: () => onVoid(doc) });
       cv = {
         kindLabel: kind === "quote" ? "Quotation" : "Invoice",

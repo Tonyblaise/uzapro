@@ -101,7 +101,7 @@ export function initials(name: string): string {
     .join("");
 }
 
-const READ_ACTIONS = new Set(["View", "View details", "View stock", "View all", "Download PDF", "Download", "Print", "Statement", "Open"]);
+const READ_ACTIONS = new Set(["View", "View details", "View stock", "View all", "Download PDF", "Download", "Print", "Statement", "Open", "WhatsApp", "Send reminder"]);
 const DELETE_ACTIONS = new Set(["Delete", "Void", "Void sale", "Void credit", "Void expense", "Cancel transfer", "Cancel order", "Undo", "Write off", "Remove"]);
 
 /** The level a row-menu action needs; unknown labels need Write (safe default, research R4). */

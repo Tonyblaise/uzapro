@@ -316,6 +316,21 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "delivery note");
   });
 
+  test("the WhatsApp dialog fits 320px and passes the scan (feature 020)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/receivables/receivables");
+    await page.getByRole("row").filter({ hasText: "RCV-0012" }).getByRole("button", { name: "Actions" }).click();
+    await page.getByRole("menuitem", { name: "Send reminder" }).click();
+    const dialog = page.getByRole("dialog", { name: "Send on WhatsApp" });
+    const link = dialog.getByRole("link", { name: "Open WhatsApp" });
+    await expect(link).toBeVisible();
+    await noSideways(page, "WhatsApp dialog");
+    const box = await link.boundingBox();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(320);
+    await scan(page, '[role="dialog"]', "WhatsApp dialog");
+  });
+
   test("the stock count list, form and view fit 320px and pass the scan (feature 017)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");

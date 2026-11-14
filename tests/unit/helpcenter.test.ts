@@ -89,8 +89,8 @@ describe("content integrity", () => {
     }
   });
 
-  it("has the 18 planned articles with unique ids, including the design's three guides", () => {
-    expect(HELP_ARTICLES).toHaveLength(18); // + 012, 013, 014, 016, 017 and approvals (018)
+  it("has the 19 planned articles with unique ids, including the design's three guides", () => {
+    expect(HELP_ARTICLES).toHaveLength(19); // + 012, 013, 014, 016, 017, 018 and WhatsApp (020)
     expect(ids.size).toBe(HELP_ARTICLES.length);
     const titles = HELP_ARTICLES.map((a) => a.title);
     for (const t of ["Setting up a POS terminal", "How to give a refund", "Reconciling a bank feed"]) expect(titles).toContain(t);

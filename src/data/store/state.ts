@@ -131,6 +131,8 @@ export interface MoneyState {
   payPlans: Plan[];
   customerCredits: Credit[];
   supplierCredits: Credit[];
+  /** WhatsApp payment reminders opened this session, by customer (feature 020). */
+  reminders: Record<string, string[]>;
   /** Applied Receivables statement filter (design `rcvStmt`). */
   statement: StatementFilter;
 }

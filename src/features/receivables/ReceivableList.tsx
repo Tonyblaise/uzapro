@@ -4,7 +4,9 @@
  * Balance, Status with the design's filters (Payment status, Receivable type, Priority) and row
  * actions Record payment / Mark high or normal priority / View. Header action "Record payment".
  */
-import { toggleReceivablePriority, useReceivables, type ReceivableRow } from "@/data";
+import { useState } from "react";
+import { toggleReceivablePriority, useReceivables, useReminderMessage, type ReceivableRow } from "@/data";
+import { WhatsAppDialog } from "@/components/ui/WhatsAppDialog";
 import { MoneyKpis } from "./MoneyKpis";
 import { MoneyOverlays } from "./MoneyOverlays";
 import { MoneyTable, Stack, col, docDate, fmt, pillCol, priorityPill, useMoneyOverlay, type MoneyCol, type MoneyFilter } from "./shared";
@@ -31,6 +33,7 @@ const FILTERS: MoneyFilter<ReceivableRow>[] = [
 export function ReceivableList() {
   const rows = useReceivables();
   const { open } = useMoneyOverlay();
+  const [remind, setRemind] = useState<string | null>(null);
   return (
     <Stack>
       <MoneyKpis side="rcv" />
@@ -45,9 +48,18 @@ export function ReceivableList() {
           { label: "Record payment", disabled: r.status.label === "Paid" || r.voided, onClick: () => open({ action: "pay", party: r.party, sel: r.ref }) },
           { label: r.priority === "High" ? "Mark normal priority" : "Mark high priority", onClick: () => void toggleReceivablePriority(r.ref) },
           { label: "View", onClick: () => open({ view: r.ref }) },
+          // Feature 020: a WhatsApp reminder listing everything the customer owes.
+          ...(r.balance > 0 && !r.voided ? [{ label: "Send reminder", icon: "message-square" as const, onClick: () => setRemind(r.party) }] : []),
         ]}
       />
       <MoneyOverlays side="rcv" />
+      {remind && <ReminderDialog customer={remind} onClose={() => setRemind(null)} />}
     </Stack>
   );
+}
+
+/** The payment reminder for one customer (feature 020). */
+function ReminderDialog({ customer, onClose }: { customer: string; onClose: () => void }) {
+  const message = useReminderMessage(customer);
+  return <WhatsAppDialog open reminder name={customer} message={message} onClose={onClose} />;
 }

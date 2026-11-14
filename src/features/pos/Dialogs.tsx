@@ -12,6 +12,7 @@ import {
   closeModal,
   completePosSale,
   setCreditApproval,
+  receiptMessage,
   termDays,
   useTillCreditStop,
   confirmCloseShift,
@@ -60,6 +61,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
 import { useDialog } from "@/components/ui/Overlay";
 import { CreditStop } from "@/features/customers";
+import { WhatsAppDialog } from "@/components/ui/WhatsAppDialog";
 import { Eyebrow, PosDialog } from "./shared";
 
 export function Dialogs() {
@@ -452,7 +454,27 @@ function ReceiptDialog() {
   const { term } = usePosTill();
   const biz = useBusinessProfile();
   const rd = ui.rcpt ? docs[ui.rcpt] : undefined;
+  // Feature 020: send the receipt on WhatsApp (shown above the till).
+  const [wa, setWa] = useState(false);
   if (!rd) return null;
+  if (wa)
+    return (
+      <WhatsAppDialog
+        open
+        overTill
+        name={rd.cust}
+        message={receiptMessage({
+          biz: biz.name,
+          ref: rd.ref,
+          date: rd.date,
+          customer: rd.cust,
+          lines: rd.lines.map((l) => ({ name: l.variant && l.variant !== "Standard" ? `${l.product} · ${l.variant}` : l.product, qty: l.qty, amount: l.qty * l.price })),
+          total: rd.total,
+          paid: rd.pays.length ? `Paid by ${Array.from(new Set(rd.pays.map((p) => p.method))).join(" and ")}. Prices include VAT.` : "On credit: not paid yet. Prices include VAT.",
+        })}
+        onClose={() => setWa(false)}
+      />
+    );
   const sums: [string, number, boolean?][] = [["Subtotal", rd.subtotal], ...(rd.disc ? ([["Discount", -rd.disc]] as [string, number][]) : []), ["VAT 16%", rd.vat], ["TOTAL", rd.total, true]];
   const pays = rd.pays.length ? rd.pays.map((p) => [`${p.method}${p.ref && p.ref !== "—" ? ` ${p.ref}` : ""}`, p.amount] as [string, number]) : [["On credit (pay later)", rd.total] as [string, number]];
   if (rd.tendered && rd.change) pays.push(["Cash given", rd.tendered], ["Change", rd.change]);
@@ -526,6 +548,9 @@ function ReceiptDialog() {
         </Button>
         <Button variant="secondary" icon="smartphone" onClick={sendReceipt}>
           Send
+        </Button>
+        <Button variant="secondary" icon="message-square" onClick={() => setWa(true)}>
+          WhatsApp
         </Button>
         <span className="flex-1" />
         <Button icon="plus" onClick={receiptNext}>

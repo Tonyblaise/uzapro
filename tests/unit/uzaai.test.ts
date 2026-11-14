@@ -129,7 +129,7 @@ describe("feature ideas", () => {
     expect(roadmap(ideas).map((g) => [g.status, g.ideas.length])).toEqual([
       ["Planned", 2],
       ["In progress", 1],
-      ["Done", 2], // + wholesale price lists (feature 012)
+      ["Done", 3], // + wholesale price lists (012), WhatsApp receipts (020)
     ]);
   });
 

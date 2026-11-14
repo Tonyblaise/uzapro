@@ -1397,4 +1397,61 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     ],
     related: ["wholesale-prices-and-credit-limits", "counting-your-stock", "sales-orders-and-deliveries"],
   },
+  {
+    id: "sending-receipts-and-reminders-on-whatsapp",
+    title: "Sending receipts and reminders on WhatsApp",
+    category: "selling",
+    updated: "2026-11-15",
+    intro: [
+      "Send a customer their receipt or invoice, or remind them about money they owe, on WhatsApp. UzaPro writes the message and opens WhatsApp with it ready; you press send.",
+      "**Who can do this:** anyone who can open the sale, the invoice or Receivables.",
+    ],
+    sections: [
+      {
+        heading: "Send a receipt or an invoice",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Open the sale under Sales › All sales, the invoice under Sales › Invoices, or the receipt at the till.",
+              "Choose **WhatsApp**.",
+              "Check the **Phone number** and the **Message**. You can change either.",
+              "Choose **Open WhatsApp**, then press send in WhatsApp.",
+            ],
+          },
+          { kind: "p", text: "A receipt lists the items, the total and how it was paid. An invoice gives its number, the amount, the balance due and the due date." },
+          { kind: "links", screens: [{ label: "Open Sales › All sales", module: "sales", tab: "all-sales" }, { label: "Open Sales › Invoices", module: "sales", tab: "invoices" }] },
+        ],
+      },
+      {
+        heading: "Remind a customer who owes you",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Receivables and open the row menu of an unpaid receivable.",
+              "Choose **Send reminder**. The message lists everything that customer still owes, with due dates and the total.",
+              "Choose **Open WhatsApp**, then press send in WhatsApp.",
+            ],
+          },
+          { kind: "p", text: "The next time you open the reminder for that customer, UzaPro shows when they were last reminded." },
+          { kind: "note", tone: "info", text: "UzaPro opens WhatsApp but does not send the message itself, so it can't tell whether you pressed send." },
+          { kind: "links", screens: [{ label: "Open Receivables", module: "rcv", tab: "receivables" }] },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "Why is Open WhatsApp greyed out?", a: ["The phone number is missing or is not a mobile number. Enter one, for example **0712 345 678**."] },
+          { kind: "faq", q: "Does the customer need to have my number saved?", a: ["No. The message arrives as a normal WhatsApp chat from the phone or computer you sent it from."] },
+          { kind: "links", articles: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment", "wholesale-prices-and-credit-limits"],
+  },
 ];

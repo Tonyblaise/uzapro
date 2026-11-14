@@ -2,7 +2,9 @@
 import { Can } from "@/components/ui/Can";
 /** Sale record (design `isPosView`): opened by `?view=SAL-…` on All sales. */
 import type { ReactNode } from "react";
-import { downloadPdf, printDocument, useSales } from "@/data";
+import { useState } from "react";
+import { downloadPdf, printDocument, receiptMessage, useBusinessProfile, useSales } from "@/data";
+import { WhatsAppDialog } from "@/components/ui/WhatsAppDialog";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Drawer } from "@/components/ui/Overlay";
@@ -26,6 +28,9 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
   const found = useSaleDoc(refId);
   // Feature 012: set when a credit stop was approved for this sale.
   const approval = useSales().find((s) => s.ref === refId)?.creditApproval;
+  // Feature 020: send the receipt on WhatsApp.
+  const biz = useBusinessProfile();
+  const [wa, setWa] = useState(false);
   if (!found) {
     return (
       <Drawer open title={`Sale ${refId}`} subtitle="Sales" onClose={onClose} width={9999}>
@@ -45,7 +50,8 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
   const pn = doc.pays.length;
 
   return (
-    <Drawer open title={`Sale ${doc.ref}`} subtitle="Sales" onClose={onClose} width={9999}>
+    <>
+    <Drawer open={!wa} title={`Sale ${doc.ref}`} subtitle="Sales" onClose={onClose} width={9999}>
       <div className="mx-auto flex max-w-[1320px] flex-col gap-4">
         <Panel flush className="flex flex-wrap items-center gap-4 px-5 py-4">
           <span className="grid size-12 flex-none place-items-center rounded-md bg-green-50 text-green-700">
@@ -66,6 +72,9 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
             </Button>
             <Button variant="secondary" icon="download" onClick={() => downloadPdf(doc.ref)}>
               PDF
+            </Button>
+            <Button variant="secondary" icon="message-square" onClick={() => setWa(true)}>
+              WhatsApp
             </Button>
             {!voided && (
               <>
@@ -210,5 +219,21 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
         </div>
       </div>
     </Drawer>
+    <WhatsAppDialog
+      open={wa}
+      name={doc.cust}
+      message={receiptMessage({
+        biz: biz.name,
+        ref: doc.ref,
+        date: doc.date || "2026-11-01",
+        customer: doc.cust,
+        lines: doc.lines.map((l) => ({ name: `${l.product} · ${l.variant}`, qty: l.qty, amount: l.qty * l.price })),
+        vat: doc.vat,
+        total: doc.total,
+        paid: paid >= doc.total ? `Paid by ${Array.from(new Set(doc.pays.map((p) => p.method))).join(" and ") || "cash"}.` : paid > 0 ? `Paid so far: KES ${paid.toLocaleString("en-US")}.` : "On credit: not paid yet.",
+      })}
+      onClose={() => setWa(false)}
+    />
+    </>
   );
 }

@@ -11,6 +11,8 @@ import {
   useQuotations,
 
   useVoids,
+  invoiceMessage,
+  useBusinessProfile,
   type CreditNote,
   type Invoice,
   type Quotation,
@@ -23,6 +25,7 @@ import { ConfirmDialog } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { DocumentForm, type DocKind } from "./DocumentForm";
 import { OrderForm } from "./OrderForm";
+import { WhatsAppDialog } from "@/components/ui/WhatsAppDialog";
 import { InvoicePayment, useInvoicePayable } from "./InvoicePayment";
 import { RecordView } from "./RecordView";
 import { VoidForm } from "./VoidForm";
@@ -100,6 +103,9 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
   const converting = convert ? docs.find((d) => d.number === convert) : undefined;
   // Feature 019: `?order=<quotation>` opens the order form filled from that quotation.
   const toOrder = params.get("order");
+  // Feature 020: the invoice message being sent on WhatsApp.
+  const biz = useBusinessProfile();
+  const [wa, setWa] = useState<{ name: string; message: string } | null>(null);
   const ordering = kind === "quote" && toOrder ? docs.find((d) => d.number === toOrder && !d.convertedTo) : undefined;
   return (
     <>
@@ -107,7 +113,8 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
       {editing && <DocumentForm key={editing.number} kind={kind} edit={editing} onClose={close} />}
       {converting && <DocumentForm key={`c-${converting.number}`} kind="invoice" from={converting} convertFrom={converting.number} onClose={close} />}
       {ordering && <OrderForm key={`o-${ordering.number}`} from={ordering} onClose={() => open({ view: ordering.number })} />}
-      {view && !step && !ordering && (
+      {wa && <WhatsAppDialog open name={wa.name} message={wa.message} onClose={() => setWa(null)} />}
+      {view && !step && !ordering && !wa && (
         <RecordView
           kind={kind}
           refId={view}
@@ -115,6 +122,7 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
           onEdit={(d) => open({ edit: d.number })}
           onConvert={(d) => open({ convert: d.number })}
           onConvertOrder={kind === "quote" ? (d) => open({ order: d.number }) : undefined}
+          onWhatsApp={kind === "invoice" ? (d, amount, balance) => setWa({ name: d.customer, message: invoiceMessage({ biz: biz.name, number: d.number, customer: d.customer, amount, balance, due: d.due }) }) : undefined}
           onVoid={(d) => open({ view: d.number, step: "void" })}
           onPay={kind === "invoice" && payable ? (d) => open({ view: d.number, step: "pay" }) : undefined}
         />

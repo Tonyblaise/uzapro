@@ -83,7 +83,7 @@ export const FEATURE_IDEAS: FeatureIdea[] = [
   { id: "i3", title: "Different prices for wholesale customers", desc: "Give a customer group its own price list, so the right price fills in when you make a sale or invoice.", status: "Done", eta: "Released Nov 2026", votes: 96, tags: "sales, pricing" },
   { id: "i4", title: "Supplier price history", desc: "See what you paid each supplier for a product over time, and get a warning when a new purchase order costs more than last time.", status: "In progress", eta: "This month", votes: 72, tags: "purchases" },
   { id: "i5", title: "Transaction costs on expenses", desc: "Record M-Pesa and bank charges with each expense so account balances match your statements.", status: "Done", eta: "Released Oct 2026", votes: 133, tags: "expenses" },
-  { id: "i6", title: "Send receipts on WhatsApp", desc: "Send the customer their receipt or invoice on WhatsApp straight from the sale.", status: "Under review", votes: 158, tags: "sales, receipts" },
+  { id: "i6", title: "Send receipts on WhatsApp", desc: "Send the customer their receipt or invoice on WhatsApp straight from the sale.", status: "Done", eta: "Released Nov 2026", votes: 158, tags: "sales, receipts" },
   { id: "i7", title: "Print barcode labels", desc: "Print shelf and product labels with barcodes and prices for any product or delivery.", status: "Under review", votes: 64, tags: "stock, products" },
   { id: "i8", title: "Customer loyalty points", desc: "Customers earn points on every sale and can spend them as a discount next time.", status: "Under review", votes: 41, tags: "customers, sales" },
 ];
