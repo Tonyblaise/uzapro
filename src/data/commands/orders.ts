@@ -2,6 +2,7 @@
 import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
+import { myApprovals } from "../approvals";
 import { creditGate, positionOf } from "../creditGate";
 import { termDays } from "../credit";
 import { WALK_IN } from "../fixtures/customers";
@@ -92,6 +93,8 @@ export async function cancelOrder(number: string): Promise<Result<void>> {
 export async function dispatchOrder(input: NewDispatch): Promise<Result<DeliveryNote>> {
   const store = getStore();
   const state = store.getState();
+  // Feature 018: dispatching needs its own right, not Write on Sales.
+  if (!myApprovals(state).dispatch) return refuse("Your role can't dispatch sales orders.");
   const order = state.sales.orders.find((o) => o.number === input.order);
   if (!order) return fail("That order is not in the list.");
   const err = checkDispatch(order, input.qty, input.driver, input.vehicle);
@@ -132,6 +135,7 @@ export async function dispatchOrder(input: NewDispatch): Promise<Result<Delivery
 /** Proof of delivery: who received the goods, with the date and time. */
 export async function markDelivered(number: string, receivedBy: string): Promise<Result<void>> {
   const store = getStore();
+  if (!myApprovals(store.getState()).dispatch) return refuse("Your role can't dispatch sales orders.");
   const cur = store.getState().sales.deliveries.find((d) => d.number === number);
   if (!cur) return fail("That delivery note is not in the list.");
   if (cur.delivered) return refuse(`${number} is already delivered.`);

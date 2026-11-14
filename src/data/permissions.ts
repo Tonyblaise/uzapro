@@ -3,6 +3,7 @@
  * Read, Write and Delete switches; Read decides visibility, Write gates create/edit, Delete gates
  * delete/void/cancel/undo.
  */
+import { seedApprovals } from "./approvals";
 import { MODULES } from "@/config/modules";
 import { ROLES } from "@/config/roles";
 import { LOCKED_READ, OWNER_ONLY, ROLE_DEFS, SEED_WRITE } from "./fixtures/permissions";
@@ -124,6 +125,7 @@ export function seedPermissions(): AppState["permissions"] {
   return {
     roles: ROLE_DEFS.map((r) => ({ ...r, people: [...r.people] })),
     access: Object.fromEntries(ROLE_DEFS.map((r) => [r.key, seedAccess(r.key as RoleId)])),
+    approvals: seedApprovals(),
     nextCustom: 1,
   };
 }

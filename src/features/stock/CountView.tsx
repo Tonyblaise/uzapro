@@ -4,14 +4,13 @@
  * approve. Only approval changes stock.
  */
 import { useState } from "react";
-import { approveCount, cancelCount, countVariance, isOpenCount, saveCount, sendBackCount, signedQty, submitCount, useCan, useCount, useProductCost } from "@/data";
+import { approveCount, cancelCount, countVariance, isOpenCount, saveCount, sendBackCount, signedQty, submitCount, useCan, useCount, useMyApprovals, useProductCost } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { ConfirmDialog, Drawer } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { date as fmtDate, num } from "@/lib/format";
 import { signedMoney } from "./CountList";
-import { useCanDelete } from "./shared";
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
@@ -26,7 +25,8 @@ export function CountView({ refId, onClose }: { refId: string; onClose: () => vo
   const count = useCount(refId);
   const cost = useProductCost();
   const canWrite = useCan("write");
-  const canApprove = useCanDelete();
+  // Feature 018: approving needs its own right (it used Delete on Stock).
+  const canApprove = useMyApprovals().counts;
   /** Edits not yet saved, by product. */
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [error, setError] = useState("");

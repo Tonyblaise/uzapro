@@ -16,6 +16,7 @@ import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, findExpiredShortfall, type StockChange } from "../store/stockOps";
 import type { PosCheckout, PosMethod, PosSaleDoc, PosSettings, PosUi, PosView, Sale, Terminal } from "../types";
 import { addReceivable } from "./money";
+import { discountBlock, myApprovals } from "../approvals";
 import { creditGate, stopFor } from "../creditGate";
 import { RETAIL_GROUP, priceFor } from "../pricing";
 import type { CreditStop, PosCartLine } from "../types";
@@ -418,6 +419,12 @@ export function completePosSale(): string | null {
   }
   if (!f.covered) {
     setCo(() => ({ err: `KES ${(t.total - f.totalPaid).toLocaleString("en-KE", { minimumFractionDigits: 2 })} is still due. Add another payment or pay the full amount.` }));
+    return null;
+  }
+  // Feature 018: a discount above the role's limit is refused.
+  const tooMuch = discountBlock(myApprovals(s).discountMax, t.gross, t.disc);
+  if (tooMuch) {
+    setCo(() => ({ err: tooMuch }));
     return null;
   }
   // Feature 012: the Pay later part is checked against the customer's terms, overdue and limit.

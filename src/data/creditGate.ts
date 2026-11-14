@@ -6,16 +6,16 @@ import { date as fmtDate, kes } from "@/lib/format";
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { approvalReasonOk, creditPosition, creditStop, termDays } from "./credit";
 import { WALK_IN } from "./fixtures/customers";
-import { has } from "./permissions";
+import { myApprovals } from "./approvals";
 import { currentUserName } from "./profile";
 import type { AppState } from "./store/state";
 import type { CreditApproval, CreditPosition, CreditStop, Customer, Receivable, SalesOrder } from "./types";
 
 type GateState = Pick<AppState, "customers" | "money" | "sales" | "permissions" | "session" | "profiles">;
 
-/** FR-017: a role may approve a credit stop when it has Write on Receivables. */
+/** A role may approve a credit stop when it has the "Approve credit over the limit" right (feature 018, replacing Write on Receivables). */
 export function canApproveCredit(s: Pick<AppState, "permissions" | "session">): boolean {
-  return has(s.permissions.access[s.session.role]?.rcv, "write");
+  return myApprovals(s).credit;
 }
 
 /** null for the walk-in customer and for names that are not customers. */

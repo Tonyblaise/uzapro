@@ -2,9 +2,8 @@
 /** Delivery note record (feature 013, `?view=DN-…`), with "Mark delivered" (proof of delivery) and print. */
 import Link from "next/link";
 import { useState } from "react";
-import { itemName, markDelivered, printDocument, useDelivery } from "@/data";
+import { itemName, markDelivered, printDocument, useDelivery, useMyApprovals } from "@/data";
 import { Button } from "@/components/ui/Button";
-import { Can } from "@/components/ui/Can";
 import { Input } from "@/components/ui/Field";
 import { Drawer } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -22,6 +21,7 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
 export function DeliveryView({ number, onClose }: { number: string; onClose: () => void }) {
   const note = useDelivery(number);
   const [marking, setMarking] = useState(false);
+  const mayDispatch = useMyApprovals().dispatch;
   const [receivedBy, setReceivedBy] = useState("");
   const [error, setError] = useState("");
   if (!note) {
@@ -104,12 +104,10 @@ export function DeliveryView({ number, onClose }: { number: string; onClose: () 
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {!note.delivered && (
-              <Can need="write">
-                <Button icon="check" onClick={() => setMarking(true)}>
-                  Mark delivered
-                </Button>
-              </Can>
+            {!note.delivered && mayDispatch && (
+              <Button icon="check" onClick={() => setMarking(true)}>
+                Mark delivered
+              </Button>
             )}
             <Button variant="secondary" icon="printer" onClick={() => void printDocument(note.number)}>
               Print delivery note

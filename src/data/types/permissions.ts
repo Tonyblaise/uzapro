@@ -33,8 +33,22 @@ export interface RoleDef {
   people: string[];
 }
 
+/** What a role may approve, and the largest discount it may give (feature 018). */
+export interface RoleApprovals {
+  /** Approve a credit sale, invoice or order over the customer's limit, overdue or on cash terms. */
+  credit: boolean;
+  /** Approve, send back or cancel a stock count. */
+  counts: boolean;
+  /** Dispatch a sales order and mark a delivery note delivered. */
+  dispatch: boolean;
+  /** Largest discount, as a whole percentage (0–100). */
+  discountMax: number;
+}
+
 export interface PermissionsState {
   roles: RoleDef[];
   access: Record<string, RoleAccess>;
+  /** By role key (feature 018). */
+  approvals: Record<string, RoleApprovals>;
   nextCustom: number;
 }

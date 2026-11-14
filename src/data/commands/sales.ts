@@ -25,6 +25,7 @@ import {
   type VoidRecord,
 } from "../types";
 import { getStore, showToast } from "../store";
+import { discountBlock, myApprovals } from "../approvals";
 import { creditGate } from "../creditGate";
 import { post } from "../ledger";
 import { addCustomerCredit, addReceivable, closeReceivableFor } from "./money";
@@ -155,6 +156,12 @@ export async function voidSale(ref: string, reason: string): Promise<Result<Void
   return ok(record, "Sale voided.");
 }
 
+/** Feature 018: the refusal when a document's discount is above the signed-in role's limit, or null. */
+function discountRefusal(input: Pick<NewDocument, "lines" | "discount">): string | null {
+  const t = docLineTotals(input.lines, input.discount);
+  return discountBlock(myApprovals(getStore().getState()).discountMax, t.subtotal, t.discount);
+}
+
 function checkDocument(input: Pick<NewDocument, "customer" | "date" | "lines">): string | null {
   if (!input.customer) return "Pick the customer first.";
   if (input.lines.length === 0) return "No items added yet.";
@@ -183,6 +190,11 @@ function quotationOf(number: string, input: NewDocument, status: Pill): Quotatio
 export async function createQuotation(input: NewDocument): Promise<Result<Quotation>> {
   const err = checkDocument(input);
   if (err) return fail(err);
+  const over = discountRefusal(input);
+  if (over) {
+    showToast(over);
+    return fail(over);
+  }
   const store = getStore();
   const number = nextRef(store.getState().sales.quotations.map((q) => q.number), "Q-", 6, 1000);
   const q = quotationOf(number, input, input.approve ? APPROVED : { label: "Not finished", tone: "neutral" });
@@ -200,6 +212,11 @@ export async function createQuotation(input: NewDocument): Promise<Result<Quotat
 export async function createInvoice(input: NewDocument, opts: { fromOrder?: string } = {}): Promise<Result<Invoice>> {
   const err = checkDocument(input);
   if (err) return fail(err);
+  const over = discountRefusal(input);
+  if (over) {
+    showToast(over);
+    return fail(over);
+  }
   const store = getStore();
   const state = store.getState();
   const number = nextRef(state.sales.invoices.map((q) => q.number), "INV-", 4);
@@ -261,6 +278,11 @@ export async function createInvoice(input: NewDocument, opts: { fromOrder?: stri
 export async function updateDocument(kind: "quote" | "invoice", number: string, input: NewDocument): Promise<Result<void>> {
   const err = checkDocument(input);
   if (err) return fail(err);
+  const over = discountRefusal(input);
+  if (over) {
+    showToast(over);
+    return fail(over);
+  }
   const store = getStore();
   const amount = Math.round(docLineTotals(input.lines, input.discount).total);
   const patch = (d: Quotation): Quotation => ({

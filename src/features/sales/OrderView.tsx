@@ -1,7 +1,7 @@
 "use client";
 /** Sales order record (feature 013, `?view=SO-…`): lines with ordered, dispatched and left; delivery notes; invoices. */
 import Link from "next/link";
-import { canDispatch, canEditOrder, canInvoice, itemName, leftToDispatch, useOrder, useOrderDeliveries } from "@/data";
+import { canDispatch, canEditOrder, canInvoice, itemName, leftToDispatch, useMyApprovals, useOrder, useOrderDeliveries } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Can } from "@/components/ui/Can";
 import { Drawer } from "@/components/ui/Overlay";
@@ -34,6 +34,8 @@ export function OrderView({
 }) {
   const order = useOrder(number);
   const notes = useOrderDeliveries(number);
+  // Feature 018: dispatching has its own right and does not need Write on Sales.
+  const mayDispatch = useMyApprovals().dispatch;
   if (!order) {
     return (
       <Drawer open title={number} subtitle="Sales" onClose={onClose} width={860}>
@@ -49,12 +51,12 @@ export function OrderView({
           <StatusPill tone={order.status.tone}>{order.status.label}</StatusPill>
         </div>
         <div className="flex flex-wrap gap-2">
+          {mayDispatch && canDispatch(order) && (
+            <Button icon="truck" onClick={onDispatch}>
+              Dispatch
+            </Button>
+          )}
           <Can need="write">
-            {canDispatch(order) && (
-              <Button icon="truck" onClick={onDispatch}>
-                Dispatch
-              </Button>
-            )}
             {canInvoice(order) && (
               <Button variant={canDispatch(order) ? "secondary" : "primary"} icon="receipt" onClick={onInvoice}>
                 Create invoice

@@ -44,6 +44,7 @@ export * from "./queries-orders";
 export * from "./queries-reorder";
 export * from "./queries-batches";
 export * from "./queries-counts";
+export { APPROVAL_KEYS, APPROVAL_LABEL, FULL_APPROVALS, NO_APPROVALS, sameApprovals, validDiscountMax, type ApprovalKey } from "./approvals";
 export * from "./commands/counts";
 export { isOpenCount, signed as signedQty, variance as countVariance } from "./counts";
 export * from "./commands/batches";

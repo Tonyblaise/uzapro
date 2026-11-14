@@ -1,11 +1,15 @@
 "use client";
-/** Edit role (the user's screenshot 2): one row per module with Read, Write and Delete switches (FR-003–FR-008, FR-014). */
+/**
+ * Edit role (the user's screenshot 2): one row per module with Read, Write and Delete switches
+ * (FR-003–FR-008, FR-014), and the role's approvals and discount limit (feature 018).
+ */
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Overlay";
 import { Icon } from "@/components/ui/Icon";
-import { NO_ACCESS, lockedAccess, sameAccess, saveRoleAccess, toggleRight, useModuleGroups, useRoleAccess, useRoleDefs, useSession, type RoleAccess } from "@/data";
+import { NO_ACCESS, lockedAccess, sameAccess, sameApprovals, saveRoleAccess, toggleRight, useModuleGroups, useRoleAccess, useRoleApprovals, useRoleDefs, useSession, type RoleAccess, type RoleApprovals } from "@/data";
 import { AccessRow } from "./AccessRow";
+import { ApprovalsSection } from "./ApprovalsSection";
 
 
 export function EditRoleDialog({ roleKey, onClose }: { roleKey: string; onClose: () => void }) {
@@ -13,8 +17,14 @@ export function EditRoleDialog({ roleKey, onClose }: { roleKey: string; onClose:
   const saved = useRoleAccess(roleKey);
   const groups = useModuleGroups();
   const { role: me } = useSession();
+  const savedApprovals = useRoleApprovals(roleKey);
   const [draft, setDraft] = useState<RoleAccess>(saved);
-  const dirty = useMemo(() => (Object.keys(draft) as (keyof RoleAccess)[]).some((k) => !sameAccess(draft[k], saved[k])), [draft, saved]);
+  const [approvals, setApprovals] = useState<RoleApprovals>(savedApprovals);
+  const [discount, setDiscount] = useState(String(savedApprovals.discountMax));
+  const [discountErr, setDiscountErr] = useState("");
+  const nextApprovals: RoleApprovals = { ...approvals, discountMax: discount.trim() === "" ? NaN : Number(discount) };
+  const accessDirty = useMemo(() => (Object.keys(draft) as (keyof RoleAccess)[]).some((k) => !sameAccess(draft[k], saved[k])), [draft, saved]);
+  const dirty = accessDirty || !sameApprovals(nextApprovals, savedApprovals);
 
   // Leaving the owner role (e.g. switched from a linked tab) discards the draft (spec › Edge cases).
   useEffect(() => {
@@ -24,8 +34,9 @@ export function EditRoleDialog({ roleKey, onClose }: { roleKey: string; onClose:
   if (!role) return null;
   const owner = role.locked;
   const save = async () => {
-    const r = await saveRoleAccess(roleKey, draft);
+    const r = await saveRoleAccess(roleKey, draft, nextApprovals);
     if (r.ok) onClose();
+    else setDiscountErr(r.message);
   };
 
   return (
@@ -58,6 +69,17 @@ export function EditRoleDialog({ roleKey, onClose }: { roleKey: string; onClose:
       ) : (
         <p className="type-small mb-0 mt-1 text-text-muted">Turn on any mix of Read, Write and Delete for each module. Write and Delete also turn on Read.</p>
       )}
+      <ApprovalsSection
+        approvals={approvals}
+        discount={discount}
+        locked={owner}
+        error={discountErr || undefined}
+        onToggle={(k) => setApprovals((a) => ({ ...a, [k]: !a[k] }))}
+        onDiscount={(v) => {
+          setDiscount(v);
+          setDiscountErr("");
+        }}
+      />
       {groups.map((g) => (
         <section key={g.section} aria-label={g.section} className="mt-4">
           <h4 className="type-eyebrow m-0 uppercase text-text-muted">{g.section}</h4>

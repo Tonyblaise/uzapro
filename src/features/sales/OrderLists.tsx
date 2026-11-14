@@ -1,7 +1,7 @@
 "use client";
 /** Sales › Sales orders and Sales › Deliveries, with their overlays (feature 013). */
 import { useCallback, useState } from "react";
-import { cancelOrder, canDispatch, canEditOrder, canInvoice, invoiceOrder, printDocument, useDeliveries, useOrders, type DeliveryRow, type OrderRow } from "@/data";
+import { cancelOrder, canDispatch, canEditOrder, canInvoice, invoiceOrder, printDocument, useDeliveries, useMyApprovals, useOrders, type DeliveryRow, type OrderRow } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { DataTable, type DataColumn } from "@/components/ui/DataTable";
 import { RowActions, type MenuItem } from "@/components/ui/Menu";
@@ -26,6 +26,7 @@ export function OrderList() {
   const rows = useOrders();
   const { params, open, close } = useOverlay();
   const [cancel, setCancel] = useState<string | null>(null);
+  const mayDispatch = useMyApprovals().dispatch;
   const pill = useCallback((r: OrderRow) => r.status.label, []);
   const filter = useStatusFilter(rows, pill);
   const view = params.get("view");
@@ -36,7 +37,7 @@ export function OrderList() {
   const items = (r: OrderRow): MenuItem[] => [
     { label: "View", onClick: () => open({ view: r.number }) },
     ...(canEditOrder(r) ? [{ label: "Edit", onClick: () => open({ edit: r.number }) }] : []),
-    ...(canDispatch(r) ? [{ label: "Dispatch", icon: "truck" as const, onClick: () => open({ view: r.number, step: "dispatch" }) }] : []),
+    ...(mayDispatch && canDispatch(r) ? [{ label: "Dispatch", icon: "truck" as const, need: "read" as const, onClick: () => open({ view: r.number, step: "dispatch" }) }] : []),
     ...(canInvoice(r) ? [{ label: "Create invoice", icon: "receipt" as const, onClick: () => void invoiceOrder(r.number) }] : []),
     ...(canEditOrder(r) ? [{ label: "Cancel order", danger: true, onClick: () => setCancel(r.number) }] : []),
   ];
@@ -64,7 +65,7 @@ export function OrderList() {
           onCancel={() => setCancel(view)}
         />
       )}
-      {viewing && step === "dispatch" && canDispatch(viewing) && <DispatchForm key={viewing.number} order={viewing} onClose={() => open({ view: viewing.number })} onDone={() => open({ view: viewing.number })} />}
+      {viewing && step === "dispatch" && mayDispatch && canDispatch(viewing) && <DispatchForm key={viewing.number} order={viewing} onClose={() => open({ view: viewing.number })} onDone={() => open({ view: viewing.number })} />}
       <ConfirmDialog
         open={cancel !== null}
         title={`Cancel ${cancel ?? ""}?`}

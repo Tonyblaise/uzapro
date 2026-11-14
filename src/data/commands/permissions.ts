@@ -1,15 +1,24 @@
 /** Permissions commands (feature 011, data-model.md › Commands). Session-only state. */
 import { ROLE_COLOURS } from "../fixtures/permissions";
+import { FULL_APPROVALS, NO_APPROVALS, approvalsFor, validDiscountMax } from "../approvals";
 import { accessFor, validateRoleName, withLocks } from "../permissions";
 import { getStore, showToast } from "../store";
-import { fail, ok, type Result, type RoleAccess, type RoleDef } from "../types";
+import { fail, ok, type Result, type RoleAccess, type RoleApprovals, type RoleDef } from "../types";
 
 const roleOf = (key: string) => getStore().getState().permissions.roles.find((r) => r.key === key);
 
-export async function saveRoleAccess(key: string, access: RoleAccess): Promise<Result<void>> {
+/** Save a role's module access and, when given, its approvals (feature 018). The Owner keeps every approval. */
+export async function saveRoleAccess(key: string, access: RoleAccess, approvals?: RoleApprovals): Promise<Result<void>> {
   const role = roleOf(key);
   if (!role) return fail("That role no longer exists.");
-  getStore().setState((s) => ({ permissions: { ...s.permissions, access: { ...s.permissions.access, [key]: withLocks(key, access) } } }));
+  if (approvals && !validDiscountMax(approvals.discountMax)) return fail("Enter a discount limit from 0 to 100");
+  getStore().setState((s) => ({
+    permissions: {
+      ...s.permissions,
+      access: { ...s.permissions.access, [key]: withLocks(key, access) },
+      approvals: approvals ? { ...s.permissions.approvals, [key]: role.locked ? { ...FULL_APPROVALS } : { ...approvals } } : s.permissions.approvals,
+    },
+  }));
   const message = `${role.name} access saved.`;
   showToast(message);
   return ok(undefined, message);
@@ -19,7 +28,7 @@ function nextColour(roles: readonly RoleDef[]): number {
   return (roles.length % ROLE_COLOURS) + 1;
 }
 
-function insertRole(name: string, access: RoleAccess): string {
+function insertRole(name: string, access: RoleAccess, approvals: RoleApprovals = NO_APPROVALS): string {
   let key = "";
   getStore().setState((s) => {
     key = `r-${s.permissions.nextCustom}`;
@@ -28,6 +37,7 @@ function insertRole(name: string, access: RoleAccess): string {
       permissions: {
         roles: [...s.permissions.roles, role],
         access: { ...s.permissions.access, [key]: withLocks(key, access) },
+        approvals: { ...s.permissions.approvals, [key]: { ...approvals } },
         nextCustom: s.permissions.nextCustom + 1,
       },
     };
@@ -76,7 +86,7 @@ export async function duplicateRole(key: string): Promise<Result<string>> {
   if (!role) return fail("That role no longer exists.");
   const name = copyName(role.name, s.permissions.roles);
   const access = accessFor(s, key);
-  const copy = insertRole(name, access);
+  const copy = insertRole(name, access, approvalsFor(s, key));
   const message = `${name} added.`;
   showToast(message);
   return ok(copy, message);
@@ -94,7 +104,9 @@ export async function deleteRole(key: string): Promise<Result<void>> {
   getStore().setState((s) => {
     const access = { ...s.permissions.access };
     delete access[key];
-    return { permissions: { ...s.permissions, roles: s.permissions.roles.filter((r) => r.key !== key), access } };
+    const approvals = { ...s.permissions.approvals };
+    delete approvals[key];
+    return { permissions: { ...s.permissions, roles: s.permissions.roles.filter((r) => r.key !== key), access, approvals } };
   });
   const message = `${role.name} deleted.`;
   showToast(message);

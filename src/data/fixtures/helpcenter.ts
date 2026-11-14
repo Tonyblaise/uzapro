@@ -1329,4 +1329,70 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     ],
     related: ["batches-and-expiry-dates", "bulk-units-and-reorder-points", "moving-stock-between-stores"],
   },
+  {
+    id: "approvals-and-discount-limits",
+    title: "Approvals and discount limits",
+    category: "getting-started",
+    updated: "2026-11-15",
+    intro: [
+      "Besides Read, Write and Delete on each module, a role has four rights that decide what it may approve and how big a discount it may give.",
+      "**Who can do this:** only the Owner can change roles.",
+    ],
+    sections: [
+      {
+        heading: "Set a role's approvals",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to People › Permissions and choose **Edit role** on the role's card.",
+              "Under **Approvals**, turn each right on or off.",
+              "Enter **Discount up to (%)**, a whole number from 0 to 100.",
+              "Choose **Save**. The message reads, for example, **Cashier access saved.**",
+            ],
+          },
+          {
+            kind: "table",
+            head: ["Right", "What it allows"],
+            rows: [
+              ["Approve credit over the limit", "Choose Approve anyway when a customer is over their limit, overdue or on cash terms."],
+              ["Approve stock counts", "Approve a count, send it back or cancel it."],
+              ["Dispatch sales orders", "Dispatch an order and mark a delivery note delivered, without being able to edit or invoice sales."],
+              ["Discount up to (%)", "The largest discount on a till sale, a quotation or an invoice."],
+            ],
+          },
+          { kind: "links", screens: [{ label: "Open People › Permissions", module: "perm", tab: "permissions" }] },
+        ],
+      },
+      {
+        heading: "What the roles start with",
+        level: 2,
+        blocks: [
+          {
+            kind: "table",
+            head: ["Role", "Approvals", "Discount up to"],
+            rows: [
+              ["Owner / Admin", "All", "100%"],
+              ["Accountant", "Credit, dispatch", "20%"],
+              ["Cashier", "None", "5%"],
+              ["Store keeper", "None", "0%"],
+            ],
+          },
+          { kind: "note", tone: "info", text: "A right does not show a module by itself. To let the Store keeper dispatch, turn on Read on Sales as well as **Dispatch sales orders**." },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "A sale was refused because of the discount. What now?", a: ["The message gives the limit, for example **Your role can give discounts up to 5%. This one is 10%.** Lower the discount, or ask someone with a higher limit to make the sale."] },
+          { kind: "faq", q: "Is a lower price the same as a discount?", a: ["No. A price typed on a line is not limited. The limit applies to the discount on the whole sale or document."] },
+          { kind: "links", articles: ["wholesale-prices-and-credit-limits", "counting-your-stock", "sales-orders-and-deliveries"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["wholesale-prices-and-credit-limits", "counting-your-stock", "sales-orders-and-deliveries"],
+  },
 ];

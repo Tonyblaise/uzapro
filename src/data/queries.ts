@@ -8,7 +8,8 @@ import { MODULES } from "@/config/modules";
 import { canSee, visibleModules, visibleTabs } from "@/config/roles";
 import { ROLE_COLOURS } from "./fixtures/permissions";
 import { FULL_ACCESS, NO_ACCESS, accessFor, has, initials, moduleSummary, roleWithAccess, rowActionNeed, withLocks } from "./permissions";
-import type { AccessLevel, ModuleAccess, ModuleId, Product, Role, RoleAccess, StockLevel } from "./types";
+import { approvalsFor } from "./approvals";
+import type { AccessLevel, ModuleAccess, ModuleId, Product, Role, RoleAccess, RoleApprovals, StockLevel } from "./types";
 import { useAppStore } from "./store/StoreProvider";
 
 // ---- Session & config -------------------------------------------------------------------------
@@ -83,6 +84,18 @@ export function useRoleCards(): RoleCardView[] {
 export function useRoleAccess(key: string): RoleAccess {
   const perms = useAppStore((s) => s.permissions);
   return useMemo(() => accessFor({ permissions: perms }, key), [perms, key]);
+}
+
+/** A role's approval rights and discount limit (feature 018). */
+export function useRoleApprovals(key: string): RoleApprovals {
+  const perms = useAppStore((s) => s.permissions);
+  return useMemo(() => approvalsFor({ permissions: perms }, key), [perms, key]);
+}
+
+/** The signed-in role's approval rights and discount limit (feature 018). */
+export function useMyApprovals(): RoleApprovals {
+  const id = useAppStore((s) => s.session.role);
+  return useRoleApprovals(id);
 }
 
 export function useRoleDefs() {

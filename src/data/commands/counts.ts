@@ -2,6 +2,7 @@
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
+import { myApprovals } from "../approvals";
 import { isOpenCount, validCounted, variance } from "../counts";
 import { currentUserName } from "../profile";
 import { getStore, showToast } from "../store";
@@ -16,6 +17,10 @@ const refuse = <T = never>(message: string): Result<T> => {
 function patch(ref: string, fn: (c: StockCount) => StockCount): void {
   getStore().setState((s) => ({ stock: { ...s.stock, counts: s.stock.counts.map((c) => (c.ref === ref ? fn(c) : c)) } }));
 }
+
+/** Approving, sending back and cancelling need the "Approve stock counts" right (feature 018). */
+const mayApprove = () => myApprovals(getStore().getState()).counts;
+const NOT_ALLOWED = "Your role can't approve stock counts.";
 
 const find = (ref: string) => getStore().getState().stock.counts.find((c) => c.ref === ref);
 
@@ -70,6 +75,7 @@ export async function submitCount(ref: string): Promise<Result<void>> {
 
 /** Apply each line's variance to the current stock at the store (research R1) and close the count. */
 export async function approveCount(ref: string): Promise<Result<void>> {
+  if (!mayApprove()) return refuse(NOT_ALLOWED);
   const st = getStore();
   const s = st.getState();
   const cur = s.stock.counts.find((c) => c.ref === ref);
@@ -91,6 +97,7 @@ export async function approveCount(ref: string): Promise<Result<void>> {
 }
 
 export async function sendBackCount(ref: string): Promise<Result<void>> {
+  if (!mayApprove()) return refuse(NOT_ALLOWED);
   const cur = find(ref);
   if (!cur) return fail("That count is not in the list.");
   if (cur.status !== "Waiting approval") return refuse(`${ref} is not waiting for approval.`);
@@ -101,6 +108,7 @@ export async function sendBackCount(ref: string): Promise<Result<void>> {
 }
 
 export async function cancelCount(ref: string): Promise<Result<void>> {
+  if (!mayApprove()) return refuse(NOT_ALLOWED);
   const cur = find(ref);
   if (!cur) return fail("That count is not in the list.");
   if (!isOpenCount(cur)) return refuse(`${ref} can no longer be changed.`);

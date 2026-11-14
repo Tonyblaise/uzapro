@@ -182,7 +182,7 @@ test("a short store refuses the dispatch, and an order over the credit limit is 
   await expect(credit).toContainText("KES 0.00");
 });
 
-test("a role with Read on Sales can view orders and notes but not change them (FR-019)", async ({ page, errors }) => {
+test("a role with Read on Sales can view orders; Dispatch follows its own right (FR-019, feature 018)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await nav(page).getByRole("link", { name: "Permissions" }).click();
@@ -198,5 +198,7 @@ test("a role with Read on Sales can view orders and notes but not change them (F
   await expect(page.getByRole("button", { name: "New order" })).toHaveCount(0);
   await row(page, "SO-0001").click();
   await expect(drawer(page)).toContainText("Part dispatched");
-  for (const name of ["Dispatch", "Create invoice", "Edit", "Cancel order"]) await expect(drawer(page).getByRole("button", { name })).toHaveCount(0);
+  for (const name of ["Create invoice", "Edit", "Cancel order"]) await expect(drawer(page).getByRole("button", { name })).toHaveCount(0);
+  // The Accountant keeps "Dispatch sales orders", so Dispatch stays without Write on Sales.
+  await expect(drawer(page).getByRole("button", { name: "Dispatch" })).toBeVisible();
 });
