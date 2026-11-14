@@ -73,6 +73,7 @@ export async function updateCustomer(original: string, input: NewCustomer): Prom
       voids: fix(s.sales.voids),
       orders: fix(s.sales.orders),
       deliveries: fix(s.sales.deliveries),
+      visits: fix(s.sales.visits),
     },
   }));
   const message = `${name} saved.`;

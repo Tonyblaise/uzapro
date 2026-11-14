@@ -64,7 +64,7 @@ describe("count commands (feature 017)", () => {
     expect((await approveCount("CNT-0002")).message).toBe("CNT-0002 approved. Stock updated.");
     expect(qty("Bike Pump", "Main Store")).toBe(33);
     expect(qty("Racing Wheelset", "Main Store")).toBe(14);
-    expect(qty("Aluminium Frame", "Main Store")).toBe(165);
+    expect(qty("Aluminium Frame", "Main Store")).toBe(145); // 165 less the 20 on the van (feature 021)
     expect(qty("Bike Pump", "Point of Sale")).toBe(28);
     const moves = s().stock.movements.filter((m) => m.ref === "CNT-0002");
     expect(moves.map((m) => [m.product, m.kind.label, m.change]).sort()).toEqual([["Bike Pump", "Counted", 3], ["Racing Wheelset", "Counted", -2]]);

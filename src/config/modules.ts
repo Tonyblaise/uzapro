@@ -94,6 +94,8 @@ export const MODULES: Module[] = [
       ["Quotations", "table", [C("Quotation #"), C("Customer"), C("Date"), C("Status"), N("Amount (KES)")]],
       // Feature 013 (spec › Design deviations).
       ["Sales orders", "table", [C("Order #"), C("Customer"), C("Order date"), C("Deliver by"), C("Status"), N("Amount (KES)")]],
+      // Feature 021 (spec › Design deviations).
+      ["Field sales", "table", [C("Customer"), C("Phone"), C("Status")]],
       ["Deliveries", "table", [C("Delivery note"), C("Order"), C("Customer"), C("Date"), C("Driver"), C("Vehicle"), N("Items"), C("Status")]],
       [
         "Invoices",

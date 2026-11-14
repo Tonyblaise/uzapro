@@ -316,6 +316,22 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "delivery note");
   });
 
+  test("field sales and a visit fit 320px and pass the scan (feature 021)", async ({ page, errors }) => {
+    void errors;
+    await loginAs(page, "owner");
+    await page.goto("/sales/field-sales");
+    await expect(page.getByRole("button", { name: "Start visit: Mountain Goats" })).toBeVisible();
+    await noSideways(page, "field sales");
+    await scan(page, "main", "field sales");
+    await page.getByRole("button", { name: "Start visit: Mountain Goats" }).click();
+    await pick(page, "Add item", "Aluminium Frame · 54cm");
+    const form = page.getByRole("dialog", { name: "Mountain Goats" });
+    const done = await form.getByRole("button", { name: "Complete sale" }).boundingBox();
+    expect(done!.x + done!.width).toBeLessThanOrEqual(320);
+    await noSideways(page, "visit");
+    await scan(page, '[role="dialog"]', "visit");
+  });
+
   test("the WhatsApp dialog fits 320px and passes the scan (feature 020)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");

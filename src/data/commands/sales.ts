@@ -66,7 +66,8 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
   }
   if (!input.customer) return fail("Pick the customer first.");
   if (input.lines.length === 0) return fail("No items in this sale.");
-  const saleStore = "Point of Sale";
+  // Feature 021: a visit's sale leaves the van; a counter sale leaves Point of Sale as before.
+  const saleStore = input.store || "Point of Sale";
   const by = who();
   const saleNo = state.sales.saleNo + 1;
   const ref = `SAL-${String(saleNo).padStart(6, "0")}`;
@@ -89,7 +90,7 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
     ref,
     customer: input.customer,
     type: "Sale",
-    channel: "In-store",
+    channel: input.store ? "Field sales" : "In-store",
     store: saleStore,
     date: DEMO_TODAY,
     time: hm,

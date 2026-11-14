@@ -1454,4 +1454,79 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     ],
     related: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment", "wholesale-prices-and-credit-limits"],
   },
+  {
+    id: "selling-from-a-van",
+    title: "Selling from a van",
+    category: "selling",
+    updated: "2026-11-15",
+    intro: [
+      "Field sales is for a rep on the road: the day's visits, selling from the stock on the van, and what to hand in at the end of the day. The screen is laid out for a phone.",
+      "**Who can do this:** anyone with Write on Sales.",
+    ],
+    sections: [
+      {
+        heading: "Load the van and plan the day",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "A van is a storage location of the type **Van**. Its stock is moved on and off with a stock transfer, like any other store." },
+          {
+            kind: "ol",
+            items: [
+              "Move stock from your store to the van under Stock › Transfer stock.",
+              "Go to Sales › Field sales. **On the van** lists what you loaded.",
+              "Choose **Add visit** and pick a customer for each stop.",
+            ],
+          },
+          { kind: "links", screens: [{ label: "Open Sales › Field sales", module: "sales", tab: "field-sales" }, { label: "Open Stock › Transfer stock", module: "inv", tab: "transfer-stock" }] },
+        ],
+      },
+      {
+        heading: "Sell on a visit",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Choose **Start visit** on the customer. The top of the visit shows their available credit and anything overdue.",
+              "Use **Add item** for each product. Only what is on the van is listed, at the customer's prices.",
+              "Set the quantity and the unit.",
+              "Pick **Paid by**: Cash, M-Pesa or Pay later (credit).",
+              "Choose **Complete sale**. The stock leaves the van and the visit shows **Sold**.",
+            ],
+          },
+          { kind: "p", text: "If nothing is sold, choose **No sale** and pick a reason. The visit shows **No sale**." },
+          { kind: "note", tone: "info", text: "Pay later is checked against the customer's credit limit, as on any sale." },
+        ],
+      },
+      {
+        heading: "At the end of the day",
+        level: 2,
+        blocks: [
+          {
+            kind: "table",
+            head: ["Summary", "What it shows"],
+            rows: [
+              ["Visits", "How many visits are closed, out of the day's total."],
+              ["Sales", "The total sold on visits."],
+              ["Cash to hand in", "Cash taken on visits."],
+              ["M-Pesa", "Paid by M-Pesa on visits."],
+              ["On credit", "Sold on Pay later."],
+            ],
+          },
+          { kind: "p", text: "Move what is left on the van back to the store with a stock transfer." },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "The customer wants to pay what they already owe. How do I record it?", a: ["Use **Record payment** under Receivables. It is not part of the visit's sale."] },
+          { kind: "faq", q: "Does Field sales work without a connection?", a: ["No. It is a screen in UzaPro and needs the app open and connected."] },
+          { kind: "links", articles: ["moving-stock-between-stores", "wholesale-prices-and-credit-limits"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["moving-stock-between-stores", "wholesale-prices-and-credit-limits", "sending-receipts-and-reminders-on-whatsapp"],
+  },
 ];

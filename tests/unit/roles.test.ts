@@ -7,7 +7,7 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   it("owner sees every module and tab", () => {
     // 21 with Point of sale (feature 010), 22 with Integrations (feature 015).
     expect(visibleModules(ROLES.owner)).toHaveLength(22);
-    expect(tabs("owner", "sales")).toHaveLength(9); // + Sales orders and Deliveries (feature 013)
+    expect(tabs("owner", "sales")).toHaveLength(10); // + Sales orders and Deliveries (013), Field sales (021)
   });
   it("accountant: sales without quotations, no products or stock", () => {
     expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "refunds-credit-notes", "voided-items", "sales-targets"]);

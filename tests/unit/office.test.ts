@@ -159,7 +159,7 @@ describe("commands", () => {
   it("renames a branch through its stores and terminals", async () => {
     await saveBranch({ name: "Nairobi Main", phone: "", email: "", group: "Administration", city: "Nairobi", address: "", hq: true }, "Nairobi HQ");
     const s = store.getState();
-    expect(s.stock.stores.filter((x) => x.branch === "Nairobi Main")).toHaveLength(4);
+    expect(s.stock.stores.filter((x) => x.branch === "Nairobi Main")).toHaveLength(5); // + the van (feature 021)
     expect(s.settings.terminals.list[0]!.branch).toBe("Nairobi Main");
     expect(s.settings.biz.location).toBe("Nairobi Main");
     expect(toast()).toBe("Nairobi Main saved.");

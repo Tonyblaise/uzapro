@@ -2,6 +2,7 @@ import type {
   IntegrationsState,
   DeliveryNote,
   SalesOrder,
+  Visit,
   PermissionsState,
   ReorderRule,
   StockBatch,
@@ -103,6 +104,8 @@ export interface SalesState {
   orders: SalesOrder[];
   /** Delivery notes, newest first (feature 013). */
   deliveries: DeliveryNote[];
+  /** Field-sales visits, in route order (feature 021). */
+  visits: Visit[];
 }
 
 export interface UiState {
