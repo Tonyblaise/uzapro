@@ -113,6 +113,7 @@ export function RecordView({
   onClose,
   onEdit,
   onConvert,
+  onConvertOrder,
   onVoid,
   onPay,
 }: {
@@ -121,6 +122,8 @@ export function RecordView({
   onClose: () => void;
   onEdit?: (doc: Quotation) => void;
   onConvert?: (doc: Quotation) => void;
+  /** Feature 019: open the order form filled from this quotation. */
+  onConvertOrder?: (doc: Quotation) => void;
   onVoid?: (doc: Quotation) => void;
   /** FR-016a: "Record payment" on an unpaid invoice that has an open receivable. */
   onPay?: (doc: Quotation) => void;
@@ -168,6 +171,7 @@ export function RecordView({
       const actions: Action[] = [];
       if (!(kind === "quote" && approved) && onEdit) actions.push({ label: "Edit", icon: "pencil", variant: "secondary", run: () => onEdit(doc) });
       if (kind === "quote" && !converted && onConvert) actions.push({ label: "Convert to invoice", icon: "file-text", variant: "soft", run: () => onConvert(doc) });
+      if (kind === "quote" && !converted && onConvertOrder) actions.push({ label: "Convert to order", icon: "truck", variant: "soft", run: () => onConvertOrder(doc) });
       if (kind === "invoice" && !isPaid && onPay) actions.push({ label: "Record payment", icon: "banknote", variant: "primary", run: () => onPay(doc) });
       if (kind === "invoice" && onVoid) actions.push({ label: "Void", icon: "x", variant: "danger", run: () => onVoid(doc) });
       cv = {
@@ -190,7 +194,7 @@ export function RecordView({
         actions,
         steps:
           kind === "quote"
-            ? [step(true, "Created", date), step(approved, "Approved", approved ? doc.approvedAt || "Done" : "Waiting for approval"), step(!!converted, "Invoiced", converted || "Not invoiced yet")]
+            ? [step(true, "Created", date), step(approved, "Approved", approved ? doc.approvedAt || "Done" : "Waiting for approval"), step(!!converted, converted.startsWith("SO-") ? "Ordered" : "Invoiced", converted || "Not invoiced yet")]
             : [
                 step(true, "Issued", date),
                 step(approved || isPaid, "Approved", approved || isPaid ? doc.approvedAt || "Done" : "Waiting for approval"),

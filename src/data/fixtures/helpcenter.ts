@@ -1117,7 +1117,9 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         blocks: [
           { kind: "faq", q: "Can I change an order after sending part of it?", a: ["No. An order can be edited or cancelled only while nothing has been dispatched."] },
           { kind: "faq", q: "What if the store does not have enough stock?", a: ["The dispatch is refused and says how many are left, for example **Only 3 Bike Pump left at Main Store.** Lower **Send now** or move stock in first."] },
-          { kind: "faq", q: "The customer returned some items. What do I do?", a: ["Raise a credit note from the invoice. See How to give a refund."] },
+          { kind: "faq", q: "The customer said yes to a quotation. Do I retype it?", a: ["No. Open the quotation and choose **Convert to order**. The order form opens with the quoted items and rates; set the deliver-by date and save."] },
+          { kind: "faq", q: "Goods came back with the driver. What do I do?", a: ["Open the delivery note under Sales › Deliveries and choose **Record return**. Enter how many came back and pick a reason. The stock returns to the store and the order shows those items as still to dispatch."] },
+          { kind: "faq", q: "The customer returned items that are already invoiced. What do I do?", a: ["Raise a credit note from the invoice. See How to give a refund."] },
           { kind: "links", articles: ["how-to-give-a-refund", "wholesale-prices-and-credit-limits"] },
         ],
       },

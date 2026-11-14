@@ -9,6 +9,7 @@ import {
   WALK_IN,
   addStoreQuick,
   createOrder,
+  orderLinesFromQuote,
   orderTotals,
   unitsOf,
   updateOrder,
@@ -19,6 +20,7 @@ import {
   useStores,
   type CreditStop as Stop,
   type OrderRow,
+  type Quotation,
 } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Field";
@@ -44,18 +46,20 @@ interface Line {
 let lineId = 0;
 const GRID = { gridTemplateColumns: "minmax(0,1fr) 76px 130px 110px 110px 34px" };
 
-export function OrderForm({ edit, onClose }: { edit?: OrderRow; onClose: () => void }) {
+export function OrderForm({ edit, from, onClose }: { edit?: OrderRow; /** A quotation being converted to an order (feature 019). */ from?: Quotation; onClose: () => void }) {
   const customers = useCustomers();
   const products = useProducts();
   const stores = useStores();
-  const [cust, setCust] = useState(edit?.customer ?? "");
+  // Converting a quotation: its product lines at the quoted rates, discount spread in.
+  const [quoted] = useState(() => (from ? orderLinesFromQuote(from, products) : null));
+  const [cust, setCust] = useState(edit?.customer ?? (from && from.customer !== WALK_IN ? from.customer : ""));
   const [date, setDate] = useState(edit?.date ?? DEMO_TODAY);
   const [deliverBy, setDeliverBy] = useState(edit?.deliverBy ?? addDays(DEMO_TODAY, 2));
-  const [store, setStore] = useState(edit?.store ?? "Main Store");
+  const [store, setStore] = useState(edit?.store ?? from?.store ?? "Main Store");
   const [raw, setLines] = useState<Line[]>(() =>
-    (edit?.lines ?? []).map((l) => ({ id: ++lineId, product: l.product, variant: l.variant, unit: l.unit, qty: String(l.qty), rate: String(l.rate), taxable: l.taxable, hand: true })),
+    (edit?.lines ?? quoted?.lines ?? []).map((l) => ({ id: ++lineId, product: l.product, variant: l.variant, unit: l.unit, qty: String(l.qty), rate: String(l.rate), taxable: l.taxable, hand: true })),
   );
-  const [notes, setNotes] = useState(edit?.notes ?? "");
+  const [notes, setNotes] = useState(edit?.notes ?? (from ? `From quotation ${from.number}` : ""));
   const [newCust, setNewCust] = useState<string | null>(null);
   const [stop, setStop] = useState<Stop | null>(null);
   const [error, setError] = useState("");
@@ -94,6 +98,7 @@ export function OrderForm({ edit, onClose }: { edit?: OrderRow; onClose: () => v
       lines: lines.map((l) => ({ product: l.product, variant: l.variant, unit: l.unit, qty: Number(l.qty), rate: Number(l.rate) || 0, taxable: l.taxable })),
       notes,
       ...(approval ? { approval } : {}),
+      ...(from ? { convertedFrom: from.number } : {}),
     };
     if (edit) {
       const r = await updateOrder(edit.number, input);
@@ -111,7 +116,7 @@ export function OrderForm({ edit, onClose }: { edit?: OrderRow; onClose: () => v
 
   return (
     <>
-      <Drawer open={newCust === null && !stop} title={edit ? `Edit ${edit.number}` : "New sales order"} subtitle="Sales" onClose={onClose} width={860}>
+      <Drawer open={newCust === null && !stop} title={edit ? `Edit ${edit.number}` : "New sales order"} subtitle={from ? `From ${from.number}` : "Sales"} onClose={onClose} width={860}>
         <div className="flex flex-col gap-5">
           <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
             <SearchSelect label="Customer" noun="customer" options={customerOptions} value={cust} onChange={setCust} onNew={(t) => setNewCust(t)} />
@@ -120,6 +125,11 @@ export function OrderForm({ edit, onClose }: { edit?: OrderRow; onClose: () => v
             <Input label="Deliver by" type="date" value={deliverBy} onChange={(e) => setDeliverBy(e.target.value)} />
           </div>
 
+          {quoted && quoted.skipped > 0 && (
+            <p role="note" className="type-small m-0 rounded-md bg-warning-soft p-3 text-warning-text">
+              {quoted.skipped} {quoted.skipped === 1 ? "line on the quotation is" : "lines on the quotation are"} not a product and {quoted.skipped === 1 ? "was" : "were"} left out.
+            </p>
+          )}
           <div className="flex flex-col gap-3">
             {/* Focusable so the table can be scrolled sideways from the keyboard on a narrow screen. */}
             <div className="overflow-x-auto" tabIndex={0} role="group" aria-label="Order items">

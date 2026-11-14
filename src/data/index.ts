@@ -52,7 +52,7 @@ export { SOON_DAYS } from "./batches";
 export { createReorderDrafts, removeReorderRule, saveReorderRule } from "./commands/reorder";
 export { baseUnitOf, containsLabel, defaultContains, unitFactor } from "./units";
 export * from "./commands/orders";
-export { checkDispatch, itemName, leftToDispatch, orderTotals, toInvoice } from "./orders";
+export { DELIVERY_RETURN_REASONS, checkDispatch, checkReturn, itemName, leftToDispatch, orderLinesFromQuote, orderTotals, returnable, returnedQty, toInvoice } from "./orders";
 export * from "./queries-integrations";
 export * from "./commands/integrations";
 export { ALL_TERMINALS, bankErrors, bankOf, darajaErrors, quickbooksErrors, scopeFrom, scopeValue, syncSummary } from "./integrations";

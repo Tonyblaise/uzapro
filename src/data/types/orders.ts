@@ -42,6 +42,16 @@ export interface DeliveryLine {
   qty: number;
 }
 
+/** Goods that came back from a delivery (feature 019). */
+export interface DeliveryReturn {
+  /** RTN-0001 … */
+  ref: string;
+  date: string; // ISO
+  by: string;
+  reason: string;
+  lines: DeliveryLine[];
+}
+
 export interface DeliveryNote {
   /** DN-0001 … */
   number: string;
@@ -58,6 +68,8 @@ export interface DeliveryNote {
   receivedBy?: string;
   deliveredAt?: string;
   by: string;
+  /** Returns recorded against this note, oldest first (feature 019). */
+  returns: DeliveryReturn[];
 }
 
 export type NewOrderLine = Pick<OrderLine, "product" | "variant" | "unit" | "qty" | "rate" | "taxable">;
@@ -71,6 +83,8 @@ export interface NewOrder {
   notes: string;
   /** Approval of a credit stop (feature 012). */
   approval?: { reason: string };
+  /** The quotation this order is converted from (feature 019). */
+  convertedFrom?: string;
 }
 
 export interface NewDispatch {

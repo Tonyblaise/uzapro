@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { cancelOrder, createOrder, dispatchOrder, invoiceOrder, markDelivered, updateOrder } from "@/data/commands/orders";
+import { cancelOrder, createOrder, dispatchOrder, invoiceOrder, markDelivered, returnDelivery, updateOrder } from "@/data/commands/orders";
 import { positionOf } from "@/data/creditGate";
-import { recordSale } from "@/data/commands/sales";
+import { createQuotation, recordSale } from "@/data/commands/sales";
 import { updateCustomer } from "@/data/commands/customers";
 import { voidSale } from "@/data/commands/sales";
-import { checkDispatch, leftToDispatch, orderStatus, orderTotals, toInvoice, uninvoicedValue } from "@/data/orders";
+import { checkDispatch, leftToDispatch, orderLinesFromQuote, orderStatus, orderTotals, returnable, toInvoice, uninvoicedValue } from "@/data/orders";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
 import type { NewOrder, OrderLine } from "@/data/types";
 
@@ -188,5 +188,77 @@ describe("order commands (feature 013)", () => {
 
     // The seed order counts for Morningview Bicycles.
     expect(positionOf(s().customers, s().money.receivables, s().sales.orders, "Morningview Bicycles")).toMatchObject({ owed: 45600, onOrder: 16560, available: 0 });
+  });
+});
+
+describe("quotation to order (feature 019, US1)", () => {
+  it("turns product lines into order lines at the quoted rates, spreading the discount (SC-001)", () => {
+    const products = s().catalog.products;
+    const q = {
+      lines: [
+        { description: "Bike Pump · Standard", qty: 2, unit: "Box", rate: 4000, taxable: false },
+        { description: "Helmet · Medium", qty: 1, unit: "Carton", rate: 16000, taxable: true },
+        { description: "Delivery charge", qty: 1, unit: "Piece", rate: 500, taxable: false },
+        { description: "Helmet · Nope", qty: 1, unit: "Piece", rate: 1, taxable: true },
+      ],
+      discount: { value: 10, type: "%" as const },
+    };
+    const r = orderLinesFromQuote(q, products);
+    expect(r.skipped).toBe(2);
+    expect(r.lines).toEqual([
+      { product: "Bike Pump", variant: "Standard", unit: "Box", qty: 2, rate: 3600, taxable: false },
+      { product: "Helmet", variant: "Medium", unit: "Carton", qty: 1, rate: 14400, taxable: true },
+    ]);
+    expect(orderLinesFromQuote({ ...q, discount: { value: 0, type: "KES" } }, products).lines.map((l) => l.rate)).toEqual([4000, 16000]);
+    // The same 10% as an amount: the quotation's subtotal, including the lines left out, is 24,501.
+    expect(orderLinesFromQuote({ ...q, discount: { value: 2450.1, type: "KES" } }, products).lines.map((l) => l.rate)).toEqual([3600, 14400]);
+  });
+
+  it("stamps the quotation with the order it became", async () => {
+    const q = await createQuotation({ kind: "quote", customer: "Mountain Goats", date: "2026-11-10", due: "2026-12-10", store: "Main Store", lines: [{ description: "Bike Pump · Standard", qty: 1, unit: "Box", rate: 3800, taxable: false }], discount: { value: 0, type: "KES" }, notes: "", terms: "", approve: true });
+    const number = q.ok ? q.value.number : "";
+    const o = await createOrder(pumps(1, { convertedFrom: number }));
+    expect(o.ok).toBe(true);
+    expect(s().sales.quotations.find((x) => x.number === number)!.convertedTo).toBe("SO-0002");
+  });
+});
+
+describe("returns against a delivery (feature 019, US2)", () => {
+  const note = (n: string) => s().sales.deliveries.find((d) => d.number === n)!;
+  const ret = (n: string, qty: number[], reason = "Customer refused") => returnDelivery({ note: n, qty, reason });
+
+  it("puts the stock back and makes the goods left to dispatch again (SC-002)", async () => {
+    const stock = qtyAt("Bike Pump", "Main Store");
+    const r = await ret("DN-0001", [1]); // the seed note: 2 boxes delivered, nothing invoiced
+    expect(r).toMatchObject({ ok: true, message: "RTN-0001 recorded. 1 item back at Main Store.", value: { ref: "RTN-0001", reason: "Customer refused", by: "Tony Blaise" } });
+    expect(qtyAt("Bike Pump", "Main Store")).toBe(stock + 12); // a box is 12
+    expect(s().stock.movements[0]).toMatchObject({ ref: "RTN-0001", change: 12, store: "Main Store" });
+    expect(order("SO-0001").lines[0]).toMatchObject({ qty: 4, dispatched: 1, invoiced: 0 });
+    expect(note("DN-0001").returns).toHaveLength(1);
+    expect(returnable(note("DN-0001"), order("SO-0001"), note("DN-0001").lines[0]!)).toBe(1);
+  });
+
+  it("validates the return (SC-003)", async () => {
+    expect((await ret("DN-0001", [3])).message).toBe("You can return at most 2 Box of Bike Pump · Standard");
+    expect((await ret("DN-0001", [0])).message).toBe("Return at least one item");
+    expect((await ret("DN-0001", [1], "")).message).toBe("Pick a reason");
+    await ret("DN-0001", [2]);
+    expect(orderStatus(order("SO-0001")).label).toBe("Open");
+    expect((await ret("DN-0001", [1])).message).toBe("You can return at most 0 Box of Bike Pump · Standard");
+  });
+
+  it("does not take back goods that are already invoiced", async () => {
+    await invoiceOrder("SO-0001"); // the 2 dispatched boxes
+    expect((await ret("DN-0001", [1])).message).toBe("0 Bike Pump · Standard can be returned here. The rest is invoiced: raise a credit note from the invoice.");
+    expect(order("SO-0001").lines[0]).toMatchObject({ dispatched: 2, invoiced: 2 });
+  });
+
+  it("needs the dispatch right, and numbers returns across notes", async () => {
+    await ret("DN-0001", [1]);
+    await send("SO-0001", [1]);
+    const r = await ret("DN-0002", [1], "Wrong item");
+    expect(r.ok && r.value.ref).toBe("RTN-0002");
+    store.setState((x) => ({ session: { ...x.session, role: "cashier" } }));
+    expect((await ret("DN-0001", [1])).message).toBe("Your role can't dispatch sales orders.");
   });
 });

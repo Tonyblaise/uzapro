@@ -32,13 +32,14 @@ export function ModuleScreen({ moduleId, tabSlug }: { moduleId: ModuleId; tabSlu
   const pathname = usePathname();
   const step = params.get("step") ?? "";
   const stepNeed = params.get("confirm") === "delete" || params.get("cancel") === "1" ? "delete" : STEP_NEED[step];
-  const blocked = (!canWrite && (params.has("action") || params.has("edit"))) || (!!stepNeed && !has(access, stepNeed));
+  // `order` = convert a quotation to an order (feature 019).
+  const blocked = (!canWrite && (params.has("action") || params.has("edit") || params.has("order"))) || (!!stepNeed && !has(access, stepNeed));
 
   // Forms and void/delete steps opened from a link need Write / Delete (FR-011, research R4.2, R6).
   useEffect(() => {
     if (!blocked) return;
     const q = new URLSearchParams(params.toString());
-    for (const k of ["action", "edit", "step", "confirm", "cancel"]) q.delete(k);
+    for (const k of ["action", "edit", "order", "step", "confirm", "cancel"]) q.delete(k);
     const rest = q.toString();
     router.replace(rest ? `${pathname}?${rest}` : pathname, { scroll: false });
     showNotice(canWrite ? `Your role can't delete or void in ${m.name}.` : `Your role can only view ${m.name}.`);

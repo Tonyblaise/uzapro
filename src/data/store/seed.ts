@@ -227,7 +227,7 @@ export function createSeed(): AppState {
       })),
       targets: UZ_TARGETS.map((t) => ({ ...t }) as SalesTarget),
       orders: ORDER_SEED.map((o) => ({ ...o, lines: o.lines.map((l) => ({ ...l })), invoices: [...o.invoices] })),
-      deliveries: DELIVERY_SEED.map((d) => ({ ...d, lines: d.lines.map((l) => ({ ...l })) })),
+      deliveries: DELIVERY_SEED.map((d) => ({ ...d, lines: d.lines.map((l) => ({ ...l })), returns: [] })),
     },
     customers: CUSTOMER_ROWS.map(([name, phone, email, address, status]) => {
       const [group, creditLimit, terms] = CUSTOMER_CREDIT[name] ?? [RETAIL_GROUP, null, "30 days" as const];

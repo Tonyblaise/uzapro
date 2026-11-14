@@ -6,11 +6,11 @@ import { myApprovals } from "../approvals";
 import { creditGate, positionOf } from "../creditGate";
 import { termDays } from "../credit";
 import { WALK_IN } from "../fixtures/customers";
-import { canDispatch, canEditOrder, canInvoice, checkDispatch, itemName, orderTotals, toInvoice } from "../orders";
+import { canDispatch, canEditOrder, canInvoice, checkDispatch, checkReturn, itemName, orderTotals, toInvoice } from "../orders";
 import { currentUserName } from "../profile";
 import { getStore, showToast } from "../store";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
-import { fail, ok, type DeliveryNote, type Invoice, type NewDispatch, type NewOrder, type OrderLine, type Result, type SalesOrder } from "../types";
+import { fail, ok, type DeliveryNote, type DeliveryReturn, type Invoice, type NewDispatch, type NewOrder, type OrderLine, type Result, type SalesOrder } from "../types";
 import { createInvoice } from "./sales";
 
 const refuse = <T = never>(message: string): Result<T> => {
@@ -56,7 +56,14 @@ export async function createOrder(input: NewOrder): Promise<Result<SalesOrder>> 
     invoices: [],
     ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
-  store.setState((s) => ({ sales: { ...s.sales, orders: [order, ...s.sales.orders] } }));
+  store.setState((s) => ({
+    sales: {
+      ...s.sales,
+      orders: [order, ...s.sales.orders],
+      // Feature 019: an order converted from a quotation is recorded on the quotation.
+      quotations: input.convertedFrom ? s.sales.quotations.map((q) => (q.number === input.convertedFrom ? { ...q, convertedTo: order.number } : q)) : s.sales.quotations,
+    },
+  }));
   const message = `${order.number} saved.`;
   showToast(message);
   return ok(order, message);
@@ -117,6 +124,7 @@ export async function dispatchOrder(input: NewDispatch): Promise<Result<Delivery
     notes: input.notes.trim(),
     delivered: false,
     by,
+    returns: [],
   };
   store.setState((s) => ({
     ...applyStockChanges(s, changes),
@@ -176,6 +184,49 @@ export async function invoiceOrder(number: string): Promise<Result<Invoice>> {
     sales: { ...s.sales, orders: s.sales.orders.map((o) => (o.number === number ? { ...o, invoices: [...o.invoices, r.value.number], lines: o.lines.map((l) => ({ ...l, invoiced: l.dispatched })) } : o)) },
   }));
   return r;
+}
+
+/**
+ * Goods that came back from a delivery (feature 019): stock returns to the note's store and the
+ * order line is "left to dispatch" again. Only goods that are not yet invoiced can come back here.
+ */
+export async function returnDelivery(input: { note: string; qty: number[]; reason: string }): Promise<Result<DeliveryReturn>> {
+  const store = getStore();
+  const state = store.getState();
+  if (!myApprovals(state).dispatch) return refuse("Your role can't dispatch sales orders.");
+  const note = state.sales.deliveries.find((d) => d.number === input.note);
+  if (!note) return fail("That delivery note is not in the list.");
+  const order = state.sales.orders.find((o) => o.number === note.order);
+  const err = checkReturn(note, order, input.qty, input.reason);
+  if (err) return fail(err);
+  const by = currentUserName(state);
+  const ref = nextRef(state.sales.deliveries.flatMap((d) => d.returns.map((r) => r.ref)), "RTN-", 4);
+  const back = note.lines.map((l, i) => ({ l, q: input.qty[i] ?? 0 })).filter((x) => x.q > 0);
+  const ret: DeliveryReturn = { ref, date: DEMO_TODAY, by, reason: input.reason, lines: back.map(({ l, q }) => ({ product: l.product, variant: l.variant, unit: l.unit, qty: q })) };
+  const changes: StockChange[] = back.map(({ l, q }) => ({ product: l.product, variant: l.variant, store: note.store, change: q, kind: KIND.returned, ref, by, unit: l.unit }));
+  // Each returned quantity comes off the first matching order line(s), never below what is invoiced.
+  const left = new Map(back.map(({ l, q }) => [`${l.product}|${l.variant}|${l.unit}`, q]));
+  const relined = (lines: OrderLine[]): OrderLine[] =>
+    lines.map((ol) => {
+      const key = `${ol.product}|${ol.variant}|${ol.unit}`;
+      const take = Math.min(left.get(key) ?? 0, toInvoice(ol));
+      if (take <= 0) return ol;
+      left.set(key, (left.get(key) ?? 0) - take);
+      return { ...ol, dispatched: ol.dispatched - take };
+    });
+  const orders = state.sales.orders.map((o) => (o.number === note.order ? { ...o, lines: relined(o.lines) } : o));
+  store.setState((s) => ({
+    ...applyStockChanges(s, changes),
+    sales: {
+      ...s.sales,
+      deliveries: s.sales.deliveries.map((d) => (d.number === note.number ? { ...d, returns: [...d.returns, ret] } : d)),
+      orders,
+    },
+  }));
+  const items = back.reduce((a, x) => a + x.q, 0);
+  const message = `${ref} recorded. ${items} ${items === 1 ? "item" : "items"} back at ${note.store}.`;
+  showToast(message);
+  return ok(ret, message);
 }
 
 export { canDispatch, canEditOrder, canInvoice };

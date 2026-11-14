@@ -38,5 +38,6 @@ export const DELIVERY_SEED: readonly DeliveryNote[] = [
     receivedBy: "Amina Yusuf",
     deliveredAt: "8 Nov 2026, 15:20",
     by: "Tony Blaise",
+    returns: [],
   },
 ];

@@ -22,6 +22,7 @@ import { RowActions, type MenuItem } from "@/components/ui/Menu";
 import { ConfirmDialog } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { DocumentForm, type DocKind } from "./DocumentForm";
+import { OrderForm } from "./OrderForm";
 import { InvoicePayment, useInvoicePayable } from "./InvoicePayment";
 import { RecordView } from "./RecordView";
 import { VoidForm } from "./VoidForm";
@@ -97,18 +98,23 @@ function DocOverlays({ kind, docs }: { kind: "quote" | "invoice"; docs: Quotatio
   const editing = edit ? docs.find((d) => d.number === edit) : undefined;
   const payable = useInvoicePayable(view);
   const converting = convert ? docs.find((d) => d.number === convert) : undefined;
+  // Feature 019: `?order=<quotation>` opens the order form filled from that quotation.
+  const toOrder = params.get("order");
+  const ordering = kind === "quote" && toOrder ? docs.find((d) => d.number === toOrder && !d.convertedTo) : undefined;
   return (
     <>
       {action === kind && <DocumentForm kind={kind} onClose={close} />}
       {editing && <DocumentForm key={editing.number} kind={kind} edit={editing} onClose={close} />}
       {converting && <DocumentForm key={`c-${converting.number}`} kind="invoice" from={converting} convertFrom={converting.number} onClose={close} />}
-      {view && !step && (
+      {ordering && <OrderForm key={`o-${ordering.number}`} from={ordering} onClose={() => open({ view: ordering.number })} />}
+      {view && !step && !ordering && (
         <RecordView
           kind={kind}
           refId={view}
           onClose={close}
           onEdit={(d) => open({ edit: d.number })}
           onConvert={(d) => open({ convert: d.number })}
+          onConvertOrder={kind === "quote" ? (d) => open({ order: d.number }) : undefined}
           onVoid={(d) => open({ view: d.number, step: "void" })}
           onPay={kind === "invoice" && payable ? (d) => open({ view: d.number, step: "pay" }) : undefined}
         />

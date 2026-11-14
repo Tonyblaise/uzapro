@@ -202,3 +202,67 @@ test("a role with Read on Sales can view orders; Dispatch follows its own right 
   // The Accountant keeps "Dispatch sales orders", so Dispatch stays without Write on Sales.
   await expect(drawer(page).getByRole("button", { name: "Dispatch" })).toBeVisible();
 });
+
+test("a quotation converts to a sales order (feature 019, US1)", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await nav(page).getByRole("link", { name: "Sales", exact: true }).click();
+  await tab(page, "Quotations");
+  await page.getByRole("button", { name: "New quotation" }).click();
+  await pick(page, "Quotation to", "Mountain Goats");
+  await pick(page, "Add item", "Bike Pump · Standard");
+  const qline = drawer(page).getByRole("row").filter({ hasText: "Bike Pump · Standard" });
+  await qline.getByLabel("Quantity").fill("2");
+  await qline.getByLabel("Rate").fill("300");
+  await drawer(page).getByLabel("Discount", { exact: true }).fill("10");
+  await drawer(page).getByRole("button", { name: "discount type", exact: true }).click();
+  await page.getByRole("option", { name: "%", exact: true }).click();
+  await drawer(page).getByRole("button", { name: "Save and approve" }).click();
+  const saved = await toast(page).innerText();
+  const number = saved.match(/Q-\d+/)![0];
+
+  await row(page, number).click();
+  await drawer(page).getByRole("button", { name: "Convert to order" }).click();
+  const form = page.getByRole("dialog", { name: "New sales order" });
+  await expect(form).toContainText(`From ${number}`);
+  const line = form.getByRole("row").filter({ hasText: "Bike Pump · Standard" });
+  await expect(line.getByLabel("Quantity")).toHaveValue("2");
+  await expect(line.getByLabel("Rate")).toHaveValue("270"); // 300 less the 10% discount
+  await form.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(toast(page)).toHaveText("SO-0002 saved.");
+  await expect(drawer(page)).toContainText("SO-0002");
+  for (const name of ["Convert to order", "Convert to invoice"]) await expect(drawer(page).getByRole("button", { name })).toHaveCount(0);
+  await drawer(page).getByRole("button", { name: "Close" }).first().click();
+  await tab(page, "Sales orders");
+  for (const text of ["Mountain Goats", "Open", "540"]) await expect(row(page, "SO-0002")).toContainText(text);
+});
+
+test("goods returned from a delivery go back into stock and onto the order (feature 019, US2)", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await page.goto("/sales/deliveries?view=DN-0001");
+  await drawer(page).getByRole("button", { name: "Record return" }).click();
+  await expect(drawer(page)).toContainText("Can return 2 Box");
+  await drawer(page).getByLabel("Return now: Bike Pump · Standard").fill("1");
+  await drawer(page).getByRole("button", { name: "Confirm return" }).click();
+  await expect(drawer(page).getByRole("alert")).toHaveText("Pick a reason");
+  await pick(page, "Reason", "Customer refused");
+  await drawer(page).getByLabel("Return now: Bike Pump · Standard").fill("3");
+  await drawer(page).getByRole("button", { name: "Confirm return" }).click();
+  await expect(drawer(page).getByRole("alert")).toHaveText("You can return at most 2 Box of Bike Pump · Standard");
+  await drawer(page).getByLabel("Return now: Bike Pump · Standard").fill("1");
+  await drawer(page).getByRole("button", { name: "Confirm return" }).click();
+  await expect(toast(page)).toHaveText("RTN-0001 recorded. 1 item back at Main Store.");
+  await expect(drawer(page)).toContainText("RTN-0001 · 10 Nov 2026 · Customer refused");
+  await expect(drawer(page)).toContainText("1 Box of Bike Pump · Standard");
+
+  // The order shows the box as still to dispatch, and stock is 30 + 12.
+  await drawer(page).getByRole("link", { name: "SO-0001" }).click();
+  const line = drawer(page).getByRole("row").filter({ hasText: "Bike Pump · Standard" });
+  await expect(line.getByRole("cell").nth(3)).toHaveText("1");
+  await expect(line.getByRole("cell").nth(4)).toHaveText("3");
+  await drawer(page).getByRole("button", { name: "Close" }).click();
+  await nav(page).getByRole("link", { name: "Stock" }).click();
+  await tab(page, "Reorder");
+  await expect(row(page, "Bike Pump")).toContainText("42");
+});
