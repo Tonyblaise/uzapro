@@ -309,7 +309,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
               ["M-Pesa", "Paid now. Add the M-Pesa code under Payment reference (optional)."],
               ["Cash", "Paid now."],
               ["Card", "Paid now. Add the card slip number as the reference."],
-              ["Pay later (credit)", "Nothing is paid now. The total is added to Receivables, due in 30 days."],
+              ["Pay later (credit)", "Nothing is paid now. The total is added to Receivables, due after the customer's payment terms (30 days unless you change them)."],
             ],
           },
           { kind: "p", text: "Choose **Record sale**. The message reads, for example, **Sale recorded. KES 4,802.40 paid by M-Pesa.** A credit sale starts with **Credit sale recorded.** and names the receivable it added." },
@@ -962,5 +962,167 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
       NEED_HELP,
     ],
     related: ["setting-up-a-pos-terminal", "moving-stock-between-stores"],
+  },
+  {
+    id: "wholesale-prices-and-credit-limits",
+    title: "Wholesale prices and credit limits",
+    category: "selling",
+    updated: "2026-11-14",
+    intro: [
+      "Give each kind of customer its own prices, and decide how much each customer can owe you. UzaPro then fills in the right price on a sale and stops credit that goes too far.",
+      "**Who can do this:** anyone with Write on Products can change price lists, and anyone with Write on Customers can change groups, limits and terms.",
+    ],
+    sections: [
+      {
+        heading: "Put customers in groups",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "Every customer belongs to one group. UzaPro starts with **Retail**, **Wholesale** and **Distributor**. Retail customers, including walk-in customers, pay your standard prices." },
+          {
+            kind: "ol",
+            items: [
+              "Go to Customers › Customer groups and choose **New group** to add a group, for example Schools.",
+              "Go to Customers › Customers and select a customer.",
+              "Pick the **Customer group**, then choose **Save**.",
+            ],
+          },
+          { kind: "links", screens: [{ label: "Open Customers › Customer groups", module: "cust", tab: "customer-groups" }] },
+        ],
+      },
+      {
+        heading: "Set a group's prices",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Products › Price lists and pick the group's list.",
+              "Choose **Add price**, then pick the **Product**, the **Product variant** and the **Unit of measure**.",
+              "Enter a **From quantity** and a **Price (KES)**. Use **Add a quantity break** for a lower price at a higher quantity, for example from 5 cartons.",
+              "Choose **Save**. The message reads **Price saved.**",
+            ],
+          },
+          { kind: "p", text: "On a sale, quotation, invoice or at the till, the price fills in when you pick a customer in that group, and the line shows, for example, **Wholesale price**. A quantity below the first break keeps the standard price." },
+          { kind: "note", tone: "info", text: "A price you type by hand is kept. Choose **Use Wholesale price** to go back to the list price." },
+          { kind: "links", screens: [{ label: "Open Products › Price lists", module: "prod", tab: "price-lists" }] },
+        ],
+      },
+      {
+        heading: "Set a credit limit and payment terms",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Customers › Customers and select the customer.",
+              "Enter the **Credit limit (KES) (optional)**. Leave it blank for no limit.",
+              "Pick the **Payment terms**: Cash, 7 days, 14 days or 30 days.",
+              "Choose **Save**.",
+            ],
+          },
+          { kind: "p", text: "The **Credit** panel on the customer shows the limit, the balance owed, the available credit and anything overdue." },
+          {
+            kind: "table",
+            head: ["UzaPro stops a credit sale when", "What you see"],
+            rows: [
+              ["The customer is on cash terms", "The customer's name, then: is on cash terms"],
+              ["The customer has an overdue balance", "The overdue amount and the oldest overdue document"],
+              ["The sale would go over the limit", "Over the credit limit, with the amount over"],
+            ],
+          },
+          { kind: "p", text: "Someone with Write on Receivables, such as the Owner or the Accountant, can choose **Approve anyway** and give a reason. The sale then shows who approved it." },
+          { kind: "links", screens: [{ label: "Open Customers", module: "cust", tab: "customers" }, { label: "Open Receivables", module: "rcv", tab: "receivables" }] },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "Why did the price not change for my wholesale customer?", a: ["The list may have no price for that variant and unit, or the quantity is below the first break. The line then shows, for example, **Wholesale price from 2 Tray**."] },
+          { kind: "faq", q: "Does a quotation check the credit limit?", a: ["No. The check runs when you record a credit sale, save a new invoice or choose **Pay later** at the till."] },
+          { kind: "faq", q: "A cashier cannot approve a stopped sale. Why?", a: ["Only roles with Write on Receivables can approve. The cashier can take another payment method or ask a manager."] },
+          { kind: "links", articles: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment"],
+  },
+  {
+    id: "sales-orders-and-deliveries",
+    title: "Sales orders and deliveries",
+    category: "selling",
+    updated: "2026-11-14",
+    intro: [
+      "Use a sales order when a customer orders goods that you will deliver later, in one trip or several. Stock leaves when you dispatch, and the customer is invoiced for what was sent.",
+      "**Who can do this:** anyone with Write on Sales. Cancelling an order needs Delete on Sales.",
+    ],
+    sections: [
+      {
+        heading: "Take the order",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Sales › Sales orders and choose **New order**.",
+              "Pick the **Customer**, the store to **Dispatch from**, and the **Deliver by** date.",
+              "Use **Add item** for each product, then set the quantity and the unit. The rate fills in from the customer's price list.",
+              "Choose **Save**. The message reads, for example, **SO-0002 saved.**",
+            ],
+          },
+          { kind: "note", tone: "info", text: "Saving an order does not move stock and the customer owes nothing yet. The credit limit is checked when you save, and the order counts against the limit until it is invoiced or cancelled." },
+          { kind: "links", screens: [{ label: "Open Sales › Sales orders", module: "sales", tab: "sales-orders" }] },
+        ],
+      },
+      {
+        heading: "Dispatch the goods",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Open the order and choose **Dispatch**.",
+              "Check **Send now** for each item. Lower it if you are sending part of the order.",
+              "Enter the **Driver** and the **Vehicle registration**, then choose **Confirm dispatch**.",
+            ],
+          },
+          { kind: "p", text: "UzaPro creates a delivery note, for example **DN-0002**, and takes the items out of the store. The order shows **Part dispatched** until everything has been sent." },
+          { kind: "p", text: "When the goods arrive, open the delivery note under Sales › Deliveries, choose **Mark delivered** and enter who received them." },
+          { kind: "links", screens: [{ label: "Open Sales › Deliveries", module: "sales", tab: "deliveries" }] },
+        ],
+      },
+      {
+        heading: "Invoice what was sent",
+        level: 2,
+        blocks: [
+          { kind: "p", text: "Open the order and choose **Create invoice**. The invoice covers the items dispatched so far that are not yet invoiced, and it is added to Receivables. Stock does not move again." },
+          {
+            kind: "table",
+            head: ["Order status", "What it means"],
+            rows: [
+              ["Open", "Nothing has been dispatched."],
+              ["Part dispatched", "Some items are still to send."],
+              ["Dispatched", "Everything has been sent."],
+              ["Invoiced", "Everything has been sent and invoiced."],
+              ["Cancelled", "The order was cancelled before anything was sent."],
+            ],
+          },
+          { kind: "links", screens: [{ label: "Open Sales › Invoices", module: "sales", tab: "invoices" }] },
+        ],
+      },
+      {
+        heading: "Frequently asked questions",
+        level: 2,
+        blocks: [
+          { kind: "faq", q: "Can I change an order after sending part of it?", a: ["No. An order can be edited or cancelled only while nothing has been dispatched."] },
+          { kind: "faq", q: "What if the store does not have enough stock?", a: ["The dispatch is refused and says how many are left, for example **Only 3 Bike Pump left at Main Store.** Lower **Send now** or move stock in first."] },
+          { kind: "faq", q: "The customer returned some items. What do I do?", a: ["Raise a credit note from the invoice. See How to give a refund."] },
+          { kind: "links", articles: ["how-to-give-a-refund", "wholesale-prices-and-credit-limits"] },
+        ],
+      },
+      NEED_HELP,
+    ],
+    related: ["wholesale-prices-and-credit-limits", "sending-an-invoice-and-recording-its-payment", "moving-stock-between-stores"],
   },
 ];

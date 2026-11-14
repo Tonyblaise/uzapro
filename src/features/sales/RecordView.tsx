@@ -206,7 +206,7 @@ export function RecordView({
         vat: money(vat),
         cost: cost ? money(cost) : "—",
         reason: docDate(doc.due || addDays(doc.date || "2026-11-01", 30)),
-        notes: doc.notes || doc.terms || "—",
+        notes: [doc.notes || doc.terms, doc.creditApproval ? `Credit approved by ${doc.creditApproval.by}: ${doc.creditApproval.reason}` : ""].filter(Boolean).join(" · ") || "—",
         effects:
           kind === "quote"
             ? [

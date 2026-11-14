@@ -2,7 +2,7 @@
 import { Can } from "@/components/ui/Can";
 /** Sale record (design `isPosView`): opened by `?view=SAL-…` on All sales. */
 import type { ReactNode } from "react";
-import { downloadPdf, printDocument } from "@/data";
+import { downloadPdf, printDocument, useSales } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Drawer } from "@/components/ui/Overlay";
@@ -24,6 +24,8 @@ const GRID_PAYS = { gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1
 
 export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; onClose: () => void; onCredit: () => void; onVoid: () => void }) {
   const found = useSaleDoc(refId);
+  // Feature 012: set when a credit stop was approved for this sale.
+  const approval = useSales().find((s) => s.ref === refId)?.creditApproval;
   if (!found) {
     return (
       <Drawer open title={`Sale ${refId}`} subtitle="Sales" onClose={onClose} width={9999}>
@@ -198,6 +200,11 @@ export function SaleView({ refId, onClose, onCredit, onVoid }: { refId: string; 
                 tone={doc.closedAt ? "text-text" : "text-warning-text"}
                 sub={doc.closedAt ? doc.who : "Waiting for payment"}
               />
+              {approval && (
+                <div className="col-span-2">
+                  <Fact label="Credit approved by" value={`${approval.by}: ${approval.reason}`} sub={approval.at} />
+                </div>
+              )}
             </Panel>
           </div>
         </div>

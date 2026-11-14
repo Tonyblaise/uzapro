@@ -4,6 +4,9 @@
  */
 import { parseAmount } from "@/lib/format";
 import { seedPermissions } from "../permissions";
+import { RETAIL_GROUP, seedPricing } from "../pricing";
+import { CUSTOMER_CREDIT } from "../fixtures/pricing";
+import { DELIVERY_SEED, ORDER_SEED } from "../fixtures/orders";
 import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
 import { CUSTOMER_ROWS } from "../fixtures/customers";
@@ -215,8 +218,13 @@ export function createSeed(): AppState {
         amount: parseAmount(amount),
       })),
       targets: UZ_TARGETS.map((t) => ({ ...t }) as SalesTarget),
+      orders: ORDER_SEED.map((o) => ({ ...o, lines: o.lines.map((l) => ({ ...l })), invoices: [...o.invoices] })),
+      deliveries: DELIVERY_SEED.map((d) => ({ ...d, lines: d.lines.map((l) => ({ ...l })) })),
     },
-    customers: CUSTOMER_ROWS.map(([name, phone, email, address, status]) => ({ name, phone, email, address, status: { ...status } })),
+    customers: CUSTOMER_ROWS.map(([name, phone, email, address, status]) => {
+      const [group, creditLimit, terms] = CUSTOMER_CREDIT[name] ?? [RETAIL_GROUP, null, "30 days" as const];
+      return { name, phone, email, address, status: { ...status }, group, creditLimit, terms };
+    }),
     suppliers: SUPPLIER_ROWS.map(
       ([name, type, phone, email, town, status]): Supplier => ({
         name,
@@ -244,6 +252,7 @@ export function createSeed(): AppState {
     ai: seedAi(),
     pos: seedPos(),
     permissions: seedPermissions(),
+    pricing: seedPricing(),
   };
 }
 
@@ -542,7 +551,7 @@ export function posUiDefault(termId = 1, who = ""): PosUi {
     cq: "",
     nc: { name: "", phone: "" },
     ncErr: "",
-    co: { pays: [], method: "Cash", amt: null, ref: "", phone: "", mpesa: "", note: "", notify: { Print: true, SMS: false, Email: false }, err: "" },
+    co: { pays: [], method: "Cash", amt: null, ref: "", phone: "", mpesa: "", note: "", notify: { Print: true, SMS: false, Email: false }, err: "", approval: "" },
     rcpt: null,
     fresh: false,
     count: "",

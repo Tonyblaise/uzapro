@@ -2,6 +2,8 @@
 /** The till's cart (design `aside`): customer, barcode box, lines with notes, totals, Hold and Charge. */
 import {
   WALK_IN,
+  groupName,
+  useCustomerGroups,
   changeLine,
   charge,
   clearCart,
@@ -30,6 +32,7 @@ export function Cart() {
   const { ui, settings } = usePos();
   const { variantStock } = usePosTill();
   const customers = useCustomers();
+  const groups = useCustomerGroups();
   const rcv = useReceivables();
   const t = posTotals(ui.cart, ui.discVal, ui.discType);
   const walkIn = ui.cust === WALK_IN;
@@ -111,6 +114,7 @@ export function Cart() {
                     {l.variant && l.variant !== "Standard" ? `${l.variant} · ` : ""}
                     {posK(l.price)} each
                   </div>
+                  {l.group && <div className="type-caption mt-0.5 text-green-700">{groupName(groups, l.group)} price</div>}
                   {l.qty > left && <div className="type-caption mt-0.5 text-warning-text">Only {left} in stock here</div>}
                   {!!l.note?.trim() && !editing && <div className="type-caption mt-0.5 text-info-text">Note: {l.note}</div>}
                 </div>

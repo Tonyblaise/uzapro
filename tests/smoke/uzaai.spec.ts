@@ -233,9 +233,9 @@ test("Features: roadmap, voting and sharing an idea (quickstart 9)", async ({ pa
   await loginAs(page, "owner");
   await openPanel(page);
   await panel(page).getByRole("tab", { name: "Features" }).click();
-  await expect(panel(page).getByRole("heading", { name: "Planned (3)" })).toBeVisible();
+  await expect(panel(page).getByRole("heading", { name: "Planned (2)" })).toBeVisible();
   await expect(panel(page).getByRole("heading", { name: "In progress (1)" })).toBeVisible();
-  await expect(panel(page).getByRole("heading", { name: "Done (1)" })).toBeVisible();
+  await expect(panel(page).getByRole("heading", { name: "Done (2)" })).toBeVisible();
 
   await panel(page).getByRole("tab", { name: "Browse" }).click();
   const cards = panel(page).getByRole("article");

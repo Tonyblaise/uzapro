@@ -1,3 +1,5 @@
+import type { CreditStop } from "./pricing";
+
 export type Tone = "success" | "warning" | "danger" | "info" | "neutral";
 
 export interface Pill {
@@ -5,10 +7,10 @@ export interface Pill {
   tone: Tone;
 }
 
-export type Result<T> = { ok: true; value: T; message: string } | { ok: false; message: string };
+export type Result<T> = { ok: true; value: T; message: string } | { ok: false; message: string; /** Set when a credit check stopped the sale (feature 012). */ stop?: CreditStop };
 
 export const ok = <T>(value: T, message = ""): Result<T> => ({ ok: true, value, message });
-export const fail = <T = never>(message: string): Result<T> => ({ ok: false, message });
+export const fail = <T = never>(message: string, stop?: CreditStop): Result<T> => ({ ok: false, message, ...(stop ? { stop } : {}) });
 
 export type RoleId = "owner" | "accountant" | "cashier" | "store";
 

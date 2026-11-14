@@ -1,5 +1,6 @@
 "use client";
 /** The till's dialogs (design `mVar`, `mCust`, `mNewCust`, `mPay`, `mRcpt`, `mSet`, `mClose`). */
+import { useState } from "react";
 import {
   WALK_IN,
   addPartPayment,
@@ -10,6 +11,9 @@ import {
   closeDiff,
   closeModal,
   completePosSale,
+  setCreditApproval,
+  termDays,
+  useTillCreditStop,
   confirmCloseShift,
   expectedCash,
   initialsOf,
@@ -55,6 +59,7 @@ import { Icon, type IconName } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
 import { useDialog } from "@/components/ui/Overlay";
+import { CreditStop } from "@/features/customers";
 import { Eyebrow, PosDialog } from "./shared";
 
 export function Dialogs() {
@@ -236,10 +241,28 @@ const PAD = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "del"];
 function CheckoutDialog() {
   const { ui } = usePos();
   const { co } = ui;
+  // Feature 012: Pay later is checked against the customer's terms, overdue balance and limit.
+  const stop = useTillCreditStop();
+  const [showStop, setShowStop] = useState(false);
+  const custTerms = useCustomers().find((c) => c.name === ui.cust)?.terms;
+  const dueDays = custTerms && custTerms !== "Cash" ? termDays(custTerms) : 30;
   const t = posTotals(ui.cart, ui.discVal, ui.discType);
   const walkIn = ui.cust === WALK_IN;
   const f = checkoutFigures(co, t.total, walkIn);
   const owing = t.total - f.totalPaid - f.creditPart > 0.001;
+  if (showStop && stop)
+    return (
+      <CreditStop
+        overTill
+        stop={stop}
+        onClose={() => setShowStop(false)}
+        onApprove={(reason) => {
+          setCreditApproval(reason);
+          setShowStop(false);
+          completePosSale();
+        }}
+      />
+    );
   return (
     <PosDialog title="Checkout" sub={`${t.count} ${t.count === 1 ? "item" : "items"} · ${ui.cust}`} width={920} onClose={closeModal}>
       <div className="uz-co grid min-h-0" style={{ gridTemplateColumns: "minmax(0,1fr) minmax(0,1.25fr)" }}>
@@ -314,7 +337,7 @@ function CheckoutDialog() {
           </div>
           {f.isCredit && (
             <div className={`type-small rounded-[12px] px-4 py-3 ${walkIn ? "bg-danger-soft text-danger-text" : "bg-warning-soft text-warning-text"}`}>
-              {walkIn ? "Pick a named customer first. Walk-in customers can't buy on credit." : `${posK(f.remaining)} will be added to ${ui.cust}'s balance in Receivables, due in 30 days.`}
+              {walkIn ? "Pick a named customer first. Walk-in customers can't buy on credit." : `${posK(f.remaining)} will be added to ${ui.cust}'s balance in Receivables, due in ${dueDays} days.`}
             </div>
           )}
           {!f.isCredit && (
@@ -411,7 +434,7 @@ function CheckoutDialog() {
           )}
           <button
             type="button"
-            onClick={() => completePosSale()}
+            onClick={() => (f.isCredit && stop && !co.approval ? setShowStop(true) : completePosSale())}
             className="mt-auto flex h-14 items-center justify-between rounded-[14px] border-0 px-5 text-[17px] font-bold text-white"
             style={{ background: f.covered ? "linear-gradient(135deg,var(--green-500),var(--green-700))" : "var(--green-200)" }}
           >

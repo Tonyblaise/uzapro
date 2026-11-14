@@ -1,6 +1,21 @@
 /** Customer commands (FR-025). Messages from the design (`custStore`). */
 import { fail, ok, type Customer, type NewCustomer, type Result } from "../types";
 import { getStore, showToast } from "../store";
+import { WALK_IN } from "../fixtures/customers";
+import { RETAIL_GROUP } from "../pricing";
+import { PAY_TERMS } from "../credit";
+import type { AppState } from "../store/state";
+
+/** Feature 012: the group, limit and terms to store. The walk-in customer is always Retail with no limit. */
+function creditFields(s: AppState, name: string, input: NewCustomer, cur?: Customer): Pick<Customer, "group" | "creditLimit" | "terms"> | string {
+  const base = { group: cur?.group ?? RETAIL_GROUP, creditLimit: cur?.creditLimit ?? null, terms: cur?.terms ?? ("30 days" as const) };
+  if (name === WALK_IN || cur?.name === WALK_IN) return { group: RETAIL_GROUP, creditLimit: null, terms: "30 days" };
+  const limit = input.creditLimit === undefined ? base.creditLimit : input.creditLimit;
+  if (limit !== null && !(Number.isFinite(limit) && limit >= 0)) return "Enter an amount of 0 or more";
+  const group = input.group && s.pricing.groups.some((g) => g.id === input.group) ? input.group : base.group;
+  const terms = input.terms && PAY_TERMS.includes(input.terms) ? input.terms : base.terms;
+  return { group, creditLimit: limit, terms };
+}
 
 const dash = (v: string) => v.trim() || "—";
 
@@ -13,7 +28,10 @@ export async function createCustomer(input: NewCustomer): Promise<Result<Custome
     showToast(m);
     return fail(m);
   }
+  const extra = creditFields(store.getState(), name, input);
+  if (typeof extra === "string") return fail(extra);
   const customer: Customer = {
+    ...extra,
     name,
     phone: dash(input.phone),
     email: dash(input.email),
@@ -40,7 +58,9 @@ export async function updateCustomer(original: string, input: NewCustomer): Prom
     showToast(m);
     return fail(m);
   }
-  const updated: Customer = { ...cur, name, phone: dash(input.phone), email: dash(input.email), address: dash(input.address) };
+  const extra = creditFields(store.getState(), name, input, cur);
+  if (typeof extra === "string") return fail(extra);
+  const updated: Customer = { ...cur, ...extra, name, phone: dash(input.phone), email: dash(input.email), address: dash(input.address) };
   const fix = <T extends { customer: string }>(rows: T[]): T[] => (name === original ? rows : rows.map((r) => (r.customer === original ? { ...r, customer: name } : r)));
   store.setState((s) => ({
     customers: s.customers.map((c) => (c === cur ? updated : c)),
@@ -51,6 +71,8 @@ export async function updateCustomer(original: string, input: NewCustomer): Prom
       invoices: fix(s.sales.invoices),
       creditNotes: fix(s.sales.creditNotes),
       voids: fix(s.sales.voids),
+      orders: fix(s.sales.orders),
+      deliveries: fix(s.sales.deliveries),
     },
   }));
   const message = `${name} saved.`;

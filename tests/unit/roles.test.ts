@@ -7,10 +7,10 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   it("owner sees every module and tab", () => {
     // 21 with Point of sale (feature 010).
     expect(visibleModules(ROLES.owner)).toHaveLength(21);
-    expect(tabs("owner", "sales")).toHaveLength(7);
+    expect(tabs("owner", "sales")).toHaveLength(9); // + Sales orders and Deliveries (feature 013)
   });
   it("accountant: sales without quotations, no products or stock", () => {
-    expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "invoices", "refunds-credit-notes", "voided-items", "sales-targets"]);
+    expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "refunds-credit-notes", "voided-items", "sales-targets"]);
     expect(canSee(ROLES.accountant, "prod")).toBe(false);
     expect(canSee(ROLES.accountant, "inv")).toBe(false);
     expect(canSee(ROLES.accountant, "cust")).toBe(true);
@@ -24,7 +24,7 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
     expect(canSee(ROLES.cashier, "prod")).toBe(false);
   });
   it("store keeper: products and stock, no sales or customers", () => {
-    expect(tabs("store", "prod")).toHaveLength(4);
+    expect(tabs("store", "prod")).toHaveLength(5); // + Price lists (feature 012)
     expect(tabs("store", "inv")).toHaveLength(5);
     expect(canSee(ROLES.store, "sales")).toBe(false);
     expect(canSee(ROLES.store, "cust")).toBe(false);

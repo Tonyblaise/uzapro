@@ -1,5 +1,6 @@
 import type { Pill } from "./common";
 import type { Discount } from "@/lib/totals";
+import type { CreditApproval, PayTerms } from "./pricing";
 
 export interface Customer {
   name: string;
@@ -7,6 +8,11 @@ export interface Customer {
   email: string;
   address: string;
   status: Pill;
+  /** Customer group id (feature 012). The walk-in customer is always Retail. */
+  group: string;
+  /** KES; null = no limit. */
+  creditLimit: number | null;
+  terms: PayTerms;
 }
 
 export interface NewCustomer {
@@ -14,6 +20,10 @@ export interface NewCustomer {
   phone: string;
   email: string;
   address: string;
+  /** Feature 012: left out = keep (edit) or the defaults (new). */
+  group?: string;
+  creditLimit?: number | null;
+  terms?: PayTerms;
 }
 
 export interface SaleLine {
@@ -50,6 +60,8 @@ export interface Sale {
   by: string;
   /** True for sales recorded during this session (their stock returns on void). */
   session: boolean;
+  /** Set when a credit stop was approved (feature 012). */
+  creditApproval?: CreditApproval;
 }
 
 export interface NewSale {
@@ -57,6 +69,8 @@ export interface NewSale {
   lines: SaleLine[];
   payMethod: string; // one of UZ_PAYMETHODS or "Pay later (credit)"
   payRef?: string;
+  /** Approval of a credit stop (feature 012). */
+  approval?: { reason: string };
 }
 
 export interface DocLine {
@@ -85,6 +99,8 @@ export interface Quotation {
   pay?: string;
   /** Quotations: the invoice it was converted to. */
   convertedTo?: string;
+  /** Invoices: set when a credit stop was approved (feature 012). */
+  creditApproval?: CreditApproval;
 }
 
 export interface Invoice extends Omit<Quotation, "number"> {
@@ -108,6 +124,8 @@ export interface NewDocument {
   approve?: boolean;
   /** Quotation number this invoice is converted from. */
   convertedFrom?: string;
+  /** Invoices: approval of a credit stop (feature 012). */
+  approval?: { reason: string };
 }
 
 /** The design's credit-note variant of the document form (`qKind === 'credit'`). */
@@ -238,6 +256,8 @@ export interface PosCartLine {
   price: number;
   qty: number;
   note?: string;
+  /** Group id when the price comes from a price list (feature 012). */
+  group?: string;
 }
 
 export interface PosHeld {
@@ -296,6 +316,8 @@ export interface PosCheckout {
   note: string;
   notify: PosNotify;
   err: string;
+  /** Reason typed when approving a credit stop (feature 012). */
+  approval: string;
 }
 
 export interface PosUi {

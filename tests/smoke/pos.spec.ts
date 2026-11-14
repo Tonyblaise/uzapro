@@ -121,7 +121,7 @@ test("a till sale reaches Sales, stock and accounts; split and pay later (quicks
   await expect(dialog(page, "Sale complete")).toContainText("M-Pesa SKTEST1234");
   await dialog(page, "Sale complete").getByRole("button", { name: "New sale" }).click();
 
-  // Pay later: refused for a walk-in, accepted for a named customer.
+  // Pay later: refused for a walk-in, accepted for a named customer with credit available (feature 012: Morningview Bicycles is overdue).
   await page.getByRole("button", { name: "Add Bike Pump" }).click();
   await page.getByRole("button", { name: /^Charge/ }).click();
   await co.getByRole("button", { name: "Pay later" }).click();
@@ -130,10 +130,10 @@ test("a till sale reaches Sales, stock and accounts; split and pay later (quicks
   await expect(co.getByRole("alert")).toHaveText("Pick a named customer to sell on credit.");
   await co.getByRole("button", { name: "Close" }).click();
   await cart(page).getByRole("button", { name: /Walk-in Customer/ }).click();
-  await dialog(page, "Who is this sale for?").getByRole("button", { name: /Morningview Bicycles/ }).click();
+  await dialog(page, "Who is this sale for?").getByRole("button", { name: /Mountain Goats/ }).click();
   await page.getByRole("button", { name: /^Charge/ }).click();
   await co.getByRole("button", { name: "Pay later" }).click();
-  await expect(co).toContainText("will be added to Morningview Bicycles's balance in Receivables, due in 30 days.");
+  await expect(co).toContainText("will be added to Mountain Goats's balance in Receivables, due in 30 days.");
   await co.getByRole("button", { name: "Complete on credit" }).click();
   await dialog(page, "Sale complete").getByRole("button", { name: "New sale" }).click();
 
@@ -142,7 +142,7 @@ test("a till sale reaches Sales, stock and accounts; split and pay later (quicks
   page = main;
   await nav(page).getByRole("link", { name: "Sales", exact: true }).click();
   await page.getByRole("navigation", { name: "Sections" }).getByRole("link", { name: "All sales", exact: true }).click();
-  await expect(page.getByRole("row").nth(1)).toContainText("Morningview Bicycles");
+  await expect(page.getByRole("row").nth(1)).toContainText("Mountain Goats");
   await expect(page.getByRole("row").nth(3)).toContainText("1,984");
   await nav(page).getByRole("link", { name: "Receivables" }).click();
   await page.getByRole("navigation", { name: "Sections" }).getByRole("link", { name: "Receivables", exact: true }).click();

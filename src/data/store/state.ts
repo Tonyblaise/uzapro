@@ -1,5 +1,8 @@
 import type {
+  DeliveryNote,
+  SalesOrder,
   PermissionsState,
+  PricingState,
   PosState,
   ReportPeriod,
   AiChat,
@@ -86,6 +89,10 @@ export interface SalesState {
   creditNotes: CreditNote[];
   voids: VoidRecord[];
   targets: SalesTarget[];
+  /** Sales orders, newest first (feature 013). */
+  orders: SalesOrder[];
+  /** Delivery notes, newest first (feature 013). */
+  deliveries: DeliveryNote[];
 }
 
 export interface UiState {
@@ -185,6 +192,8 @@ export interface AppState {
   pos: PosState;
   /** Role definitions and per-module access (feature 011). */
   permissions: PermissionsState;
+  /** Customer groups and price lists (feature 012). */
+  pricing: PricingState;
 }
 
 export type AiTab = "chat" | "support" | "features";

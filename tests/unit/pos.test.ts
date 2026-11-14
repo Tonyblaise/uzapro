@@ -133,13 +133,14 @@ describe("completing a sale (design posApplySale)", () => {
 
   it("pay later for a named customer adds a receivable", () => {
     tapProduct("Bike Pump");
-    pickCustomer("Morningview Bicycles");
+    // Mountain Goats has credit available; Morningview Bicycles is overdue and is stopped (feature 012).
+    pickCustomer("Mountain Goats");
     charge();
     setPayMethod("Credit");
     completePosSale();
     const s = store.getState();
     expect(s.sales.sales[0]!.status.label).toBe("Unpaid");
-    expect(s.money.receivables[0]).toMatchObject({ party: "Morningview Bicycles", type: "Sale on credit", doc: "SAL-001185", total: 345 });
+    expect(s.money.receivables[0]).toMatchObject({ party: "Mountain Goats", type: "Sale on credit", doc: "SAL-001185", total: 345 });
   });
 
   it("blocks over-payment by card and uncovered sales", () => {

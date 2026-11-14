@@ -127,9 +127,9 @@ describe("feature ideas", () => {
   it("counts the user's vote and builds the roadmap", () => {
     expect(ideaVotes(ideas.find((i) => i.id === "i6")!, votes)).toBe(159);
     expect(roadmap(ideas).map((g) => [g.status, g.ideas.length])).toEqual([
-      ["Planned", 3],
+      ["Planned", 2],
       ["In progress", 1],
-      ["Done", 1],
+      ["Done", 2], // + wholesale price lists (feature 012)
     ]);
   });
 

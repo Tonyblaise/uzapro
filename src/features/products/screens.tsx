@@ -1,5 +1,6 @@
 import type { ScreenMap } from "../types";
 import { CategoryActions, CategoryList } from "./CategoryList";
+import { PriceListActions, PriceLists } from "./PriceLists";
 import { ProductActions, ProductList } from "./ProductList";
 import { OverviewActions, ProductsOverview } from "./ProductsOverview";
 import { UnitActions, UnitList } from "./UnitList";
@@ -10,4 +11,5 @@ export const productsScreens: ScreenMap = {
   "all-products": { Body: ProductList, Actions: ProductActions },
   categories: { Body: CategoryList, Actions: CategoryActions },
   "units-of-measure": { Body: UnitList, Actions: UnitActions },
+  "price-lists": { Body: PriceLists, Actions: PriceListActions },
 };

@@ -2,6 +2,8 @@
 /**
  * Quotation / invoice / credit note form (design `isQuoteForm`, switched by `qKind`).
  * Opened by `?action=quote`, `?action=invoice` and `?action=credit`, and by Edit / Convert to invoice.
+ * Feature 012: on quotations and invoices, lines take the customer's group price, and a new
+ * invoice is checked against the customer's terms, overdue balance and limit.
  */
 import { useMemo, useState } from "react";
 import {
@@ -11,6 +13,10 @@ import {
   createCreditDocument,
   createInvoice,
   createQuotation,
+  splitKey,
+  termDays,
+  useCreditCheck,
+  usePricer,
   unitList,
   updateDocument,
   useCreditNotes,
@@ -23,6 +29,7 @@ import {
   useStores,
   useUnits,
   WALK_IN,
+  type CreditStop as Stop,
   type DocLine,
   type Quotation,
 } from "@/data";
@@ -34,7 +41,7 @@ import { Drawer } from "@/components/ui/Overlay";
 import { SearchSelect } from "@/components/ui/SearchSelect";
 import { addDays } from "@/lib/demo-clock";
 import { nextRef } from "@/lib/refs";
-import { CustomerForm } from "@/features/customers";
+import { CreditStop, CustomerForm } from "@/features/customers";
 import { money } from "./shared";
 
 export type DocKind = "quote" | "invoice" | "credit";
@@ -46,12 +53,18 @@ interface QLine {
   qty: string;
   unit: string;
   price: string;
+  /** The rate was typed, or comes from a saved document: it is never repriced (research R4). */
+  hand: boolean;
 }
 
 let qId = 0;
 let extraReasons: string[] = [];
 let bizName = UZ_BIZ.name;
 let bizLogo = "";
+/** The business name typed on a document is kept for the next one in this session. */
+const rememberBiz = (name: string) => {
+  bizName = name;
+};
 
 const WORD = {
   big: { quote: "QUOTATION", invoice: "INVOICE", credit: "CREDIT NOTE" },
@@ -61,10 +74,10 @@ const WORD = {
   title: { quote: "New quotation", invoice: "New invoice", credit: "New credit note" },
 } as const;
 
-const toLines = (lines: DocLine[]): QLine[] => lines.map((l) => ({ id: ++qId, key: l.description, taxable: l.taxable, qty: String(l.qty), unit: l.unit, price: String(l.rate) }));
+const toLines = (lines: DocLine[]): QLine[] => lines.map((l) => ({ id: ++qId, key: l.description, taxable: l.taxable, qty: String(l.qty), unit: l.unit, price: String(l.rate), hand: true }));
 /** Seed documents carry no lines; the design shows one "Items on …" line for the listed amount. */
 const seedLines = (doc: Quotation): QLine[] =>
-  doc.lines.length ? toLines(doc.lines) : [{ id: ++qId, key: `Items on ${doc.number}`, taxable: false, qty: "1", unit: "Piece", price: String(doc.amount) }];
+  doc.lines.length ? toLines(doc.lines) : [{ id: ++qId, key: `Items on ${doc.number}`, taxable: false, qty: "1", unit: "Piece", price: String(doc.amount), hand: true }];
 
 export function DocumentForm({
   kind,
@@ -97,7 +110,7 @@ export function DocumentForm({
   const [date, setDate] = useState(src?.date || "2026-11-01");
   const [due, setDue] = useState(from ? addDays(from.date || "2026-11-10", 30) : edit?.due || "2026-12-01");
   const [store, setStore] = useState(src?.store ?? "Main Store");
-  const [lines, setLines] = useState<QLine[]>(() => (src ? seedLines(src) : []));
+  const [rawLines, setLines] = useState<QLine[]>(() => (src ? seedLines(src) : []));
   const [disc, setDisc] = useState(src ? String(src.discount.value) : "0");
   const [discType, setDiscType] = useState<"KES" | "%">(src?.discount.type ?? "KES");
   const [pay, setPay] = useState(src?.pay ?? "");
@@ -109,8 +122,17 @@ export function DocumentForm({
   const [refund, setRefund] = useState("Cash");
   const [back, setBack] = useState(true);
   const [newCust, setNewCust] = useState<string | null>(null);
+  const [stop, setStop] = useState<{ stop: Stop; approve: boolean } | null>(null);
+  const pricer = usePricer(cust);
+  const creditCheck = useCreditCheck(cust);
 
   const credit = kind === "credit";
+  /** A new invoice is due after the customer's payment terms (30 days unless set otherwise). */
+  const pickCust = (name: string) => {
+    setCust(name);
+    const c = customers.find((x) => x.name === name);
+    if (kind === "invoice" && !src && c && c.terms !== "Cash" && date) setDue(addDays(date, termDays(c.terms)));
+  };
   const customerOptions = useMemo(
     () => customers.map((c) => c.name).sort((a, b) => (a === WALK_IN ? -1 : b === WALK_IN ? 1 : a.localeCompare(b))),
     [customers],
@@ -137,6 +159,17 @@ export function DocumentForm({
         ? nextRef(invoices.map((c) => c.number), "INV-", 4)
         : nextRef(quotations.map((c) => c.number), "Q-", 6, 1000);
 
+  // Feature 012: a line that was not typed by hand shows the customer's group price when one applies.
+  const listPrice = (l: QLine) => {
+    const k = credit ? null : splitKey(l.key);
+    return k ? pricer.price(k.product, k.variant, l.unit, Number(l.qty) > 0 ? Number(l.qty) : 1) : null;
+  };
+  const lines = rawLines.map((l) => {
+    const p = listPrice(l);
+    const fromList = !!p && p.source === "list";
+    return { ...l, price: !l.hand && fromList ? String(p.price) : l.price, note: l.hand ? "" : pricer.note(p), restore: l.hand && fromList && Number(l.price) !== p.price };
+  });
+
   // Totals, as the design's `qSub`/`qAfter`/`qLevel`/`qVat`.
   const net = (l: QLine) => Math.max(0, Number(l.qty) * Number(l.price) || 0);
   const after = lines.reduce((a, l) => a + net(l), 0);
@@ -152,7 +185,7 @@ export function DocumentForm({
   const addItem = (value: string) => {
     const k = value.split(" — ")[0];
     const i = items.find((x) => x.key === k);
-    if (i) setLines((ls) => [...ls, { id: ++qId, key: i.key, taxable: i.taxable, qty: "1", unit: units[0] ?? "Piece", price: String(i.price) }]);
+    if (i) setLines((ls) => [...ls, { id: ++qId, key: i.key, taxable: i.taxable, qty: "1", unit: units[0] ?? "Piece", price: String(i.price), hand: false }]);
   };
   const pickInvoice = (ref: string) => {
     const inv = invoices.find((x) => x.number === ref);
@@ -164,17 +197,26 @@ export function DocumentForm({
     }
   };
 
-  const finish = async (approve: boolean) => {
-    bizName = biz;
+  const finish = async (approve: boolean, approval?: { reason: string }) => {
+    rememberBiz(biz);
+    // A new invoice is on credit: stop it here when the customer is over their limit, overdue or on cash terms.
+    if (kind === "invoice" && !edit && !approval) {
+      const hit = creditCheck(Math.round(grand));
+      if (hit) return setStop({ stop: hit, approve });
+    }
     const docLines: DocLine[] = lines.map((l) => ({ description: l.key, qty: Number(l.qty), unit: l.unit, rate: Number(l.price) || 0, taxable: l.taxable }));
     const discount = { value: Number(disc) || 0, type: discType };
     let ok = false;
     if (credit) {
       ok = (await createCreditDocument({ customer: cust, date, store, lines: docLines, discount, notes: note, refInv, reason, refundMethod: refund, returnToStock: back, approve })).ok;
     } else {
-      const input = { kind, customer: cust, date, due, store, lines: docLines, discount, notes: note, terms, pay, approve, convertedFrom: convertFrom };
+      const input = { kind, customer: cust, date, due, store, lines: docLines, discount, notes: note, terms, pay, approve, convertedFrom: convertFrom, ...(approval ? { approval } : {}) };
       if (edit) ok = (await updateDocument(kind, edit.number, input)).ok;
-      else ok = (await (kind === "invoice" ? createInvoice(input) : createQuotation(input))).ok;
+      else {
+        const r = await (kind === "invoice" ? createInvoice(input) : createQuotation(input));
+        ok = r.ok;
+        if (!r.ok && r.stop) setStop({ stop: r.stop, approve });
+      }
     }
     if (ok) onClose();
   };
@@ -197,7 +239,7 @@ export function DocumentForm({
 
   return (
     <>
-      <Drawer open={newCust === null} title={edit ? `Edit ${edit.number}` : WORD.title[kind]} subtitle="Sales" onClose={onClose} width={9999}>
+      <Drawer open={newCust === null && !stop} title={edit ? `Edit ${edit.number}` : WORD.title[kind]} subtitle="Sales" onClose={onClose} width={9999}>
         <div className="mx-auto flex max-w-[1040px] flex-col gap-6 rounded-lg border border-border p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <button
@@ -229,7 +271,7 @@ export function DocumentForm({
 
           <div className="flex flex-wrap justify-between gap-6">
             <div className="flex min-w-0 max-w-[420px] flex-[1_1_320px] flex-col gap-2">
-              <SearchSelect label={WORD.to[kind]} noun="customer" options={customerOptions} value={cust} onChange={setCust} onNew={(t) => setNewCust(t)} />
+              <SearchSelect label={WORD.to[kind]} noun="customer" options={customerOptions} value={cust} onChange={pickCust} onNew={(t) => setNewCust(t)} />
               {custInfo.map((t) => (
                 <div key={t} className="type-body text-text-secondary">
                   {t}
@@ -286,10 +328,16 @@ export function DocumentForm({
                   <div role="row" key={l.id} className="grid items-center gap-2 border-b border-border px-3 py-2" style={LGRID}>
                     <span role="cell" className="type-label min-w-0 break-words text-text">
                       {l.key}
+                      {l.note && <span className="type-caption block font-normal text-text-muted">{l.note}</span>}
+                      {l.restore && (
+                        <button type="button" className="type-caption block cursor-pointer border-0 bg-transparent p-0 font-normal text-green-700 underline" onClick={() => setLine(l.id, { hand: false })}>
+                          Use {pricer.group.name} price
+                        </button>
+                      )}
                     </span>
                     <Input size="sm" type="number" min="1" aria-label="Quantity" value={l.qty} onChange={(e) => setLine(l.id, { qty: e.target.value })} />
                     <SearchSelect noun="unit" options={units} value={l.unit} onChange={(u) => setLine(l.id, { unit: u })} />
-                    <Input size="sm" type="number" min="0" aria-label="Rate" value={l.price} onChange={(e) => setLine(l.id, { price: e.target.value })} />
+                    <Input size="sm" type="number" min="0" aria-label="Rate" value={l.price} onChange={(e) => setLine(l.id, { price: e.target.value, hand: true })} />
                     <span role="cell" className="type-small text-right text-text-secondary">
                       {l.taxable ? "16%" : "0%"}
                     </span>
@@ -357,6 +405,15 @@ export function DocumentForm({
         </div>
       </Drawer>
       <CustomerForm open={newCust !== null} initialName={newCust ?? ""} crumb="Sales" onClose={() => setNewCust(null)} onSaved={(n) => setCust(n)} />
+      <CreditStop
+        stop={stop?.stop ?? null}
+        onClose={() => setStop(null)}
+        onApprove={(reason) => {
+          const approve = stop?.approve ?? false;
+          setStop(null);
+          void finish(approve, { reason });
+        }}
+      />
     </>
   );
 }

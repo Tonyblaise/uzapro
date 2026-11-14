@@ -54,6 +54,8 @@ export const MODULES: Module[] = [
       ["All products", "table", [C("Product"), C("Category"), N("Price"), N("On hand"), C("Status")]],
       ["Categories", "table", [C("Category"), C("Description")]],
       ["Units of measure", "table", [C("Unit")]],
+      // Feature 012 (spec › Design deviations).
+      ["Price lists", "table", [C("Product"), C("Variant"), C("Unit"), N("Standard price (KES)"), N("Group price (KES)"), C("Quantity breaks")]],
     ],
     true,
   ),
@@ -84,6 +86,9 @@ export const MODULES: Module[] = [
       ["Overview", "salesdash"],
       ["All sales", "table", [C("Customer"), C("Type"), C("Channel"), N("Total"), C("Status")]],
       ["Quotations", "table", [C("Quotation #"), C("Customer"), C("Date"), C("Status"), N("Amount (KES)")]],
+      // Feature 013 (spec › Design deviations).
+      ["Sales orders", "table", [C("Order #"), C("Customer"), C("Order date"), C("Deliver by"), C("Status"), N("Amount (KES)")]],
+      ["Deliveries", "table", [C("Delivery note"), C("Order"), C("Customer"), C("Date"), C("Driver"), C("Vehicle"), N("Items"), C("Status")]],
       [
         "Invoices",
         "table",
@@ -115,7 +120,11 @@ export const MODULES: Module[] = [
     "Customers",
     "The people and businesses you sell to",
     "customers",
-    [["Customers", "table", [C("Name"), C("Phone"), C("Email"), C("Address"), C("Status")]]],
+    [
+      // Feature 012 adds Group, Credit limit and Balance owed, and the Customer groups tab (spec › Design deviations).
+      ["Customers", "table", [C("Name"), C("Phone"), C("Email"), C("Address"), C("Group"), N("Credit limit (KES)"), N("Balance owed (KES)"), C("Status")]],
+      ["Customer groups", "table", [C("Group"), C("Price list"), N("Customers")]],
+    ],
     true,
   ),
   mod(

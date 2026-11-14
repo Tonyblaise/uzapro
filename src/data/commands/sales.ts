@@ -25,6 +25,7 @@ import {
   type VoidRecord,
 } from "../types";
 import { getStore, showToast } from "../store";
+import { creditGate } from "../creditGate";
 import { post } from "../ledger";
 import { addCustomerCredit, addReceivable, closeReceivableFor } from "./money";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
@@ -76,6 +77,12 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
     return fail(m);
   }
   const t = docTotals(input.lines.map((l) => ({ qty: l.qty, price: l.price, taxable: l.taxable })));
+  // Feature 012: cash terms, overdue or over the limit stops a credit sale unless it is approved.
+  const gate = creditGate(state, input.customer, credit ? t.total : 0, input.approval);
+  if (!gate.ok) {
+    showToast(gate.message);
+    return fail(gate.message, gate.stop);
+  }
   const hm = demoTime();
   const sale: Sale = {
     ref,
@@ -93,16 +100,17 @@ export async function recordSale(input: NewSale): Promise<Result<Sale>> {
     status: credit ? { label: "Unpaid", tone: "warning" } : { label: "Paid", tone: "success" },
     by,
     session: true,
+    ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
   store.setState((s) => ({ ...applyStockChanges(s, changes), sales: { ...s.sales, sales: [sale, ...s.sales.sales], saleNo } }));
   let rcvRef = "";
   if (credit) {
-    // FR-013: a credit sale creates a real "Sale on credit" receivable, due in 30 days.
-    const r = addReceivable(store.getState(), { party: input.customer, type: "Sale on credit", doc: ref, due: addDays(DEMO_TODAY, 30), total: t.total });
+    // FR-013: a credit sale creates a real "Sale on credit" receivable, due after the customer's terms (30 days by default).
+    const r = addReceivable(store.getState(), { party: input.customer, type: "Sale on credit", doc: ref, due: addDays(DEMO_TODAY, gate.days), total: t.total });
     rcvRef = r.ref;
     store.setState({ money: r.money });
   }
-  const message = credit ? `Credit sale recorded. ${kes(t.total)} added to Receivables as ${rcvRef}, due in 30 days.` : `Sale recorded. ${kes(t.total)} paid by ${input.payMethod}.`;
+  const message = credit ? `Credit sale recorded. ${kes(t.total)} added to Receivables as ${rcvRef}, due in ${gate.days} days.` : `Sale recorded. ${kes(t.total)} paid by ${input.payMethod}.`;
   showToast(message);
   return ok(sale, message);
 }
@@ -184,7 +192,12 @@ export async function createQuotation(input: NewDocument): Promise<Result<Quotat
   return ok(q, message);
 }
 
-export async function createInvoice(input: NewDocument): Promise<Result<Invoice>> {
+/**
+ * `opts.fromOrder` (feature 013, research R3): an invoice raised from a sales order. Its goods left
+ * with the delivery note and its credit was checked at the order, so no stock moves and the credit
+ * check is skipped.
+ */
+export async function createInvoice(input: NewDocument, opts: { fromOrder?: string } = {}): Promise<Result<Invoice>> {
   const err = checkDocument(input);
   if (err) return fail(err);
   const store = getStore();
@@ -192,10 +205,16 @@ export async function createInvoice(input: NewDocument): Promise<Result<Invoice>
   const number = nextRef(state.sales.invoices.map((q) => q.number), "INV-", 4);
   const status: Pill = input.approve ? APPROVED : { label: "Pending", tone: "warning" };
   const t = docLineTotals(input.lines, input.discount);
-  const inv: Invoice = { ...quotationOf(number, input, status), paid: 0 };
+  // Feature 012: an invoice is always on credit, so it is checked like a credit sale.
+  const gate = creditGate(state, input.customer, opts.fromOrder ? 0 : Math.round(t.total), input.approval);
+  if (!gate.ok) {
+    showToast(gate.message);
+    return fail(gate.message, gate.stop);
+  }
+  const inv: Invoice = { ...quotationOf(number, input, status), paid: 0, ...(gate.approval ? { creditApproval: gate.approval } : {}) };
   const by = who();
   // Invoices take their items out of the chosen sales store (design `qFinish`).
-  const changes: StockChange[] = input.lines.flatMap((l) => {
+  const changes: StockChange[] = (opts.fromOrder ? [] : input.lines).flatMap((l) => {
     const k = splitKey(l.description);
     return k && l.qty > 0 ? [{ product: k.product, variant: k.variant, store: input.store, change: -l.qty, kind: KIND.sold, ref: number, by }] : [];
   });
@@ -217,7 +236,9 @@ export async function createInvoice(input: NewDocument): Promise<Result<Invoice>
     total: inv.amount,
     status,
     by,
-    session: true,
+    // A session sale gives its stock back on void; an order's invoice never took any.
+    session: !opts.fromOrder,
+    ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
   store.setState((s) => ({
     ...(changes.length ? applyStockChanges(s, changes) : {}),

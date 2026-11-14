@@ -2,6 +2,7 @@
  * Catalogue commands (FR-009, FR-010). Messages are copied from the design's script
  * (`prodSave`, `catSave`, `unitSave`, `removeRow` and the Categories row "Delete" action).
  */
+import { unitsOf } from "../pricing";
 import { DEMO_TODAY, demoTime } from "@/lib/demo-clock";
 import { num } from "@/lib/format";
 import { currentUserName } from "../profile";
@@ -98,6 +99,15 @@ export async function updateProduct(original: string, input: NewProduct): Promis
   const rename = (p: string) => (p === original ? name : p);
   store.setState((s) => ({
     catalog: { ...s.catalog, products: s.catalog.products.map((p) => (p.name === original ? updated : p)) },
+    // Feature 012: price lists follow a rename and drop prices for variants or units that are gone.
+    pricing: {
+      ...s.pricing,
+      prices: s.pricing.prices.flatMap((e) => {
+        if (e.product !== original) return [e];
+        const v = variants.find((x) => x.name === e.variant);
+        return v && unitsOf(v).includes(e.unit) ? [{ ...e, product: name }] : [];
+      }),
+    },
     stock:
       name === original
         ? s.stock
@@ -115,7 +125,10 @@ export async function updateProduct(original: string, input: NewProduct): Promis
 export async function deleteProduct(name: string): Promise<Result<void>> {
   const store = getStore();
   if (!store.getState().catalog.products.some((p) => p.name === name)) return fail("That product is not in the list.");
-  store.setState((s) => ({ catalog: { ...s.catalog, products: s.catalog.products.filter((p) => p.name !== name) } }));
+  store.setState((s) => ({
+    catalog: { ...s.catalog, products: s.catalog.products.filter((p) => p.name !== name) },
+    pricing: { ...s.pricing, prices: s.pricing.prices.filter((e) => e.product !== name) },
+  }));
   const message = `${name} deleted.`;
   showToast(message);
   return ok(undefined, message);

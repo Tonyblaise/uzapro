@@ -2,8 +2,9 @@
 import { Can } from "@/components/ui/Can";
 
 import { useState } from "react";
-import { useCategories, useProduct, useProductLevels, type StockMovement } from "@/data";
-import { date, num } from "@/lib/format";
+import Link from "next/link";
+import { groupName, useCategories, useCustomerGroups, usePriceEntries, useProduct, useProductLevels, type StockMovement } from "@/data";
+import { date, money, num } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -34,6 +35,9 @@ export function ProductRecord({ name, onClose, onEdit }: { name: string | null; 
   const levels = useProductLevels(name);
   const categories = useCategories();
   const [filter, setFilter] = useState<HistFilter>("All");
+  const groups = useCustomerGroups();
+  const allPrices = usePriceEntries();
+  const groupPrices = allPrices.filter((e) => e.product === name);
   if (!name || !data) return null;
   const { product, history } = data;
 
@@ -98,6 +102,51 @@ export function ProductRecord({ name, onClose, onEdit }: { name: string | null; 
             </tbody>
           </table>
         </div>
+
+        {groupPrices.length > 0 && (
+          <section aria-label="Group prices" className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="type-card-title m-0 text-text">Group prices</h3>
+              <Link href="/products/price-lists" className="type-small text-green-700 underline">
+                Open price lists
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    {["Group", "Variant", "Unit", "Price", "Quantity breaks"].map((h) => (
+                      <th key={h} scope="col" className={`type-eyebrow whitespace-nowrap p-2 text-text-muted ${h === "Price" ? "text-right" : "text-left"}`}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupPrices.map((e) => (
+                    <tr key={`${e.group}|${e.variant}|${e.unit}`} className="border-b border-border">
+                      <td className="type-small p-2 text-text">{groupName(groups, e.group)}</td>
+                      <td className="type-small p-2 text-text">{e.variant}</td>
+                      <td className="type-small p-2 text-text">{e.unit}</td>
+                      <td className="type-small u-num p-2 text-right text-text">
+                        {money(e.breaks[0]?.price ?? 0)}
+                        {(e.breaks[0]?.from ?? 1) > 1 ? ` from ${e.breaks[0]!.from}` : ""}
+                      </td>
+                      <td className="type-small u-num p-2 text-text-secondary">
+                        {e.breaks.length > 1
+                          ? e.breaks
+                              .slice(1)
+                              .map((b) => `${b.from}+ ${money(b.price)}`)
+                              .join(" · ")
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">

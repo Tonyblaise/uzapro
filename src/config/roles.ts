@@ -48,7 +48,7 @@ export const ROLES: Record<RoleId, Role> = {
     mods: ["home", "cal", "sales", "cust", "vend", "buy", "fin", "exp", "rcv", "pay", "rep", "ppl", "docs", "sup"],
     tabs: {
       home: ["Overview"],
-      sales: ["Overview", "All sales", "Invoices", "Refunds (credit notes)", "Voided items", "Sales targets"],
+      sales: ["Overview", "All sales", "Sales orders", "Deliveries", "Invoices", "Refunds (credit notes)", "Voided items", "Sales targets"],
       buy: ["Overview", "Purchase orders", "Purchase returns", "Rejected items"],
     },
     tasks: [

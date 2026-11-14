@@ -10,7 +10,7 @@ import { screenFor } from "@/features/screens";
 import { ModulePlaceholder } from "./ModulePlaceholder";
 
 /** Record-view steps that change data, and the access they need (feature 011, research R6). */
-const STEP_NEED: Record<string, AccessLevel> = { void: "delete", delete: "delete", edit: "write", pay: "write", receive: "write", credit: "write" };
+const STEP_NEED: Record<string, AccessLevel> = { void: "delete", delete: "delete", edit: "write", pay: "write", receive: "write", credit: "write", dispatch: "write", deliver: "write", invoice: "write" };
 
 /**
  * The canvas main column for one module tab: PageHeader (eyebrow = section unless it equals the

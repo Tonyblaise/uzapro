@@ -51,6 +51,8 @@ interface OverlayProps {
   footer?: ReactNode;
   width?: number;
   children: ReactNode;
+  /** Modal only: show above the full-screen till (feature 012, the credit stop at checkout). */
+  overTill?: boolean;
 }
 
 /** Right-hand drawer (DS Drawer): 40% overlay, slide-in panel, header, scrolling body, footer. */
@@ -83,11 +85,11 @@ export function Drawer({ open, title, subtitle, onClose, footer, width = 560, ch
 }
 
 /** Centred modal (DS Modal). */
-export function Modal({ open, title, subtitle, onClose, footer, width = 480, children }: OverlayProps) {
+export function Modal({ open, title, subtitle, onClose, footer, width = 480, children, overTill }: OverlayProps) {
   const panel = useDialog(open, onClose);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] grid place-items-center bg-overlay p-4" onClick={onClose}>
+    <div className={`fixed inset-0 grid place-items-center bg-overlay p-4 ${overTill ? "z-[var(--z-till-drawer)]" : "z-[var(--z-modal)]"}`} onClick={onClose}>
       <div
         ref={panel}
         role="dialog"

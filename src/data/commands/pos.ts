@@ -16,6 +16,9 @@ import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, type StockChange } from "../store/stockOps";
 import type { PosCheckout, PosMethod, PosSaleDoc, PosSettings, PosUi, PosView, Sale, Terminal } from "../types";
 import { addReceivable } from "./money";
+import { creditGate, stopFor } from "../creditGate";
+import { RETAIL_GROUP, priceFor } from "../pricing";
+import type { CreditStop, PosCartLine } from "../types";
 
 const DAY_LABEL = "10 Nov 2026";
 const ACCOUNT_FOR: Record<"Cash" | "M-Pesa" | "Card", string> = { Cash: "Cash drawer", "M-Pesa": "M-Pesa Till", Card: "Equity Bank — Main" };
@@ -153,6 +156,38 @@ export function toggleCart(): void {
 
 // ── Cart ───────────────────────────────────────────────────────────────────
 
+/**
+ * Feature 012 (research R5): price every cart line for the attached customer. The till sells in
+ * pieces, so it uses the group price for the variant's base unit, or the till's standard price.
+ */
+function reprice(s: AppState, cart: readonly PosCartLine[], cust: string): PosCartLine[] {
+  const group = s.customers.find((c) => c.name === cust)?.group ?? RETAIL_GROUP;
+  const till = tillProducts(s).products;
+  return cart.map((l) => {
+    const std = till.find((p) => p.name === l.product)?.vs.find((v) => v[0] === l.variant)?.[1] ?? l.price;
+    const variant = s.catalog.products.find((p) => p.name === l.product)?.variants.find((v) => v.name === l.variant);
+    const hit = variant ? priceFor({ prices: s.pricing.prices, group, product: l.product, variant, unit: variant.unit || "Piece", qty: l.qty }) : null;
+    const { group: _was, ...rest } = l;
+    void _was;
+    return hit?.source === "list" ? { ...rest, price: hit.price, group } : { ...rest, price: std };
+  });
+}
+
+/** The credit stop for the sale at the till's checkout, if any (the Pay later part only). */
+export function tillCreditStop(s: AppState): CreditStop | null {
+  return stopFor(s.customers, s.money.receivables, s.sales.orders, s.pos.ui.cust, tillCreditPart(s));
+}
+
+/** The amount of the till's current sale that is on Pay later. */
+export function tillCreditPart(s: AppState): number {
+  return figures(s).f.creditPart;
+}
+
+/** The reason typed when a credit stop is approved at the till. */
+export function setCreditApproval(reason: string): void {
+  setCo(() => ({ approval: reason, err: "" }));
+}
+
 function addLine(product: string, variant: string, price: number, qty: number) {
   const s = getStore().getState();
   const key = `${product}|${variant}`;
@@ -160,7 +195,7 @@ function addLine(product: string, variant: string, price: number, qty: number) {
   const i = cart.findIndex((l) => l.key === key);
   if (i >= 0) cart[i] = { ...cart[i]!, qty: cart[i]!.qty + qty };
   else cart.push({ key, product, variant, price, qty });
-  setUi(() => ({ cart }));
+  setUi((ui, st) => ({ cart: reprice(st, cart, ui.cust) }));
   beep(s.pos.settings);
 }
 
@@ -191,10 +226,10 @@ export function addVariantToCart(): void {
 }
 
 export function changeLine(i: number, delta: number): void {
-  setUi((ui) => {
+  setUi((ui, st) => {
     const l = ui.cart[i];
     if (!l) return {};
-    return { cart: l.qty + delta <= 0 ? ui.cart.filter((_, j) => j !== i) : ui.cart.map((x, j) => (j === i ? { ...x, qty: x.qty + delta } : x)) };
+    return { cart: reprice(st, l.qty + delta <= 0 ? ui.cart.filter((_, j) => j !== i) : ui.cart.map((x, j) => (j === i ? { ...x, qty: x.qty + delta } : x)), ui.cust) };
   });
 }
 
@@ -256,7 +291,7 @@ export function holdSale(): void {
 export function resumeHeld(i: number): void {
   const h = getStore().getState().pos.held[i];
   if (!h) return;
-  getStore().setState((s) => ({ pos: { ...s.pos, held: s.pos.held.filter((_, j) => j !== i), ui: { ...s.pos.ui, cart: h.cart, cust: h.cust, view: "sell" } } }));
+  getStore().setState((s) => ({ pos: { ...s.pos, held: s.pos.held.filter((_, j) => j !== i), ui: { ...s.pos.ui, cart: reprice(s, h.cart, h.cust), cust: h.cust, view: "sell" } } }));
   showToast("Sale resumed.");
 }
 
@@ -275,7 +310,7 @@ export function setCustomerQuery(q: string): void {
 }
 
 export function pickCustomer(name: string): void {
-  setUi((ui) => ({ cust: name, modal: null, view: ui.view === "customers" ? "sell" : ui.view }));
+  setUi((ui, st) => ({ cust: name, cart: reprice(st, ui.cart, name), modal: null, view: ui.view === "customers" ? "sell" : ui.view }));
 }
 
 export function openNewCustomer(): void {
@@ -291,7 +326,7 @@ export function saveNewCustomer(): void {
   const name = s.pos.ui.nc.name.trim();
   if (!name) return setUi(() => ({ ncErr: "Enter the customer's name." }));
   if (s.customers.some((c) => c.name.toLowerCase() === name.toLowerCase())) return setUi(() => ({ ncErr: "A customer with this name already exists." }));
-  getStore().setState((st) => ({ customers: [{ name, phone: st.pos.ui.nc.phone.trim() || "—", email: "—", address: "—", status: { label: "Active", tone: "success" } }, ...st.customers] }));
+  getStore().setState((st) => ({ customers: [{ name, phone: st.pos.ui.nc.phone.trim() || "—", email: "—", address: "—", status: { label: "Active", tone: "success" }, group: RETAIL_GROUP, creditLimit: null, terms: "30 days" }, ...st.customers] }));
   pickCustomer(name);
   showToast(`${name} added to customers.`);
 }
@@ -303,7 +338,7 @@ export function charge(): void {
   const { ui } = s.pos;
   if (!ui.cart.length) return;
   const phone = s.customers.find((c) => c.name === ui.cust)?.phone;
-  setUi(() => ({ modal: "checkout", co: { ...ui.co, pays: [], method: "Cash", amt: null, ref: "", mpesa: "", err: "", phone: phone && phone !== "—" ? phone : "" } }));
+  setUi(() => ({ modal: "checkout", co: { ...ui.co, pays: [], method: "Cash", amt: null, ref: "", mpesa: "", err: "", approval: "", phone: phone && phone !== "—" ? phone : "" } }));
 }
 
 export function setPayMethod(method: PosMethod): void {
@@ -385,6 +420,12 @@ export function completePosSale(): string | null {
     setCo(() => ({ err: `KES ${(t.total - f.totalPaid).toLocaleString("en-KE", { minimumFractionDigits: 2 })} is still due. Add another payment or pay the full amount.` }));
     return null;
   }
+  // Feature 012: the Pay later part is checked against the customer's terms, overdue and limit.
+  const gate = creditGate(s, ui.cust, f.creditPart, co.approval ? { reason: co.approval } : undefined);
+  if (!gate.ok) {
+    setCo(() => ({ err: gate.message }));
+    return null;
+  }
   const term = tillTerminal(s);
   const store = term?.store ?? "Point of Sale";
   const hm = demoTime();
@@ -426,12 +467,13 @@ export function completePosSale(): string | null {
     status: f.creditPart ? { label: "Unpaid", tone: "warning" } : { label: "Paid", tone: "success" },
     by: ui.who,
     session: true,
+    ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
   const changes: StockChange[] = doc.lines.map((l) => ({ product: l.product, variant: l.variant, store, change: -l.qty, kind: KIND.sold, ref, by: ui.who }));
   getStore().setState((st) => {
     let next: AppState = { ...st, ...applyStockChanges(st, changes), sales: { ...st.sales, sales: [sale, ...st.sales.sales], saleNo } };
     for (const p of pays) next = post(next, { date: DEMO_TODAY, account: ACCOUNT_FOR[p.method], ref, desc: `POS sale, ${term?.name ?? "Terminal"}`, kind: "Sale", amt: p.amount });
-    if (f.creditPart > 0) next = { ...next, money: addReceivable(next, { party: ui.cust, type: "Sale on credit", doc: ref, due: addDays(DEMO_TODAY, 30), total: f.creditPart }).money };
+    if (f.creditPart > 0) next = { ...next, money: addReceivable(next, { party: ui.cust, type: "Sale on credit", doc: ref, due: addDays(DEMO_TODAY, gate.days), total: f.creditPart }).money };
     const shift = next.pos.shifts[ui.termId];
     return {
       ...next,
@@ -450,7 +492,7 @@ export function completePosSale(): string | null {
           modal: "receipt",
           rcpt: ref,
           fresh: true,
-          co: { ...next.pos.ui.co, pays: [], amt: null, ref: "", mpesa: "", note: "", err: "", notify: { Print: next.pos.settings.autoPrint, SMS: false, Email: false } },
+          co: { ...next.pos.ui.co, pays: [], amt: null, ref: "", mpesa: "", note: "", err: "", approval: "", notify: { Print: next.pos.settings.autoPrint, SMS: false, Email: false } },
         },
       },
     };
