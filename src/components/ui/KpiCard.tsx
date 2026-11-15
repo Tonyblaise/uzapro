@@ -5,35 +5,19 @@ import { Icon, type IconName } from "./Icon";
  * Parse the design's KPI caption ("▲ 12.4% vs last 30 days") into a delta and caption,
  * as the canvas `kpi()` helper does.
  */
-export function parseKpiCaption(caption: string): {
-  delta?: number;
-  text: string;
-} {
+export function parseKpiCaption(caption: string): { delta?: number; text: string } {
   const m = caption.match(/^([▲▼])\s*([\d.]+)%\s*(.*)$/);
   if (!m) return { text: caption };
   return { delta: (m[1] === "▼" ? -1 : 1) * Number(m[2]), text: m[3] ?? "" };
 }
 
 /** Delta: arrow + value; colour says whether the change is good for the business. */
-export function Delta({
-  value,
-  good = "up",
-}: {
-  value: number;
-  good?: "up" | "down";
-}) {
+export function Delta({ value, good = "up" }: { value: number; good?: "up" | "down" }) {
   const up = value >= 0;
   const positive = (up && good === "up") || (!up && good === "down");
-  const color =
-    value === 0
-      ? "text-text-muted"
-      : positive
-        ? "text-success-text"
-        : "text-danger-text";
+  const color = value === 0 ? "text-text-muted" : positive ? "text-success-text" : "text-danger-text";
   return (
-    <span
-      className={`type-caption u-num whitespace-nowrap font-semibold ${color}`}
-    >
+    <span className={`type-caption u-num whitespace-nowrap font-semibold ${color}`}>
       {value === 0 ? "→" : up ? "↗" : "↘"} {Math.abs(value).toFixed(1)}%
     </span>
   );

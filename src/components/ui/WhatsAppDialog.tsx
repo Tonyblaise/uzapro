@@ -4,12 +4,7 @@
  * click-to-chat link. UzaPro sends nothing; the link opens the user's own WhatsApp.
  */
 import { useState } from "react";
-import {
-  noteWhatsApp,
-  useCustomerPhone,
-  useLastReminder,
-  waLink,
-} from "@/data";
+import { noteWhatsApp, useCustomerPhone, useLastReminder, waLink } from "@/data";
 import { Button } from "./Button";
 import { Input, Textarea } from "./Field";
 import { Icon } from "./Icon";
@@ -33,31 +28,10 @@ export function WhatsAppDialog({
   onClose: () => void;
 }) {
   if (!open) return null;
-  return (
-    <Body
-      key={`${name}|${message}`}
-      name={name}
-      message={message}
-      reminder={reminder}
-      overTill={overTill}
-      onClose={onClose}
-    />
-  );
+  return <Body key={`${name}|${message}`} name={name} message={message} reminder={reminder} overTill={overTill} onClose={onClose} />;
 }
 
-function Body({
-  name,
-  message,
-  reminder,
-  overTill,
-  onClose,
-}: {
-  name: string;
-  message: string;
-  reminder?: boolean;
-  overTill?: boolean;
-  onClose: () => void;
-}) {
+function Body({ name, message, reminder, overTill, onClose }: { name: string; message: string; reminder?: boolean; overTill?: boolean; onClose: () => void }) {
   const stored = useCustomerPhone(name);
   const last = useLastReminder(name);
   const [phone, setPhone] = useState(stored);
@@ -102,27 +76,12 @@ function Body({
           label="Phone number"
           type="tel"
           value={phone}
-          hint={
-            href || !text.trim()
-              ? undefined
-              : "Enter a mobile number, for example 0712 345 678"
-          }
+          hint={href || !text.trim() ? undefined : "Enter a mobile number, for example 0712 345 678"}
           onChange={(e) => setPhone(e.target.value)}
         />
-        <Textarea
-          label="Message"
-          rows={9}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        {reminder && last && (
-          <p className="type-small m-0 text-text-secondary">
-            Last reminded {last}
-          </p>
-        )}
-        <p className="type-small m-0 text-text-muted">
-          This opens WhatsApp with the message ready. You press send there.
-        </p>
+        <Textarea label="Message" rows={9} value={text} onChange={(e) => setText(e.target.value)} />
+        {reminder && last && <p className="type-small m-0 text-text-secondary">Last reminded {last}</p>}
+        <p className="type-small m-0 text-text-muted">This opens WhatsApp with the message ready. You press send there.</p>
       </div>
     </Modal>
   );

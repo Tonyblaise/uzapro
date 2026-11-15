@@ -2,20 +2,7 @@
  * Date helpers for the date pickers: ISO "YYYY-MM-DD" strings in the data layer, local-midnight
  * `Date`s in the calendar (no time-zone shifts), and forgiving parsing of typed dates.
  */
-const MONTHS = [
-  "jan",
-  "feb",
-  "mar",
-  "apr",
-  "may",
-  "jun",
-  "jul",
-  "aug",
-  "sep",
-  "oct",
-  "nov",
-  "dec",
-];
+const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -26,15 +13,12 @@ export function isoToDate(iso: string | null | undefined): Date | undefined {
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
-export const dateToIso = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+export const dateToIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 function valid(y: number, m: number, d: number): string | null {
   if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1) return null;
   const dt = new Date(y, m - 1, d);
-  return dt.getMonth() === m - 1 && dt.getDate() === d
-    ? `${y}-${pad(m)}-${pad(d)}`
-    : null;
+  return dt.getMonth() === m - 1 && dt.getDate() === d ? `${y}-${pad(m)}-${pad(d)}` : null;
 }
 
 /**

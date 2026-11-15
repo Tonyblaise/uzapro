@@ -17,8 +17,7 @@ import { DEMO_TODAY } from "@/lib/demo-clock";
 import { Calendar } from "./Calendar";
 import { Icon } from "./Icon";
 
-const POPOVER =
-  "z-[var(--z-date-popover)] rounded-lg border border-border bg-surface shadow-lg outline-none";
+const POPOVER = "z-[var(--z-date-popover)] rounded-lg border border-border bg-surface shadow-lg outline-none";
 
 /** Keep Escape inside the calendar from also closing the drawer or modal underneath. */
 const keepEscape = (e: KeyboardEvent) => e.stopPropagation();
@@ -39,20 +38,7 @@ export interface DateInputProps {
   className: string;
 }
 
-export function DateInput({
-  id,
-  value,
-  onChange,
-  ariaLabel,
-  label,
-  disabled,
-  required,
-  invalid,
-  placeholder = "DD/MM/YYYY",
-  min,
-  max,
-  className,
-}: DateInputProps) {
+export function DateInput({ id, value, onChange, ariaLabel, label, disabled, required, invalid, placeholder = "DD/MM/YYYY", min, max, className }: DateInputProps) {
   const [open, setOpen] = useState(false);
   const shownValue = value ? fmtDate(value) : "";
   // While typing, show what was typed; otherwise the value as "12 Nov 2026".
@@ -70,9 +56,7 @@ export function DateInput({
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Anchor asChild>
-        <div
-          className={`${className} flex items-center gap-1 pl-3 pr-1 text-text-muted`}
-        >
+        <div className={`${className} flex items-center gap-1 pl-3 pr-1 text-text-muted`}>
           <input
             id={id}
             type="text"
@@ -108,22 +92,13 @@ export function DateInput({
         </div>
       </Popover.Anchor>
       <Popover.Portal>
-        <Popover.Content
-          align="end"
-          sideOffset={4}
-          collisionPadding={8}
-          className={POPOVER}
-          onEscapeKeyDown={keepEscape}
-        >
+        <Popover.Content align="end" sideOffset={4} collisionPadding={8} className={POPOVER} onEscapeKeyDown={keepEscape}>
           <Calendar
             mode="single"
             autoFocus
             selected={selected}
             defaultMonth={selected ?? isoToDate(DEMO_TODAY)}
-            disabled={[
-              ...(min ? [{ before: isoToDate(min)! }] : []),
-              ...(max ? [{ after: isoToDate(max)! }] : []),
-            ]}
+            disabled={[...(min ? [{ before: isoToDate(min)! }] : []), ...(max ? [{ after: isoToDate(max)! }] : [])]}
             onSelect={(d) => {
               if (d) onChange(dateToIso(d));
               setOpen(false);
@@ -136,20 +111,9 @@ export function DateInput({
 }
 
 /** "1 Nov 2026 – 10 Nov 2026", or one date when both ends are the same day. */
-const rangeText = (from: string, to: string) =>
-  from === to ? fmtDate(from) : `${fmtDate(from)} – ${fmtDate(to)}`;
+const rangeText = (from: string, to: string) => (from === to ? fmtDate(from) : `${fmtDate(from)} – ${fmtDate(to)}`);
 
-export function DateRangePicker({
-  from,
-  to,
-  onChange,
-  label = "Dates",
-}: {
-  from: string;
-  to: string;
-  onChange: (from: string, to: string) => void;
-  label?: string;
-}) {
+export function DateRangePicker({ from, to, onChange, label = "Dates" }: { from: string; to: string; onChange: (from: string, to: string) => void; label?: string }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<DateRange | undefined>();
   const shown: DateRange | undefined = draft ?? {
@@ -176,44 +140,25 @@ export function DateRangePicker({
         </button>
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content
-          align="end"
-          sideOffset={4}
-          collisionPadding={8}
-          className={POPOVER}
-          onEscapeKeyDown={keepEscape}
-        >
+        <Popover.Content align="end" sideOffset={4} collisionPadding={8} className={POPOVER} onEscapeKeyDown={keepEscape}>
           <Calendar
             mode="range"
             autoFocus
             showOutsideDays={false}
             numberOfMonths={2}
-            defaultMonth={
-              isoToDate(to) &&
-              isoToDate(from) &&
-              from.slice(0, 7) === to.slice(0, 7)
-                ? new Date(
-                    isoToDate(to)!.getFullYear(),
-                    isoToDate(to)!.getMonth() - 1,
-                    1,
-                  )
-                : isoToDate(from)
-            }
+            defaultMonth={isoToDate(to) && isoToDate(from) && from.slice(0, 7) === to.slice(0, 7) ? new Date(isoToDate(to)!.getFullYear(), isoToDate(to)!.getMonth() - 1, 1) : isoToDate(from)}
             selected={shown}
             onSelect={(_, day) => {
               // First click starts a new range; the second click ends it (either order).
               if (!draft?.from) return setDraft({ from: day, to: undefined });
-              const [a, b] =
-                day < draft.from ? [day, draft.from] : [draft.from, day];
+              const [a, b] = day < draft.from ? [day, draft.from] : [draft.from, day];
               onChange(dateToIso(a), dateToIso(b));
               setDraft(undefined);
               setOpen(false);
             }}
           />
           <div className="type-small border-t border-border px-3 py-2 text-text-muted">
-            {draft?.from
-              ? `From ${fmtDate(dateToIso(draft.from))}. Pick the end date.`
-              : "Pick the start date, then the end date."}
+            {draft?.from ? `From ${fmtDate(dateToIso(draft.from))}. Pick the end date.` : "Pick the start date, then the end date."}
           </div>
         </Popover.Content>
       </Popover.Portal>

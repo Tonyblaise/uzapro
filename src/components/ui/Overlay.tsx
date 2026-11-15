@@ -10,16 +10,10 @@ export function useDialog(open: boolean, onClose: () => void) {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
     const focusables = () =>
-      Array.from(
-        panel.current?.querySelectorAll<HTMLElement>(
-          'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      ).filter(
+      Array.from(panel.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])') ?? []).filter(
         (el) => el.offsetParent !== null || el === document.activeElement,
       );
-    const first =
-      focusables().find((el) => !el.hasAttribute("data-close")) ??
-      focusables()[0];
+    const first = focusables().find((el) => !el.hasAttribute("data-close")) ?? focusables()[0];
     first?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -62,24 +56,12 @@ interface OverlayProps {
 }
 
 /** Right-hand drawer (DS Drawer): 40% overlay, slide-in panel, header, scrolling body, footer. */
-export function Drawer({
-  open,
-  title,
-  subtitle,
-  onClose,
-  footer,
-  width = 560,
-  children,
-}: OverlayProps) {
+export function Drawer({ open, title, subtitle, onClose, footer, width = 560, children }: OverlayProps) {
   const panel = useDialog(open, onClose);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[var(--z-drawer)]">
-      <div
-        className="absolute inset-0 bg-overlay"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="absolute inset-0 bg-overlay" onClick={onClose} aria-hidden="true" />
       <div
         ref={panel}
         role="dialog"
@@ -91,49 +73,23 @@ export function Drawer({
         <div className="flex items-start gap-3 border-b border-border px-6 py-5">
           <div className="min-w-0 flex-1">
             <h2 className="type-h2 m-0">{title}</h2>
-            {subtitle && (
-              <div className="type-small mt-0.5 text-text-muted">
-                {subtitle}
-              </div>
-            )}
+            {subtitle && <div className="type-small mt-0.5 text-text-muted">{subtitle}</div>}
           </div>
-          <IconButton
-            icon="x"
-            label="Close"
-            size="sm"
-            onClick={onClose}
-            data-close
-          />
+          <IconButton icon="x" label="Close" size="sm" onClick={onClose} data-close />
         </div>
         <div className="flex-1 overflow-auto p-6">{children}</div>
-        {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-border px-6 py-4">
-            {footer}
-          </div>
-        )}
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-border px-6 py-4">{footer}</div>}
       </div>
     </div>
   );
 }
 
 /** Centred modal (DS Modal). */
-export function Modal({
-  open,
-  title,
-  subtitle,
-  onClose,
-  footer,
-  width = 480,
-  children,
-  overTill,
-}: OverlayProps) {
+export function Modal({ open, title, subtitle, onClose, footer, width = 480, children, overTill }: OverlayProps) {
   const panel = useDialog(open, onClose);
   if (!open) return null;
   return (
-    <div
-      className={`fixed inset-0 grid place-items-center bg-overlay p-4 ${overTill ? "z-[var(--z-till-drawer)]" : "z-[var(--z-modal)]"}`}
-      onClick={onClose}
-    >
+    <div className={`fixed inset-0 grid place-items-center bg-overlay p-4 ${overTill ? "z-[var(--z-till-drawer)]" : "z-[var(--z-modal)]"}`} onClick={onClose}>
       <div
         ref={panel}
         role="dialog"
@@ -146,24 +102,12 @@ export function Modal({
         <div className="flex items-start gap-3 px-6 pb-4 pt-6">
           <div className="flex-1">
             <h2 className="type-h2 m-0">{title}</h2>
-            {subtitle && (
-              <div className="type-small mt-1 text-text-muted">{subtitle}</div>
-            )}
+            {subtitle && <div className="type-small mt-1 text-text-muted">{subtitle}</div>}
           </div>
-          <IconButton
-            icon="x"
-            label="Close"
-            size="sm"
-            onClick={onClose}
-            data-close
-          />
+          <IconButton icon="x" label="Close" size="sm" onClick={onClose} data-close />
         </div>
         <div className="overflow-auto px-6 pb-6">{children}</div>
-        {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-border px-6 py-4">
-            {footer}
-          </div>
-        )}
+        {footer && <div className="flex flex-wrap justify-end gap-2 border-t border-border px-6 py-4">{footer}</div>}
       </div>
     </div>
   );
@@ -196,11 +140,7 @@ export function ConfirmDialog({
       onClose={onClose}
       footer={
         <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="type-label h-[var(--control-height)] rounded-sm border border-border-strong bg-surface px-3.5 text-text hover:bg-surface-hover"
-          >
+          <button type="button" onClick={onClose} className="type-label h-[var(--control-height)] rounded-sm border border-border-strong bg-surface px-3.5 text-text hover:bg-surface-hover">
             {cancelLabel}
           </button>
           <button

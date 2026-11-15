@@ -24,20 +24,8 @@ export interface SearchSelectProps {
   ariaLabel?: string;
 }
 
-export function SearchSelect({
-  label,
-  options,
-  value,
-  onChange,
-  onCreate,
-  onNew,
-  noun = "item",
-  placeholder = "Choose",
-  ariaLabel,
-}: SearchSelectProps) {
-  const opts = options.map((o) =>
-    typeof o === "string" ? { value: o, label: o } : o,
-  );
+export function SearchSelect({ label, options, value, onChange, onCreate, onNew, noun = "item", placeholder = "Choose", ariaLabel }: SearchSelectProps) {
+  const opts = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState(false);
@@ -81,9 +69,7 @@ export function SearchSelect({
   }, [open]);
 
   const needle = q.trim().toLowerCase();
-  const shown = opts.filter(
-    (o) => !needle || o.label.toLowerCase().includes(needle),
-  );
+  const shown = opts.filter((o) => !needle || o.label.toLowerCase().includes(needle));
   const sel = opts.find((o) => o.value === value);
 
   const onKey = (e: React.KeyboardEvent) => {
@@ -117,29 +103,17 @@ export function SearchSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-labelledby={label ? labelId : undefined}
-        aria-label={
-          label
-            ? undefined
-            : ariaLabel
-              ? `${ariaLabel}: ${sel?.label ?? placeholder}`
-              : noun
-        }
+        aria-label={label ? undefined : ariaLabel ? `${ariaLabel}: ${sel?.label ?? placeholder}` : noun}
         onClick={() => (open ? close() : setOpen(true))}
         className={`type-body flex h-[var(--control-height)] w-full items-center justify-between gap-2 rounded-md border bg-surface pl-3 pr-2.5 text-left text-text ${open ? "border-action shadow-[0_0_0_3px_var(--green-100)]" : "border-border-strong"}`}
       >
-        <span className={`truncate ${sel ? "" : "text-text-muted"}`}>
-          {sel ? sel.label : placeholder}
-        </span>
+        <span className={`truncate ${sel ? "" : "text-text-muted"}`}>{sel ? sel.label : placeholder}</span>
         <span className="text-text-muted">
           <Icon name="chevron-down" size={16} />
         </span>
       </button>
       {open && (
-        <div
-          ref={panel}
-          className="z-[var(--z-popover)] flex flex-col overflow-hidden rounded-md bg-surface shadow-lg"
-          style={anchor}
-        >
+        <div ref={panel} className="z-[var(--z-popover)] flex flex-col overflow-hidden rounded-md bg-surface shadow-lg" style={anchor}>
           <div className="border-b border-border p-2">
             <input
               ref={search}
@@ -154,10 +128,7 @@ export function SearchSelect({
               className="type-body h-[var(--control-height-sm)] w-full rounded-sm border border-border-strong bg-surface px-2 text-text outline-none"
             />
           </div>
-          <div
-            role="listbox"
-            className="max-h-[216px] min-h-0 flex-1 overflow-y-auto p-1"
-          >
+          <div role="listbox" className="max-h-[216px] min-h-0 flex-1 overflow-y-auto p-1">
             {shown.length ? (
               shown.map((o, i) => (
                 <button
@@ -203,11 +174,7 @@ export function SearchSelect({
                   }}
                   className="type-body h-[var(--control-height-sm)] min-w-0 flex-1 rounded-sm border border-border-strong bg-surface px-2 text-text outline-none"
                 />
-                <Button
-                  size="sm"
-                  disabled={!name.trim()}
-                  onClick={() => create(name)}
-                >
+                <Button size="sm" disabled={!name.trim()} onClick={() => create(name)}>
                   Add
                 </Button>
               </div>
@@ -225,9 +192,7 @@ export function SearchSelect({
                 className="type-label flex w-full items-center gap-2 border-t border-border p-3 text-left text-link"
               >
                 <Icon name="plus" size={16} />
-                <span className="truncate">
-                  {q.trim() ? `New ${noun}: ${q.trim()}` : `New ${noun}`}
-                </span>
+                <span className="truncate">{q.trim() ? `New ${noun}: ${q.trim()}` : `New ${noun}`}</span>
               </button>
             ))}
         </div>

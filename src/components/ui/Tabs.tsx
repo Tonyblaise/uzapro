@@ -5,25 +5,14 @@ import { useEffect, useRef } from "react";
 import type { Tab } from "@/data";
 
 /** The canvas tab strip: label buttons with a 2px action underline on the active tab. */
-export function Tabs({
-  tabs,
-  active,
-  hrefFor,
-}: {
-  tabs: Tab[];
-  active: string;
-  hrefFor: (t: Tab) => string;
-}) {
+export function Tabs({ tabs, active, hrefFor }: { tabs: Tab[]; active: string; hrefFor: (t: Tab) => string }) {
   const ref = useRef<HTMLElement>(null);
   // Phones: one scrollable row; bring the current tab into view without moving the page.
   useEffect(() => {
     const nav = ref.current;
     const cur = nav?.querySelector<HTMLElement>('[aria-current="page"]');
     if (nav && cur && nav.scrollWidth > nav.clientWidth)
-      nav.scrollLeft +=
-        cur.getBoundingClientRect().left -
-        nav.getBoundingClientRect().left -
-        (nav.clientWidth - cur.offsetWidth) / 2;
+      nav.scrollLeft += cur.getBoundingClientRect().left - nav.getBoundingClientRect().left - (nav.clientWidth - cur.offsetWidth) / 2;
   }, [active]);
   if (tabs.length <= 1) return null;
   return (

@@ -50,16 +50,9 @@ const DLV_MODES: [DeliveryPay, string, string][] = [
   ["none", "Nothing to collect", "x"],
 ];
 
-const card =
-  "flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-surface p-5";
+const card = "flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-surface p-5";
 
-export function NewFieldSaleForm({
-  onClose,
-  mode = "sale",
-}: {
-  onClose: () => void;
-  mode?: "sale" | "delivery";
-}) {
+export function NewFieldSaleForm({ onClose, mode = "sale" }: { onClose: () => void; mode?: "sale" | "delivery" }) {
   const isD = mode === "delivery";
   const customers = useCustomers();
   const allSales = useSales();
@@ -96,13 +89,7 @@ export function NewFieldSaleForm({
 
   /** "Linked to": sales with items (their items load below) and invoices. */
   const docs = useMemo(
-    () => [
-      "None",
-      ...invoices.map((i) => `${i.number} · ${i.customer}`),
-      ...allSales
-        .filter((x) => x.type !== "Field sale" && x.lines.length > 0)
-        .map((x) => `${x.ref} · ${x.customer}`),
-    ],
+    () => ["None", ...invoices.map((i) => `${i.number} · ${i.customer}`), ...allSales.filter((x) => x.type !== "Field sale" && x.lines.length > 0).map((x) => `${x.ref} · ${x.customer}`)],
     [invoices, allSales],
   );
   const pickDoc = (v: string) => {
@@ -113,7 +100,7 @@ export function NewFieldSaleForm({
     const inv = invoices.find((i) => i.number === ref);
     const who = sale?.customer ?? inv?.customer;
     // Seed invoices may use a short name ("Morningview"): match it to the customer list.
-    const known = who ? customers.find((c) => c.name === who) ?? customers.find((c) => c.name.startsWith(`${who} `)) : undefined;
+    const known = who ? (customers.find((c) => c.name === who) ?? customers.find((c) => c.name.startsWith(`${who} `))) : undefined;
     if (known) pickCustomer(known.name);
     if (sale)
       setLines(
@@ -125,23 +112,13 @@ export function NewFieldSaleForm({
         })),
       );
   };
-  const customerOptions = useMemo(
-    () =>
-      customers
-        .map((c) => c.name)
-        .sort((a, b) =>
-          a === WALK_IN ? -1 : b === WALK_IN ? 1 : a.localeCompare(b),
-        ),
-    [customers],
-  );
+  const customerOptions = useMemo(() => customers.map((c) => c.name).sort((a, b) => (a === WALK_IN ? -1 : b === WALK_IN ? 1 : a.localeCompare(b))), [customers]);
   const product = products.find((p) => p.name === prod);
   const variants = product?.variants ?? [];
   const v = variants.find((x) => x.name === variant) ?? variants[0];
   const unitPrice = (vName: string, q: number) => {
     const vv = variants.find((x) => x.name === vName);
-    return vv
-      ? (pricer.price(prod, vv.name, vv.unit || "Piece", q)?.price ?? vv.price)
-      : 0;
+    return vv ? (pricer.price(prod, vv.name, vv.unit || "Piece", q)?.price ?? vv.price) : 0;
   };
   const walk = !cust || cust === WALK_IN;
   const total = fieldTotal({ lines });
@@ -166,25 +143,16 @@ export function NewFieldSaleForm({
     if (!prod || !v) return setErr("Pick a product to add.");
     const q = Math.max(1, Math.round(Number(qty) || 1));
     setLines((ls) => {
-      const at = ls.findIndex(
-        (l) => l.product === prod && l.variant === v.name,
-      );
-      if (at >= 0)
-        return ls.map((l, i) => (i === at ? { ...l, qty: l.qty + q } : l));
-      return [
-        ...ls,
-        { product: prod, variant: v.name, qty: q, price: unitPrice(v.name, q) },
-      ];
+      const at = ls.findIndex((l) => l.product === prod && l.variant === v.name);
+      if (at >= 0) return ls.map((l, i) => (i === at ? { ...l, qty: l.qty + q } : l));
+      return [...ls, { product: prod, variant: v.name, qty: q, price: unitPrice(v.name, q) }];
     });
     setProd("");
     setVariant("");
     setQty("1");
     clear();
   };
-  const bump = (i: number, d: number) =>
-    setLines((ls) =>
-      ls.map((l, j) => (j === i ? { ...l, qty: Math.max(1, l.qty + d) } : l)),
-    );
+  const bump = (i: number, d: number) => setLines((ls) => ls.map((l, j) => (j === i ? { ...l, qty: Math.max(1, l.qty + d) } : l)));
   const save = async () => {
     const r = isD
       ? await createDelivery({
@@ -237,11 +205,7 @@ export function NewFieldSaleForm({
       <Drawer
         open={newCust === null}
         title={isD ? "New delivery" : "New field sale"}
-        subtitle={
-          isD
-            ? "Send goods to a customer, for a sale already made or anything else."
-            : "A sale taken by a rep away from the shop. It goes to Deliveries when you save."
-        }
+        subtitle={isD ? "Send goods to a customer, for a sale already made or anything else." : "A sale taken by a rep away from the shop. It goes to Deliveries when you save."}
         onClose={onClose}
         width={9999}
       >
@@ -255,28 +219,10 @@ export function NewFieldSaleForm({
                   gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
                 }}
               >
-                <SearchSelect
-                  label="Customer"
-                  noun="customer"
-                  options={customerOptions}
-                  value={cust}
-                  onChange={pickCustomer}
-                  onNew={(typed) => setNewCust(typed)}
-                />
-                <Input
-                  label="Phone number"
-                  placeholder="07XX XXX XXX"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
+                <SearchSelect label="Customer" noun="customer" options={customerOptions} value={cust} onChange={pickCustomer} onNew={(typed) => setNewCust(typed)} />
+                <Input label="Phone number" placeholder="07XX XXX XXX" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
-              <Input
-                label="Delivery location"
-                icon="map-pin"
-                placeholder="For example, Ruiru, Kimbo, next to Naivas"
-                value={loc}
-                onChange={(e) => (setLoc(e.target.value), clear())}
-              />
+              <Input label="Delivery location" icon="map-pin" placeholder="For example, Ruiru, Kimbo, next to Naivas" value={loc} onChange={(e) => (setLoc(e.target.value), clear())} />
             </section>
 
             <section className="min-w-0 overflow-hidden rounded-lg border border-border bg-surface">
@@ -290,46 +236,24 @@ export function NewFieldSaleForm({
                     value={prod}
                     onChange={(p) => {
                       setProd(p);
-                      setVariant(
-                        products.find((x) => x.name === p)?.variants[0]?.name ??
-                          "",
-                      );
+                      setVariant(products.find((x) => x.name === p)?.variants[0]?.name ?? "");
                       clear();
                     }}
                   />
-                  <SearchSelect
-                    label="Option"
-                    noun="option"
-                    options={variants.map((x) => x.name)}
-                    value={v?.name ?? ""}
-                    onChange={setVariant}
-                  />
-                  <Input
-                    label="Qty"
-                    type="number"
-                    min={1}
-                    value={qty}
-                    onChange={(e) => setQty(e.target.value)}
-                  />
+                  <SearchSelect label="Option" noun="option" options={variants.map((x) => x.name)} value={v?.name ?? ""} onChange={setVariant} />
+                  <Input label="Qty" type="number" min={1} value={qty} onChange={(e) => setQty(e.target.value)} />
                   <Button icon="plus" onClick={addLine}>
                     Add
                   </Button>
                 </div>
                 {prod && v && (
-                  <div
-                    className={`type-small ${left > 0 ? "text-text-secondary" : "text-warning-text"}`}
-                  >
-                    {left > 0
-                      ? `${left} in stock at ${store} · ${kes(unitPrice(v.name, 1))} each`
-                      : `None in stock at ${store}. You can still take the order.`}
+                  <div className={`type-small ${left > 0 ? "text-text-secondary" : "text-warning-text"}`}>
+                    {left > 0 ? `${left} in stock at ${store} · ${kes(unitPrice(v.name, 1))} each` : `None in stock at ${store}. You can still take the order.`}
                   </div>
                 )}
               </div>
               {lines.map((l, i) => (
-                <div
-                  key={`${l.product}|${l.variant}`}
-                  className="grid grid-cols-[minmax(0,1fr)_auto_120px_30px] items-center gap-3 border-b border-border px-5 py-3"
-                >
+                <div key={`${l.product}|${l.variant}`} className="grid grid-cols-[minmax(0,1fr)_auto_120px_30px] items-center gap-3 border-b border-border px-5 py-3">
                   <div className="min-w-0">
                     <div className="type-label text-text">{l.product}</div>
                     <div className="type-small text-text-muted">
@@ -338,42 +262,15 @@ export function NewFieldSaleForm({
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <IconButton
-                      icon="minus"
-                      size="sm"
-                      variant="secondary"
-                      label={`Fewer ${l.product}`}
-                      onClick={() => bump(i, -1)}
-                    />
-                    <span className="type-label u-num w-8 text-center">
-                      {l.qty}
-                    </span>
-                    <IconButton
-                      icon="plus"
-                      size="sm"
-                      variant="secondary"
-                      label={`More ${l.product}`}
-                      onClick={() => bump(i, 1)}
-                    />
+                    <IconButton icon="minus" size="sm" variant="secondary" label={`Fewer ${l.product}`} onClick={() => bump(i, -1)} />
+                    <span className="type-label u-num w-8 text-center">{l.qty}</span>
+                    <IconButton icon="plus" size="sm" variant="secondary" label={`More ${l.product}`} onClick={() => bump(i, 1)} />
                   </div>
-                  <span className="type-label u-num text-right">
-                    {kes(l.price * l.qty)}
-                  </span>
-                  <IconButton
-                    icon="trash-2"
-                    size="sm"
-                    label={`Remove ${l.product}`}
-                    onClick={() =>
-                      setLines((ls) => ls.filter((_, j) => j !== i))
-                    }
-                  />
+                  <span className="type-label u-num text-right">{kes(l.price * l.qty)}</span>
+                  <IconButton icon="trash-2" size="sm" label={`Remove ${l.product}`} onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} />
                 </div>
               ))}
-              {lines.length === 0 && (
-                <div className="type-body p-6 text-center text-text-muted">
-                  Pick a product above and add it.
-                </div>
-              )}
+              {lines.length === 0 && <div className="type-body p-6 text-center text-text-muted">Pick a product above and add it.</div>}
             </section>
 
             <section className={card}>
@@ -384,34 +281,11 @@ export function NewFieldSaleForm({
                   gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
                 }}
               >
-                <SearchSelect
-                  label="Deliver from"
-                  noun="store"
-                  options={stores}
-                  value={store}
-                  onChange={setStore}
-                />
-                <Input
-                  label="Delivery date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => (setDate(e.target.value), clear())}
-                />
-                <SearchSelect
-                  label="Driver"
-                  noun="driver"
-                  options={drivers}
-                  value={driver}
-                  onChange={setDriver}
-                />
+                <SearchSelect label="Deliver from" noun="store" options={stores} value={store} onChange={setStore} />
+                <Input label="Delivery date" type="date" value={date} onChange={(e) => (setDate(e.target.value), clear())} />
+                <SearchSelect label="Driver" noun="driver" options={drivers} value={driver} onChange={setDriver} />
               </div>
-              <Textarea
-                label="Delivery notes (optional)"
-                rows={2}
-                placeholder="For example, call before arriving, gate code 1234"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
+              <Textarea label="Delivery notes (optional)" rows={2} placeholder="For example, call before arriving, gate code 1234" value={note} onChange={(e) => setNote(e.target.value)} />
             </section>
           </div>
 
@@ -419,45 +293,22 @@ export function NewFieldSaleForm({
             {isD ? (
               <section className={card}>
                 <div className="type-title text-text">Linked to (optional)</div>
-                <SearchSelect
-                  label="Sale or invoice"
-                  noun="sale or invoice"
-                  options={docs}
-                  value={doc}
-                  onChange={pickDoc}
-                />
+                <SearchSelect label="Sale or invoice" noun="sale or invoice" options={docs} value={doc} onChange={pickDoc} />
                 <div className="type-small text-text-secondary">
-                  {doc !== "None"
-                    ? `The items from ${doc.split(" · ")[0]} were added below. Change them if only part is going out.`
-                    : "Leave as None for a delivery that isn't tied to a sale."}
+                  {doc !== "None" ? `The items from ${doc.split(" · ")[0]} were added below. Change them if only part is going out.` : "Leave as None for a delivery that isn't tied to a sale."}
                 </div>
               </section>
             ) : (
               <section className={card}>
                 <div className="type-title text-text">Sales rep</div>
-                <SearchSelect
-                  label="Rep who took the order"
-                  noun="rep"
-                  options={reps.map((r) => r.name)}
-                  value={rep}
-                  onChange={pickRep}
-                />
-                <Input
-                  label="Route or area"
-                  placeholder="For example, Thika Road"
-                  value={route}
-                  onChange={(e) => setRoute(e.target.value)}
-                />
+                <SearchSelect label="Rep who took the order" noun="rep" options={reps.map((r) => r.name)} value={rep} onChange={pickRep} />
+                <Input label="Route or area" placeholder="For example, Thika Road" value={route} onChange={(e) => setRoute(e.target.value)} />
               </section>
             )}
 
             <section className={card}>
               <div className="type-title text-text">Payment</div>
-              <div
-                role="group"
-                aria-label="Payment"
-                className="grid grid-cols-3 gap-1.5"
-              >
+              <div role="group" aria-label="Payment" className="grid grid-cols-3 gap-1.5">
                 {(isD ? DLV_MODES : MODES).map(([k, label, icon]) => {
                   const on = isD ? dpay === k : pay === k;
                   return (
@@ -465,12 +316,7 @@ export function NewFieldSaleForm({
                       key={k}
                       type="button"
                       aria-pressed={on}
-                      onClick={() => (
-                        isD
-                          ? setDpay(k as DeliveryPay)
-                          : setPay(k as FieldPayMode),
-                        clear()
-                      )}
+                      onClick={() => (isD ? setDpay(k as DeliveryPay) : setPay(k as FieldPayMode), clear())}
                       className={`type-small flex flex-col items-center gap-1 rounded-md border-2 px-1.5 py-2.5 font-semibold ${on ? "border-green-600 bg-green-50 text-text" : "border-border bg-surface text-text-secondary"}`}
                     >
                       <Icon name={icon} size={18} />
@@ -479,25 +325,11 @@ export function NewFieldSaleForm({
                   );
                 })}
               </div>
-              <div
-                className={`type-small ${!isD && pay === "credit" && walk ? "text-danger-text" : "text-text-secondary"}`}
-              >
-                {payNote}
-              </div>
+              <div className={`type-small ${!isD && pay === "credit" && walk ? "text-danger-text" : "text-text-secondary"}`}>{payNote}</div>
               {!isD && pay === "now" && (
                 <div className="grid grid-cols-2 gap-3">
-                  <SearchSelect
-                    label="Paid by"
-                    options={[...FIELD_PAY_METHODS]}
-                    value={method}
-                    onChange={setMethod}
-                  />
-                  <Input
-                    label="Reference"
-                    placeholder="M-Pesa code"
-                    value={ref}
-                    onChange={(e) => setRef(e.target.value)}
-                  />
+                  <SearchSelect label="Paid by" options={[...FIELD_PAY_METHODS]} value={method} onChange={setMethod} />
+                  <Input label="Reference" placeholder="M-Pesa code" value={ref} onChange={(e) => setRef(e.target.value)} />
                 </div>
               )}
             </section>
@@ -513,35 +345,21 @@ export function NewFieldSaleForm({
               </div>
               <div className="flex items-baseline justify-between border-t border-border pt-2">
                 <span className="type-title text-text">Total</span>
-                <span className="u-num text-[26px] font-extrabold text-text">
-                  {kes(total)}
-                </span>
+                <span className="u-num text-[26px] font-extrabold text-text">{kes(total)}</span>
               </div>
               {err && (
                 <div role="alert" className="type-small text-danger-text">
                   {err}
                 </div>
               )}
-              <Button
-                size="lg"
-                icon="truck"
-                fullWidth
-                onClick={() => void save()}
-                className="mt-2"
-              >
+              <Button size="lg" icon="truck" fullWidth onClick={() => void save()} className="mt-2">
                 {isD ? "Create delivery" : "Save and send to deliveries"}
               </Button>
             </section>
           </div>
         </div>
       </Drawer>
-      <CustomerForm
-        open={newCust !== null}
-        initialName={newCust ?? ""}
-        crumb="Field sales"
-        onClose={() => setNewCust(null)}
-        onSaved={(name) => pickCustomer(name)}
-      />
+      <CustomerForm open={newCust !== null} initialName={newCust ?? ""} crumb="Field sales" onClose={() => setNewCust(null)} onSaved={(name) => pickCustomer(name)} />
     </>
   );
 }

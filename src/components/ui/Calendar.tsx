@@ -8,15 +8,9 @@ import { isoToDate } from "@/lib/dates";
 import { DEMO_TODAY } from "@/lib/demo-clock";
 import { Icon } from "./Icon";
 
-const NAV =
-  "inline-flex size-8 items-center justify-center rounded-md border border-border bg-surface text-text hover:bg-grey-100 disabled:opacity-40";
+const NAV = "inline-flex size-8 items-center justify-center rounded-md border border-border bg-surface text-text hover:bg-grey-100 disabled:opacity-40";
 
-export function Calendar({
-  className = "",
-  classNames,
-  showOutsideDays = true,
-  ...props
-}: DayPickerProps) {
+export function Calendar({ className = "", classNames, showOutsideDays = true, ...props }: DayPickerProps) {
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -38,13 +32,10 @@ export function Calendar({
         day: "group/day relative size-9 p-0 text-center",
         day_button:
           "type-body inline-flex size-9 items-center justify-center rounded-md text-text outline-none hover:bg-grey-100 focus-visible:shadow-[0_0_0_3px_var(--green-100)] focus-visible:ring-1 focus-visible:ring-green-600",
-        today:
-          "[&>button]:font-bold [&:not([aria-selected=true])>button]:text-green-700",
-        selected:
-          "[&>button]:!bg-green-600 [&>button]:text-white [&>button]:hover:!bg-green-700",
+        today: "[&>button]:font-bold [&:not([aria-selected=true])>button]:text-green-700",
+        selected: "[&>button]:!bg-green-600 [&>button]:text-white [&>button]:hover:!bg-green-700",
         range_start: "rounded-l-md bg-green-50",
-        range_middle:
-          "bg-green-50 [&>button]:!bg-transparent [&>button]:!text-text [&>button]:rounded-none",
+        range_middle: "bg-green-50 [&>button]:!bg-transparent [&>button]:!text-text [&>button]:rounded-none",
         range_end: "rounded-r-md bg-green-50",
         outside: "[&>button]:text-text-muted [&>button]:opacity-60",
         disabled: "[&>button]:opacity-40 [&>button]:pointer-events-none",
@@ -52,12 +43,7 @@ export function Calendar({
         ...classNames,
       }}
       components={{
-        Chevron: ({ orientation }) => (
-          <Icon
-            name={orientation === "left" ? "chevron-left" : "chevron-right"}
-            size={16}
-          />
-        ),
+        Chevron: ({ orientation }) => <Icon name={orientation === "left" ? "chevron-left" : "chevron-right"} size={16} />,
       }}
       {...props}
     />
