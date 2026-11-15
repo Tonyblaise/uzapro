@@ -28,9 +28,19 @@ const ROW_ICONS: Record<string, IconName> = {
   "Void sale": "circle-alert",
 };
 
-export function MenuList({ items, onPick }: { items: MenuItem[]; onPick?: () => void }) {
+export function MenuList({
+  items,
+  onPick,
+}: {
+  items: MenuItem[];
+  onPick?: () => void;
+}) {
   return (
-    <div role="menu" className="min-w-[180px] overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-lg" style={{ maxHeight: "inherit" }}>
+    <div
+      role="menu"
+      className="min-w-[180px] overflow-y-auto rounded-md border border-border bg-surface p-1 shadow-lg"
+      style={{ maxHeight: "inherit" }}
+    >
       {items.map((it) => (
         <button
           key={it.label}
@@ -43,7 +53,9 @@ export function MenuList({ items, onPick }: { items: MenuItem[]; onPick?: () => 
           }}
           className={`type-body flex h-[34px] w-full items-center gap-2 rounded-sm px-2.5 text-left disabled:opacity-45 ${it.danger ? "text-danger-text hover:bg-danger-soft" : "text-text hover:bg-grey-100"}`}
         >
-          {(it.icon ?? ROW_ICONS[it.label]) && <Icon name={(it.icon ?? ROW_ICONS[it.label])!} size={16} />}
+          {(it.icon ?? ROW_ICONS[it.label]) && (
+            <Icon name={(it.icon ?? ROW_ICONS[it.label])!} size={16} />
+          )}
           <span className="flex-1">{it.label}</span>
         </button>
       ))}
@@ -52,7 +64,17 @@ export function MenuList({ items, onPick }: { items: MenuItem[]; onPick?: () => 
 }
 
 /** Dropdown menu anchored to a trigger. Closes on outside click and Escape. */
-export function Menu({ trigger, items, align = "right", label }: { trigger: (props: { open: boolean; toggle: () => void }) => ReactNode; items: MenuItem[]; align?: "left" | "right"; label?: string }) {
+export function Menu({
+  trigger,
+  items,
+  align = "right",
+  label,
+}: {
+  trigger: (props: { open: boolean; toggle: () => void }) => ReactNode;
+  items: MenuItem[];
+  align?: "left" | "right";
+  label?: string;
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const triggerBox = useRef<HTMLSpanElement>(null);
@@ -62,12 +84,15 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
   useEffect(() => {
     if (!open) return;
     const off = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     };
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("mousedown", off);
     document.addEventListener("keydown", esc);
-    ref.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus();
+    ref.current
+      ?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')
+      ?.focus();
     return () => {
       document.removeEventListener("mousedown", off);
       document.removeEventListener("keydown", esc);
@@ -79,7 +104,11 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
         {trigger({ open, toggle: () => setOpen((o) => !o) })}
       </span>
       {open && (
-        <div ref={panel} className="z-[var(--z-popover)] flex flex-col" style={anchor}>
+        <div
+          ref={panel}
+          className="z-[var(--z-popover)] flex flex-col"
+          style={anchor}
+        >
           <MenuList items={items} onPick={() => setOpen(false)} />
         </div>
       )}
@@ -88,9 +117,17 @@ export function Menu({ trigger, items, align = "right", label }: { trigger: (pro
 }
 
 /** The design's row "…" actions (window.UzForms.RowActions). */
-export function RowActions({ items: all, label = "Actions" }: { items: MenuItem[]; label?: string }) {
+export function RowActions({
+  items: all,
+  label = "Actions",
+}: {
+  items: MenuItem[];
+  label?: string;
+}) {
   const { access } = useAccess();
-  const items = all.filter((it) => has(access, it.need ?? rowActionNeed(it.label)));
+  const items = all.filter((it) =>
+    has(access, it.need ?? rowActionNeed(it.label)),
+  );
   if (items.length === 0) return null;
   return (
     <span onClick={(e) => e.stopPropagation()}>

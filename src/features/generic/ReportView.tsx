@@ -1,7 +1,7 @@
 "use client";
 /**
  * The design's report view (`isRepView`, v1794780681-ee67): a full-screen dialog over the cards
- * with Close, title and dates, From/to date fields (changing one makes a custom range), Export
+ * with Close, title and dates, a date range picker (shadcn; picking dates makes a custom range), Export
  * CSV, KPI tiles, charts and the Analysis panel (design `repCharts`), the table with a bold total row, an empty state and a note.
  */
 import { usePathname, useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Table, type DataColumn } from "@/components/ui/DataTable";
-import { Input } from "@/components/ui/Field";
+import { DateRangePicker } from "@/components/ui/DatePicker";
 import { IconButton } from "@/components/ui/IconButton";
 import { useDialog } from "@/components/ui/Overlay";
 import { StatusPill } from "@/components/ui/StatusPill";
@@ -107,7 +107,7 @@ export function ReportView({
     ...(r.total ? [{ cells: r.total, total: true }] : []),
   ];
 
-  /** Changing either date makes it a custom range, keeping the other end (design `onFrom` / `onTo`). */
+  /** Picking dates makes it a custom range (design `onFrom` / `onTo`). */
   const setDates = (a: string, b: string) => {
     if (!a || !b) return;
     setReportPeriod("Custom range", a, b);
@@ -141,26 +141,12 @@ export function ReportView({
           <div className="type-small text-text-muted">{r.sub}</div>
         </div>
         {!r.asAt && (
-          <div className="flex flex-[0_1_auto] flex-wrap items-center gap-1.5">
-            <span className="type-small text-text-muted">From</span>
-            <div className="w-[150px]">
-              <Input
-                type="date"
-                aria-label="From date"
-                value={range.start}
-                onChange={(e) => setDates(e.target.value, range.end)}
-              />
-            </div>
-            <span className="type-small text-text-muted">to</span>
-            <div className="w-[150px]">
-              <Input
-                type="date"
-                aria-label="To date"
-                value={range.end}
-                onChange={(e) => setDates(range.start, e.target.value)}
-              />
-            </div>
-          </div>
+          <DateRangePicker
+            label="Report dates"
+            from={range.start}
+            to={range.end}
+            onChange={setDates}
+          />
         )}
         <Button variant="secondary" icon="download" onClick={exportCsv}>
           Export CSV

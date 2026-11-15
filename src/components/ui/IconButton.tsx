@@ -2,7 +2,10 @@ import type { ButtonHTMLAttributes } from "react";
 import { Icon, type IconName } from "./Icon";
 
 /** Icon-only button. `label` is required and becomes aria-label + title (Principle IV). */
-export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface IconButtonProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   icon: IconName;
   label: string;
   variant?: "ghost" | "secondary";
@@ -11,7 +14,17 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   active?: boolean;
 }
 
-export function IconButton({ icon, label, variant = "ghost", size = "md", badge, active, className = "", type = "button", ...rest }: IconButtonProps) {
+export function IconButton({
+  icon,
+  label,
+  variant = "ghost",
+  size = "md",
+  badge,
+  active,
+  className = "",
+  type = "button",
+  ...rest
+}: IconButtonProps) {
   const [box, glyph] = { sm: [30, 16], md: [36, 18], lg: [44, 18] }[size];
   const look = active
     ? "bg-action-soft text-green-700 border-transparent"
@@ -28,7 +41,12 @@ export function IconButton({ icon, label, variant = "ghost", size = "md", badge,
       {...rest}
     >
       <Icon name={icon} size={glyph} />
-      {badge && <span aria-hidden="true" className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger shadow-[0_0_0_2px_var(--surface)]" />}
+      {badge && (
+        <span
+          aria-hidden="true"
+          className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger shadow-[0_0_0_2px_var(--surface)]"
+        />
+      )}
     </button>
   );
 }

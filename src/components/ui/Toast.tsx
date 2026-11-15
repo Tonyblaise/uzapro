@@ -6,9 +6,16 @@ import { useToast } from "@/data";
 export function Toast() {
   const toast = useToast();
   return (
-    <div aria-live="polite" role="status" className="pointer-events-none fixed bottom-6 left-1/2 z-[var(--z-toast)] -translate-x-1/2">
+    <div
+      aria-live="polite"
+      role="status"
+      className="pointer-events-none fixed bottom-6 left-1/2 z-[var(--z-toast)] -translate-x-1/2"
+    >
       {toast && (
-        <div key={toast.id} className="type-label max-w-[min(560px,calc(100vw-32px))] rounded-md bg-grey-900 px-4 py-3 text-white shadow-lg">
+        <div
+          key={toast.id}
+          className="type-label max-w-[min(560px,calc(100vw-32px))] rounded-md bg-grey-900 px-4 py-3 text-white shadow-lg"
+        >
           {toast.text}
         </div>
       )}
@@ -17,5 +24,9 @@ export function Toast() {
 }
 
 export function EmptyState({ children }: { children: React.ReactNode }) {
-  return <div className="type-body rounded-md bg-surface p-8 text-center text-text-muted">{children}</div>;
+  return (
+    <div className="type-body rounded-md bg-surface p-8 text-center text-text-muted">
+      {children}
+    </div>
+  );
 }

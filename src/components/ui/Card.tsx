@@ -24,17 +24,30 @@ export function Card({
   style?: CSSProperties;
 }) {
   return (
-    <section className={`flex min-w-0 flex-col overflow-hidden rounded-md bg-surface ${cap ? "border-t-[3px] border-green-500" : ""} ${className}`} style={style}>
+    <section
+      className={`flex min-w-0 flex-col overflow-hidden rounded-md bg-surface ${cap ? "border-t-[3px] border-green-500" : ""} ${className}`}
+      style={style}
+    >
       {(title || action) && (
-        <header className={`flex items-center justify-between gap-3 ${flush ? "px-5 py-4" : "px-5 pt-5"}`}>
+        <header
+          className={`flex items-center justify-between gap-3 ${flush ? "px-5 py-4" : "px-5 pt-5"}`}
+        >
           <div className="min-w-0">
-            {title && <h2 className="type-card-title m-0 text-text">{title}</h2>}
-            {subtitle && <div className="type-small mt-0.5 text-text-muted">{subtitle}</div>}
+            {title && (
+              <h2 className="type-card-title m-0 text-text">{title}</h2>
+            )}
+            {subtitle && (
+              <div className="type-small mt-0.5 text-text-muted">
+                {subtitle}
+              </div>
+            )}
           </div>
           {action}
         </header>
       )}
-      <div className={`min-w-0 flex-1 ${flush ? "" : "p-5"} ${bodyClassName}`}>{children}</div>
+      <div className={`min-w-0 flex-1 ${flush ? "" : "p-5"} ${bodyClassName}`}>
+        {children}
+      </div>
     </section>
   );
 }

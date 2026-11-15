@@ -48,8 +48,8 @@ test("November 2026 shows the seed events and adds an event on a day (quickstart
   // Add "Supplier visit" on 20 Nov from the day itself.
   await page.getByRole("button", { name: "Add an event on 20 November 2026" }).click();
   const form = page.getByRole("dialog", { name: "New event" });
-  await expect(form.getByLabel("Start date")).toHaveValue("2026-11-20");
-  await expect(form.getByLabel("End date")).toHaveValue("2026-11-20");
+  await expect(form.getByLabel("Start date")).toHaveValue("20 Nov 2026");
+  await expect(form.getByLabel("End date")).toHaveValue("20 Nov 2026");
   const save = form.getByRole("button", { name: "Save", exact: true });
   await expect(save).toBeDisabled();
   await form.getByLabel("What is happening?").fill("Supplier visit");
@@ -65,7 +65,7 @@ test("November 2026 shows the seed events and adds an event on a day (quickstart
 
   // The header's "New event" starts on 1 Nov 2026.
   await page.getByRole("button", { name: "New event" }).click();
-  await expect(page.getByRole("dialog", { name: "New event" }).getByLabel("Start date")).toHaveValue("2026-11-01");
+  await expect(page.getByRole("dialog", { name: "New event" }).getByLabel("Start date")).toHaveValue("1 Nov 2026");
 });
 
 test("Edit Team meeting to 15:00, then delete it (quickstart 2)", async ({ page, errors }) => {

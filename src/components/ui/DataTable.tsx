@@ -20,14 +20,36 @@ export interface DataColumn<R> {
 function plain<R>(c: DataColumn<R>, r: R): string {
   if (c.text) return c.text(r);
   const v = (r as Record<string, unknown>)[c.key];
-  if (v && typeof v === "object" && "label" in (v as object)) return String((v as { label: unknown }).label);
+  if (v && typeof v === "object" && "label" in (v as object))
+    return String((v as { label: unknown }).label);
   return v === undefined || v === null ? "" : String(v);
 }
 
 /** The bare table (DS DataTable): canvas-coloured sticky header, row hover, numeric columns right-aligned. */
-export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing to show.", minWidth = 560, scrollLabel }: { columns: DataColumn<R>[]; rows: R[]; rowKey: (r: R, i: number) => string; onRowClick?: (r: R) => void; empty?: string; minWidth?: number; /** Names the scroll area and makes it keyboard-scrollable (report tables). */ scrollLabel?: string }) {
+export function Table<R>({
+  columns,
+  rows,
+  rowKey,
+  onRowClick,
+  empty = "Nothing to show.",
+  minWidth = 560,
+  scrollLabel,
+}: {
+  columns: DataColumn<R>[];
+  rows: R[];
+  rowKey: (r: R, i: number) => string;
+  onRowClick?: (r: R) => void;
+  empty?: string;
+  minWidth?: number;
+  /** Names the scroll area and makes it keyboard-scrollable (report tables). */ scrollLabel?: string;
+}) {
   return (
-    <div className="max-h-[var(--uz-h,60vh)] overflow-auto" {...(scrollLabel ? { tabIndex: 0, role: "region", "aria-label": scrollLabel } : {})}>
+    <div
+      className="max-h-[var(--uz-h,60vh)] overflow-auto"
+      {...(scrollLabel
+        ? { tabIndex: 0, role: "region", "aria-label": scrollLabel }
+        : {})}
+    >
       <table className="w-full border-collapse" style={{ minWidth }}>
         <thead>
           <tr>
@@ -46,7 +68,10 @@ export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing t
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="type-body border-b border-border p-8 text-center text-text-muted">
+              <td
+                colSpan={columns.length}
+                className="type-body border-b border-border p-8 text-center text-text-muted"
+              >
                 {empty}
               </td>
             </tr>
@@ -55,12 +80,25 @@ export function Table<R>({ columns, rows, rowKey, onRowClick, empty = "Nothing t
             <tr
               key={rowKey(r, i)}
               onClick={onRowClick ? () => onRowClick(r) : undefined}
-              onKeyDown={onRowClick ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onRowClick(r)) : undefined}
+              onKeyDown={
+                onRowClick
+                  ? (e) =>
+                      (e.key === "Enter" || e.key === " ") &&
+                      (e.preventDefault(), onRowClick(r))
+                  : undefined
+              }
               tabIndex={onRowClick ? 0 : undefined}
-              className={onRowClick ? "cursor-pointer hover:bg-surface-hover focus-visible:bg-surface-hover" : ""}
+              className={
+                onRowClick
+                  ? "cursor-pointer hover:bg-surface-hover focus-visible:bg-surface-hover"
+                  : ""
+              }
             >
               {columns.map((c) => (
-                <td key={c.key} className={`type-body u-num border-b border-border px-4 py-3 align-middle text-text-secondary max-md:whitespace-nowrap ${c.numeric ? "text-right" : "text-left"}`}>
+                <td
+                  key={c.key}
+                  className={`type-body u-num border-b border-border px-4 py-3 align-middle text-text-secondary max-md:whitespace-nowrap ${c.numeric ? "text-right" : "text-left"}`}
+                >
                   {c.render ? c.render(r) : plain(c, r)}
                 </td>
               ))}
@@ -99,7 +137,12 @@ export function DataTable<R>({
   const q = useSearch();
   const needle = q.trim().toLowerCase();
   const shown = useMemo(
-    () => (needle ? rows.filter((r) => columns.some((c) => plain(c, r).toLowerCase().includes(needle))) : rows),
+    () =>
+      needle
+        ? rows.filter((r) =>
+            columns.some((c) => plain(c, r).toLowerCase().includes(needle)),
+          )
+        : rows,
     [rows, columns, needle],
   );
   const textCols = columns.filter((c) => c.title);
@@ -107,20 +150,38 @@ export function DataTable<R>({
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <div className="max-w-[320px] flex-[1_1_220px] max-sm:max-w-none max-sm:basis-full">
-          <Input icon="search" placeholder="Search this list" aria-label="Search this list" value={q} onChange={(e) => setSearch(e.target.value)} />
+          <Input
+            icon="search"
+            placeholder="Search this list"
+            aria-label="Search this list"
+            value={q}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         {filters}
         <div className="flex-1" />
         <Button
           variant="secondary"
           icon="download"
-          onClick={() => copyCsv(textCols.map((c) => c.title), shown.map((r) => textCols.map((c) => plain(c, r))))}
+          onClick={() =>
+            copyCsv(
+              textCols.map((c) => c.title),
+              shown.map((r) => textCols.map((c) => plain(c, r))),
+            )
+          }
         >
           Export CSV
         </Button>
       </div>
       <Card flush>
-        <Table columns={columns} rows={shown} rowKey={rowKey} onRowClick={onRowClick} empty={empty} minWidth={minWidth} />
+        <Table
+          columns={columns}
+          rows={shown}
+          rowKey={rowKey}
+          onRowClick={onRowClick}
+          empty={empty}
+          minWidth={minWidth}
+        />
       </Card>
       <div className="type-caption flex flex-wrap justify-between gap-2 text-text-muted">
         <span>

@@ -77,28 +77,56 @@ test("cards run reports; back, history and reload work (quickstart 1–3)", asyn
   }
 });
 
-test("From and To dates re-run period reports as a custom range; point-in-time reports have none", async ({ page, errors }) => {
+test("the date range picker re-runs period reports as a custom range; point-in-time reports have none", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/reports/money");
   await runReport(page, "Profit & loss");
-  await expect(page.getByLabel("From date")).toHaveValue("2026-11-01");
-  await expect(page.getByLabel("To date")).toHaveValue("2026-11-10");
-  await page.getByLabel("From date").fill("2026-01-01");
-  await expect(page.getByRole("dialog").getByText("1 Jan 2026 to 10 Nov 2026", { exact: true }).first()).toBeVisible();
-  await expect(kpi(page, "Sales")).toContainText("KES 36,910,000");
-  await expect(page).toHaveURL(/period=custom-range&from=2026-01-01&to=2026-11-10/);
+  const dates = page.getByRole("button", { name: /^Report dates: / });
+  await expect(dates).toHaveAccessibleName("Report dates: 1 Nov 2026 – 10 Nov 2026");
+  await dates.click();
+  const cal = page.getByRole("dialog").filter({ has: page.getByRole("grid") });
+  await expect(cal).toContainText("Pick the start date, then the end date.");
+  // Back to October, then pick 5 Oct and 20 Oct.
+  await cal.getByRole("button", { name: /previous month/i }).click();
+  await cal.getByRole("button", { name: /October 5th, 2026/ }).click();
+  await expect(cal).toContainText("From 5 Oct 2026. Pick the end date.");
+  await cal.getByRole("button", { name: /October 20th, 2026/ }).click();
+  await expect(cal).toBeHidden();
+  await expect(dates).toHaveAccessibleName("Report dates: 5 Oct 2026 – 20 Oct 2026");
+  await expect(page.getByRole("dialog", { name: "Profit & loss" }).getByText("5 Oct 2026 to 20 Oct 2026", { exact: true }).first()).toBeVisible();
+  await expect(page).toHaveURL(/period=custom-range&from=2026-10-05&to=2026-10-20/);
 
   await back(page).click();
   await runReport(page, "Balance sheet");
   await expect(page.locator("[data-report-view] > div").first().getByText("As at 10 Nov 2026")).toBeVisible();
-  await expect(page.getByLabel("From date")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /^Report dates: / })).toHaveCount(0);
 
   // The next run starts on the range last chosen.
   await back(page).click();
   await runReport(page, "Cash flow");
-  await expect(page.getByRole("dialog").getByText("1 Jan 2026 to 10 Nov 2026", { exact: true }).first()).toBeVisible();
-  await expect(page.getByLabel("From date")).toHaveValue("2026-01-01");
+  await expect(page.getByRole("button", { name: "Report dates: 5 Oct 2026 – 20 Oct 2026" })).toBeVisible();
+});
+
+test("date fields: type a date or pick one from the calendar", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await page.goto("/tasks/tasks?action=new");
+  const form = page.getByRole("dialog").last();
+  const due = form.getByLabel("Due date (optional)");
+  await due.fill("12/11/2026");
+  await due.blur();
+  await expect(due).toHaveValue("12 Nov 2026");
+  await form.getByRole("button", { name: "Open calendar" }).click();
+  const cal = page.getByRole("dialog").filter({ has: page.getByRole("grid") });
+  await cal.getByRole("button", { name: /November 20th, 2026/ }).click();
+  await expect(cal).toBeHidden();
+  await expect(due).toHaveValue("20 Nov 2026");
+  // Escape closes only the calendar, not the form.
+  await form.getByRole("button", { name: "Open calendar" }).click();
+  await page.keyboard.press("Escape");
+  await expect(cal).toBeHidden();
+  await expect(form).toBeVisible();
 });
 
 test("every report runs; Coming soon cannot (quickstart 5)", async ({ page, errors }) => {
