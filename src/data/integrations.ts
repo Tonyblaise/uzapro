@@ -14,6 +14,7 @@ import type {
   IntegrationBank,
   IntegrationScope,
   IntegrationsState,
+  MpesaRoute,
   QbRecord,
   QuickbooksField,
   QuickbooksSettings,
@@ -163,4 +164,35 @@ export function quickbooksCounts(s: AppState, send: Record<QbRecord, boolean>): 
 export function syncSummary(counts: QuickbooksSync["counts"]): string {
   const parts = QB_RECORDS.filter((r) => counts[r.id] !== undefined).map((r) => `${counts[r.id]} ${r.label.toLowerCase()}`);
   return parts.join(", ");
+}
+
+/** Paybill account for a terminal: its own number, then the shared one, then each sale's number. */
+function paybillAccount(c: DarajaConfig, termId: number): string {
+  const own = c.terminalAccounts.find((a) => a.terminalId === termId)?.accountNumber;
+  return own || c.accountNumber || "the sale number";
+}
+
+/**
+ * Where a terminal's M-Pesa request goes (feature 022). A terminal's own set-up comes before the
+ * business-wide one, and Daraja before a bank. Only a tested connection can take requests.
+ */
+export function mpesaRoute(s: IntegrationsState, termId: number): MpesaRoute {
+  let saved = false;
+  for (const scope of [termId, "all"] as const) {
+    const d = darajaFor(s, scope);
+    if (d?.tested) return { ready: true, via: "daraja", to: d.accountType === "paybill" ? `Paybill ${d.paybill}, account ${paybillAccount(d, termId)}` : `Till ${d.tillNumber}` };
+    const b = s.bank.find((c) => c.scope === scope && c.tested);
+    if (b) return { ready: true, via: b.bank, to: `${bankOf(b.bank).name} till ${b.tillNumber}` };
+    saved ||= !!d || s.bank.some((c) => c.scope === scope);
+  }
+  return { ready: false, reason: saved ? "untested" : "none" };
+}
+
+const TYPE_THE_CODE = "Type the M-Pesa code from the customer's message.";
+
+/** What the till says about M-Pesa requests on this terminal. */
+export function mpesaRouteNote(route: MpesaRoute): string {
+  if (route.ready) return `Send a payment request to the customer's phone, or type the M-Pesa code yourself. Payments go to ${route.to}.`;
+  if (route.reason === "untested") return `M-Pesa is saved under Integrations, but its connection has not been tested, so requests can't be sent yet. ${TYPE_THE_CODE}`;
+  return `M-Pesa requests are not set up for this terminal. ${TYPE_THE_CODE} An owner can set requests up under Integrations.`;
 }

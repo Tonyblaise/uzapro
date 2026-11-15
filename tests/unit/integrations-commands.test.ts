@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   connectQuickbooks,
   disconnectQuickbooks,
@@ -10,6 +10,7 @@ import {
   testBankConnection,
   testDarajaConnection,
 } from "@/data/commands/integrations";
+import { requestMpesa, setPayPhone } from "@/data/commands/pos";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
 import type { DarajaInput } from "@/data/types";
 
@@ -176,5 +177,38 @@ describe("QuickBooks commands (feature 015)", () => {
     expect(qb()!.lastSync!.at).toMatch(/^10 Nov 2026, \d\d:\d\d$/);
     expect(await disconnectQuickbooks()).toMatchObject({ ok: true, message: "QuickBooks disconnected." });
     expect(qb()).toBeNull();
+  });
+});
+
+describe("the till's M-Pesa request (feature 022)", () => {
+  const co = () => store.getState().pos.ui.co;
+
+  it("is refused until M-Pesa is saved and tested, then fills in a code", async () => {
+    setPayPhone("0712 345 678");
+    requestMpesa();
+    expect(co()).toMatchObject({ mpesa: "", err: expect.stringContaining("M-Pesa requests are not set up for this terminal.") });
+
+    await saveDarajaCredentials(input());
+    requestMpesa();
+    expect(co()).toMatchObject({ mpesa: "", err: expect.stringContaining("its connection has not been tested") });
+
+    await testDarajaConnection("all");
+    vi.useFakeTimers();
+    try {
+      requestMpesa();
+      expect(co()).toMatchObject({ mpesa: "waiting", err: "" });
+      vi.advanceTimersByTime(1800);
+      expect(co()).toMatchObject({ mpesa: "paid", ref: expect.stringMatching(/^S[A-Z0-9]{9}$/) });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("still asks for a Safaricom number once M-Pesa is ready", async () => {
+    await saveBankCredentials(ncba);
+    await testBankConnection("ncba", "all");
+    setPayPhone("12345");
+    requestMpesa();
+    expect(co()).toMatchObject({ mpesa: "", err: "Enter the customer's Safaricom number, for example 0712 345 678." });
   });
 });

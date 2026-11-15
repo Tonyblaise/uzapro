@@ -50,4 +50,4 @@ Phase 1 blocks everything. US2 and US3 reuse US1's shared pieces.
 
 ## Not in this feature
 
-API management, Third party apps, Webhooks; real Daraja, bank or QuickBooks requests; bringing data back from QuickBooks; the till reading these credentials.
+API management, Third party apps, Webhooks; real Daraja, bank or QuickBooks requests; bringing data back from QuickBooks. The till reading these credentials came later, in feature 022.

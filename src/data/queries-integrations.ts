@@ -1,9 +1,9 @@
 "use client";
 /** Integrations read hooks (feature 015, contracts/data-access.md). */
 import { useMemo } from "react";
-import { scopeOptions } from "./integrations";
+import { mpesaRoute, scopeOptions } from "./integrations";
 import { useAppStore } from "./store/StoreProvider";
-import type { BankConfig, BankId, DarajaConfig, IntegrationScope, QuickbooksConnection, ScopeOption, Terminal } from "./types";
+import type { BankConfig, BankId, DarajaConfig, IntegrationScope, MpesaRoute, QuickbooksConnection, ScopeOption, Terminal } from "./types";
 
 /** The saved Daraja credentials for a scope, if any. */
 export function useDarajaConfig(scope: IntegrationScope | null): DarajaConfig | undefined {
@@ -41,4 +41,11 @@ export function useBankConfigs(bank: BankId): BankConfig[] {
 /** The QuickBooks connection, or null when not connected. */
 export function useQuickbooks(): QuickbooksConnection | null {
   return useAppStore((s) => s.integrations.quickbooks);
+}
+
+/** Where the open till's M-Pesa requests go, or why they can't be sent (feature 022). */
+export function useTillMpesa(): MpesaRoute {
+  const integrations = useAppStore((s) => s.integrations);
+  const termId = useAppStore((s) => s.pos.ui.termId);
+  return useMemo(() => mpesaRoute(integrations, termId), [integrations, termId]);
 }

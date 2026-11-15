@@ -15,9 +15,11 @@ import {
   receiptMessage,
   termDays,
   useTillCreditStop,
+  useTillMpesa,
   confirmCloseShift,
   expectedCash,
   initialsOf,
+  mpesaRouteNote,
   openNewCustomer,
   pickCustomer,
   posK,
@@ -245,6 +247,8 @@ function CheckoutDialog() {
   const { co } = ui;
   // Feature 012: Pay later is checked against the customer's terms, overdue balance and limit.
   const stop = useTillCreditStop();
+  // Feature 022: requests need a tested M-Pesa set-up for this terminal.
+  const mpesa = useTillMpesa();
   const [showStop, setShowStop] = useState(false);
   const custTerms = useCustomers().find((c) => c.name === ui.cust)?.terms;
   const dueDays = custTerms && custTerms !== "Cash" ? termDays(custTerms) : 30;
@@ -371,20 +375,22 @@ function CheckoutDialog() {
               )}
               {co.method === "M-Pesa" && (
                 <div className="flex flex-col gap-2 rounded-[12px] border border-green-200 bg-green-50 p-3">
-                  <div className="flex flex-wrap items-end gap-2">
-                    <div className="min-w-[180px] flex-1">
-                      <Input label="Customer's phone" placeholder="07XX XXX XXX" value={co.phone} onChange={(e) => setPayPhone(e.target.value)} />
+                  {mpesa.ready && (
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="min-w-[180px] flex-1">
+                        <Input label="Customer's phone" placeholder="07XX XXX XXX" value={co.phone} onChange={(e) => setPayPhone(e.target.value)} />
+                      </div>
+                      <Button icon="smartphone" disabled={co.mpesa === "waiting"} onClick={requestMpesa}>
+                        {co.mpesa === "waiting" ? "Waiting…" : co.mpesa === "paid" ? "Send again" : "Send request"}
+                      </Button>
                     </div>
-                    <Button icon="smartphone" disabled={co.mpesa === "waiting"} onClick={requestMpesa}>
-                      {co.mpesa === "waiting" ? "Waiting…" : co.mpesa === "paid" ? "Send again" : "Send request"}
-                    </Button>
-                  </div>
+                  )}
                   <div className={`type-small ${co.mpesa === "paid" ? "text-green-800" : "text-text-secondary"}`} aria-live="polite">
                     {co.mpesa === "waiting"
                       ? "Request sent. Ask the customer to enter their M-Pesa PIN on their phone."
                       : co.mpesa === "paid"
                         ? `Payment received. Code ${co.ref} added below.`
-                        : "Send a payment request to the customer's phone, or type the M-Pesa code yourself."}
+                        : mpesaRouteNote(mpesa)}
                   </div>
                 </div>
               )}

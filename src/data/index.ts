@@ -61,7 +61,7 @@ export * from "./commands/orders";
 export { DELIVERY_RETURN_REASONS, checkDispatch, checkReturn, itemName, leftToDispatch, orderLinesFromQuote, orderTotals, returnable, returnedQty, toInvoice } from "./orders";
 export * from "./queries-integrations";
 export * from "./commands/integrations";
-export { ALL_TERMINALS, bankErrors, bankOf, darajaErrors, quickbooksErrors, scopeFrom, scopeValue, syncSummary } from "./integrations";
+export { ALL_TERMINALS, bankErrors, bankOf, darajaErrors, mpesaRouteNote, quickbooksErrors, scopeFrom, scopeValue, syncSummary } from "./integrations";
 export { DARAJA_ACCOUNT_TYPES, INTEGRATION_BANKS, INTEGRATION_ENVS, QB_ACCOUNTS, QB_ACCOUNT_LABEL, QB_FREQUENCIES, QB_RECORDS } from "./fixtures/integrations";
 export * from "./commands/pricing";
 export { GROUP_NAME_MAX, RETAIL_GROUP, groupName, priceNote, standardPrice, unitsOf } from "./pricing";

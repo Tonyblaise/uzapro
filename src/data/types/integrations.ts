@@ -148,3 +148,6 @@ export interface ScopeOption {
   value: string;
   label: string;
 }
+
+/** Where a till's M-Pesa request goes (feature 022). `to` reads "Paybill 522522, account FRONT". */
+export type MpesaRoute = { ready: true; via: "daraja" | BankId; to: string } | { ready: false; reason: "none" | "untested" };

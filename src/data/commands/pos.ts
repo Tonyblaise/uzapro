@@ -6,6 +6,7 @@ import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate } from "@/lib/format";
 import { DEMO_PIN, POS_SELLER } from "../fixtures/pos";
 import { WALK_IN } from "../fixtures/customers";
+import { mpesaRoute, mpesaRouteNote } from "../integrations";
 import { post } from "../ledger";
 import { checkoutFigures, isSafaricom, matchCode, posProducts, posTotals, type PosProduct } from "../pos";
 import { currentUserName } from "../profile";
@@ -373,9 +374,15 @@ export function toggleNotify(k: keyof PosCheckout["notify"]): void {
   setCo((co) => ({ notify: { ...co.notify, [k]: !co.notify[k] } }));
 }
 
-/** Simulated M-Pesa request: waits 1.8s, then fills in a code (nothing is sent). */
+/**
+ * Simulated M-Pesa request: waits 1.8s, then fills in a code (nothing is sent).
+ * Feature 022: the terminal needs a tested M-Pesa set-up under Integrations.
+ */
 export function requestMpesa(): void {
-  const { co } = getStore().getState().pos.ui;
+  const s = getStore().getState();
+  const { co } = s.pos.ui;
+  const route = mpesaRoute(s.integrations, s.pos.ui.termId);
+  if (!route.ready) return setCo(() => ({ err: mpesaRouteNote(route) }));
   if (!isSafaricom(co.phone)) return setCo(() => ({ err: "Enter the customer's Safaricom number, for example 0712 345 678." }));
   setCo(() => ({ mpesa: "waiting", err: "" }));
   setTimeout(() => {
