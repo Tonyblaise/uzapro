@@ -82,14 +82,6 @@ describe("count commands (feature 017)", () => {
     expect(qty("Helmet", "Point of Sale")).toBe(37); // 40 after the sale, less the 3
   });
 
-  it("a shortage on a product with batches comes out of the oldest batch (feature 016)", async () => {
-    await startCount("Point of Sale", ["Muthokinju Paint"]);
-    await saveCount("CNT-0002", { "Muthokinju Paint": 9 });
-    await submitCount("CNT-0002");
-    await approveCount("CNT-0002");
-    expect(Object.fromEntries(s().stock.batches.map((b) => [b.batch, b.qty]))).toEqual({ "MP-2411": 3, "MP-2502": 6 });
-  });
-
   it("cancels an open count without changing stock", async () => {
     await startCount("Main Store", ["Bike Pump"]);
     const before = snapshot();

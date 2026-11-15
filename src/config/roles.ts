@@ -48,7 +48,7 @@ export const ROLES: Record<RoleId, Role> = {
     mods: ["home", "cal", "task", "sales", "cust", "vend", "buy", "fin", "exp", "rcv", "pay", "rep", "ppl", "docs", "sup"],
     tabs: {
       home: ["Overview"],
-      sales: ["Overview", "All sales", "Sales orders", "Deliveries", "Invoices", "Refunds (credit notes)", "Voided items", "Sales targets"],
+      sales: ["Overview", "All sales", "Sales orders", "Deliveries", "Invoices", "Voided items", "Sales targets"],
       buy: ["Overview", "Purchase orders", "Purchase returns", "Rejected items"],
     },
     tasks: [
@@ -68,14 +68,14 @@ export const ROLES: Record<RoleId, Role> = {
     mods: ["home", "cal", "task", "sales", "pos", "cust", "inv", "sup"],
     tabs: {
       home: ["Overview"],
-      cust: ["Customers"],
-      sales: ["All sales", "Refunds (credit notes)"],
+      cust: ["Customers", "Refunds (credit notes)"],
+      sales: ["All sales"],
       inv: ["Stock management"],
       sup: ["Help Center"], // feature 007: replaces the design's Ask UzaPro and How-to guides (spec › Design deviations)
     },
     tasks: [
       T("New sale", "Record a sale", "shopping-cart", "sales", "All sales", "new"),
-      T("Give a refund", "Return an item", "refresh-cw", "sales", "Refunds (credit notes)", "credit"),
+      T("Give a refund", "Return an item", "refresh-cw", "cust", "Refunds (credit notes)", "credit"),
       T("Find a customer", "Look up details", "user", "cust", "Customers"),
       T("Check stock", "See what’s left", "boxes", "inv", "Stock management"),
     ],

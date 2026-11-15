@@ -5,7 +5,6 @@ import type {
   Visit,
   PermissionsState,
   ReorderRule,
-  StockBatch,
   StockCount,
   PricingState,
   PosState,
@@ -87,8 +86,6 @@ export interface StockState {
   wastage: Wastage[];
   /** Reorder points per product and store (feature 014). */
   reorder: ReorderRule[];
-  /** Batches with expiry dates; never more than the stock on hand (feature 016). */
-  batches: StockBatch[];
   /** Stock counts, newest first (feature 017). */
   counts: StockCount[];
 }

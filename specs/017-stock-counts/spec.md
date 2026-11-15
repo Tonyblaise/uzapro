@@ -71,7 +71,7 @@ The owner opens the count that is waiting, checks the variance, and chooses "App
 
 - **Full or partial**: a count that includes every product at the store is labelled "Full"; otherwise "Partial".
 - **A product with no stock at the store** is not offered for counting there.
-- **Batches** (feature 016): a shortage comes out of the oldest batch first; an overage arrives not in a batch.
+- **Batches** (feature 016, since removed): a shortage came out of the oldest batch first.
 - **Bulk units** (feature 014): counts are in the base unit.
 - **A product removed** while a count is open: its line stays on the count and is skipped when stock is updated.
 - **An approved or cancelled count** cannot be changed.

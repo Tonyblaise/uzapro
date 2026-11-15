@@ -73,6 +73,7 @@ test("raise a credit note on a sale and approve it", async ({ page, errors }) =>
   await expect(page.getByText("CRN-0008 raised for KES 2,701.64. It is waiting for approval.")).toBeVisible();
   await drawer(page).getByRole("button", { name: "Close" }).click();
 
+  await page.getByRole("complementary", { name: "Main" }).getByRole("link", { name: "Customers" }).click();
   await page.getByRole("link", { name: "Refunds (credit notes)", exact: true }).click();
   const row = page.getByRole("row", { name: /CRN-0008/ });
   await expect(row).toContainText("Waiting approval");

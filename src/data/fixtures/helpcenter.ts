@@ -32,7 +32,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     updated: "2026-09-08",
     intro: [
       "A refund in UzaPro is a **credit note**. You raise it from the original sale, choose what is coming back, and decide how the customer gets their money. Nothing changes until the credit note is approved.",
-      "**Who can do this:** anyone who can open Sales › All sales. Approving needs access to Refunds (credit notes).",
+      "**Who can do this:** anyone who can open Sales › All sales. Approving needs access to Customers › Refunds (credit notes).",
     ],
     sections: [
       {
@@ -76,7 +76,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
           {
             kind: "ol",
             items: [
-              "Go to Sales › Refunds (credit notes).",
+              "Go to Customers › Refunds (credit notes).",
               "Select the credit note that shows **Waiting approval**.",
               "Choose **Approve**. The message reads **CRN-0008 approved.**",
             ],
@@ -85,7 +85,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
           {
             kind: "links",
             screens: [
-              { label: "Open Sales › Refunds (credit notes)", module: "sales", tab: "refunds-credit-notes" },
+              { label: "Open Customers › Refunds (credit notes)", module: "cust", tab: "refunds-credit-notes" },
               { label: "Open Accounts › Transactions", module: "fin", tab: "transactions" },
             ],
           },
@@ -228,7 +228,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         level: 2,
         blocks: [
           { kind: "p", text: "The Dashboard shows your day at a glance. **What would you like to do?** has shortcuts for your role, such as New sale or Stock in, and **Needs your attention** lists things to follow up." },
-          { kind: "note", tone: "info", text: "What you see depends on your role. A Cashier, for example, sees All sales and Refunds (credit notes) in Sales but not Invoices. If a screen mentioned in the Help Center is missing from your menu, ask the business owner." },
+          { kind: "note", tone: "info", text: "What you see depends on your role. A Cashier, for example, sees All sales in Sales and Refunds (credit notes) in Customers, but not Invoices. If a screen mentioned in the Help Center is missing from your menu, ask the business owner." },
           { kind: "links", screens: [{ label: "Open Dashboard › Overview", module: "home", tab: "overview" }] },
         ],
       },
@@ -1205,75 +1205,6 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     related: ["adding-a-product", "ordering-from-a-supplier-and-receiving-goods", "moving-stock-between-stores"],
   },
   {
-    id: "batches-and-expiry-dates",
-    title: "Batches and expiry dates",
-    category: "stock-and-products",
-    updated: "2026-11-15",
-    intro: [
-      "Record which stock belongs to which batch and when it expires. UzaPro then sells the earliest expiry first, keeps expired stock out of sales, and shows you what to deal with.",
-      "**Who can do this:** anyone with Write on Stock can record and write off batches. Removing a batch record needs Delete on Stock.",
-    ],
-    sections: [
-      {
-        heading: "Record a batch",
-        level: 2,
-        blocks: [
-          {
-            kind: "ol",
-            items: [
-              "Go to Stock › Expiry and choose **Record batch**.",
-              "Pick the **Product** and the **Store**.",
-              "Enter the **Batch number** and the **Expiry date**.",
-              "Enter the **Quantity** in the base unit. It can't be more than the stock there that is not in a batch yet.",
-              "Choose **Save**. The message reads, for example, **Batch MP-2411 recorded.**",
-            ],
-          },
-          { kind: "note", tone: "info", text: "Stock that arrives is not in a batch until you record one. A transfer arrives at the other store not in a batch, so record it again there." },
-          { kind: "links", screens: [{ label: "Open Stock › Expiry", module: "inv", tab: "expiry" }] },
-        ],
-      },
-      {
-        heading: "What the list shows",
-        level: 2,
-        blocks: [
-          {
-            kind: "table",
-            head: ["Status", "What it means"],
-            rows: [
-              ["OK", "More than 30 days left."],
-              ["Expires soon", "30 days or fewer left."],
-              ["Expired", "The expiry date has passed. This stock can't be sold."],
-            ],
-          },
-          { kind: "p", text: "A sale, an invoice, the till and a dispatch all take the batch that expires first. Expired stock still counts in stock on hand until you write it off, but it is left out of what can be sold." },
-        ],
-      },
-      {
-        heading: "Write off an expired batch",
-        level: 2,
-        blocks: [
-          {
-            kind: "ol",
-            items: ["On the expired batch, open the row menu and choose **Write off**.", "Confirm. The message reads, for example, **Batch MP-2409 written off.**"],
-          },
-          { kind: "p", text: "The batch's quantity is recorded under Stock › Wastage with the reason **Expired**, and stock on hand falls by that amount." },
-          { kind: "links", screens: [{ label: "Open Stock › Wastage", module: "inv", tab: "wastage" }] },
-        ],
-      },
-      {
-        heading: "Frequently asked questions",
-        level: 2,
-        blocks: [
-          { kind: "faq", q: "A sale says fewer are left than the stock list shows. Why?", a: ["Part of the stock has expired. The sale counts only what is in date, for example **Only 5 Muthokinju Paint left at Point of Sale.**"] },
-          { kind: "faq", q: "Do I have to put all my stock in batches?", a: ["No. Stock that is not in a batch is treated as in date and is used after the batches."] },
-          { kind: "links", articles: ["bulk-units-and-reorder-points", "moving-stock-between-stores"] },
-        ],
-      },
-      NEED_HELP,
-    ],
-    related: ["bulk-units-and-reorder-points", "moving-stock-between-stores"],
-  },
-  {
     id: "counting-your-stock",
     title: "Counting your stock",
     category: "stock-and-products",
@@ -1324,12 +1255,12 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         blocks: [
           { kind: "faq", q: "Why can't I submit the count?", a: ["Every line needs a counted quantity. The message says how many are left, for example **Count every line first. 2 left.** Enter 0 for a product that has none."] },
           { kind: "faq", q: "Why is there no Approve button?", a: ["Your role can count but not approve. Ask someone with Delete on Stock, such as the Owner."] },
-          { kind: "links", articles: ["batches-and-expiry-dates", "bulk-units-and-reorder-points"] },
+          { kind: "links", articles: ["bulk-units-and-reorder-points"] },
         ],
       },
       NEED_HELP,
     ],
-    related: ["batches-and-expiry-dates", "bulk-units-and-reorder-points", "moving-stock-between-stores"],
+    related: ["bulk-units-and-reorder-points", "moving-stock-between-stores"],
   },
   {
     id: "approvals-and-discount-limits",

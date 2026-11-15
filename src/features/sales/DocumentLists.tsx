@@ -1,5 +1,5 @@
 "use client";
-/** Sales › Quotations, Invoices, Refunds (credit notes) and Voided items, with their overlays. */
+/** Sales › Quotations, Invoices and Voided items, and Customers › Refunds (credit notes), with their overlays. */
 import { useCallback, useState } from "react";
 import {
   approveCreditNote,

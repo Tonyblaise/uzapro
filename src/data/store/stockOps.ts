@@ -3,7 +3,6 @@
  * Quantities never go below zero (FR-016).
  */
 import { DEMO_TODAY } from "@/lib/demo-clock";
-import { clampBatches, consume, expiredQty } from "../batches";
 import { unitFactor } from "../units";
 import type { Pill, StockLevel, StockMovement } from "../types";
 import type { AppState } from "./state";
@@ -22,8 +21,6 @@ export interface StockChange {
    * multiplied by what the unit contains. Left out = base units.
    */
   unit?: string;
-  /** Take outgoing stock from this batch first (feature 016). */
-  batchId?: string;
   kind: Pill;
   ref: string;
   by: string;
@@ -39,9 +36,7 @@ export function findShortfall(state: AppState, changes: readonly StockChange[]):
   const running = new Map<string, number>();
   for (const c of changes) {
     const key = `${c.product}@@${c.store}`;
-    // Feature 016: a sale cannot use expired batches, so it is checked against in-date stock.
-    const sold = c.kind.label === "Sold";
-    const current = running.get(key) ?? qtyAt(state, c.product, c.store) - (sold ? expiredQty(state.stock.batches, c.product, c.store) : 0);
+    const current = running.get(key) ?? qtyAt(state, c.product, c.store);
     const next = current + baseChange(state, c);
     if (next < 0) return { product: c.product, store: c.store, available: current };
     running.set(key, next);
@@ -52,17 +47,12 @@ export function findShortfall(state: AppState, changes: readonly StockChange[]):
 /** Apply stock changes and log one movement per change (newest first). Caller checks shortfall first. */
 export function applyStockChanges(state: AppState, changes: readonly StockChange[]): Pick<AppState, "stock"> {
   let levels: StockLevel[] = state.stock.levels.slice();
-  let batches = state.stock.batches;
   const newMoves: StockMovement[] = [];
   changes.forEach((c, i) => {
     const idx = levels.findIndex((l) => l.product === c.product && l.store === c.store);
     const current = idx >= 0 ? levels[idx]!.quantity : 0;
     const change = baseChange(state, c);
     const left = Math.max(0, current + change);
-    // Feature 016: outgoing stock comes out of the product's batches; they never exceed what is left.
-    if (change < 0 && batches.some((b) => b.product === c.product && b.store === c.store)) {
-      batches = clampBatches(consume(batches, c.product, c.store, -change, { sold: c.kind.label === "Sold", batchId: c.batchId }), c.product, c.store, left);
-    }
     if (idx >= 0) levels[idx] = { ...levels[idx]!, quantity: left };
     else levels = [...levels, { product: c.product, store: c.store, quantity: left }];
     newMoves.unshift({
@@ -78,7 +68,7 @@ export function applyStockChanges(state: AppState, changes: readonly StockChange
       ref: c.ref,
     });
   });
-  return { stock: { ...state.stock, levels, batches, movements: [...newMoves, ...state.stock.movements] } };
+  return { stock: { ...state.stock, levels, movements: [...newMoves, ...state.stock.movements] } };
 }
 
 export const KIND = {
@@ -92,21 +82,3 @@ export const KIND = {
   counted: { label: "Counted", tone: "neutral" },
 } satisfies Record<string, Pill>;
 
-/**
- * Feature 016, for callers that allow overselling (the till): the first sale line that would need
- * expired stock. `available` is the in-date quantity in base units. Products with no expired
- * batch are never reported.
- */
-export function findExpiredShortfall(state: AppState, changes: readonly StockChange[]): { product: string; store: string; available: number } | null {
-  const running = new Map<string, number>();
-  for (const c of changes) {
-    const expired = expiredQty(state.stock.batches, c.product, c.store);
-    if (!expired || c.kind.label !== "Sold") continue;
-    const key = `${c.product}@@${c.store}`;
-    const current = running.get(key) ?? qtyAt(state, c.product, c.store) - expired;
-    const next = current + baseChange(state, c);
-    if (next < 0) return { product: c.product, store: c.store, available: Math.max(0, current) };
-    running.set(key, next);
-  }
-  return null;
-}

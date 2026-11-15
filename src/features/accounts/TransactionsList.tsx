@@ -46,7 +46,7 @@ export function TransactionsList() {
       : /^INV-/.test(ref)
         ? `/sales/invoices${q}`
         : /^CRN-/.test(ref)
-          ? `/sales/refunds-credit-notes${q}`
+          ? `/customers/refunds-credit-notes${q}`
           : e.kind === "Customer payment"
             ? `/receivables/payments${q}`
             : e.kind === "Supplier payment"

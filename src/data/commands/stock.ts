@@ -219,7 +219,7 @@ export async function recordWastage(input: NewWastage): Promise<Result<Wastage>>
       value: Math.round(i.qty * unitCost(state, i.product, i.variant, i.unit)),
       session: true,
     });
-    changes.push({ product: i.product, variant: i.variant, store: input.location, change: -i.qty, kind: KIND.damaged, ref: notes || ref, by, unit: i.unit, ...(i.batchId ? { batchId: i.batchId } : {}) });
+    changes.push({ product: i.product, variant: i.variant, store: input.location, change: -i.qty, kind: KIND.damaged, ref: notes || ref, by, unit: i.unit });
   }
   const short = findShortfall(state, changes);
   if (short) return fail(shortfallMessage(short));

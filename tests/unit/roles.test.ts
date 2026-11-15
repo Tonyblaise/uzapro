@@ -7,10 +7,11 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   it("owner sees every module and tab", () => {
     // 21 with Point of sale (feature 010), 22 with Integrations (feature 015).
     expect(visibleModules(ROLES.owner)).toHaveLength(22);
-    expect(tabs("owner", "sales")).toHaveLength(10); // + Sales orders and Deliveries (013), Field sales (021)
+    expect(tabs("owner", "sales")).toHaveLength(9); // + Sales orders and Deliveries (013), Field sales (021); credit notes moved to Customers
+    expect(tabs("owner", "cust")).toEqual(["customers", "refunds-credit-notes", "customer-groups"]);
   });
   it("accountant: sales without quotations, no products or stock", () => {
-    expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "refunds-credit-notes", "voided-items", "sales-targets"]);
+    expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "voided-items", "sales-targets"]);
     expect(canSee(ROLES.accountant, "prod")).toBe(false);
     expect(canSee(ROLES.accountant, "inv")).toBe(false);
     expect(canSee(ROLES.accountant, "cust")).toBe(true);
@@ -19,13 +20,14 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
     expect(canSee(ROLES.store, "pos")).toBe(false);
   });
   it("cashier: two sales tabs and stock management only", () => {
-    expect(tabs("cashier", "sales")).toEqual(["all-sales", "refunds-credit-notes"]);
+    expect(tabs("cashier", "sales")).toEqual(["all-sales"]);
+    expect(tabs("cashier", "cust")).toEqual(["customers", "refunds-credit-notes"]); // credit notes moved to Customers
     expect(tabs("cashier", "inv")).toEqual(["stock-management"]);
     expect(canSee(ROLES.cashier, "prod")).toBe(false);
   });
   it("store keeper: products and stock, no sales or customers", () => {
     expect(tabs("store", "prod")).toHaveLength(5); // + Price lists (feature 012)
-    expect(tabs("store", "inv")).toHaveLength(8); // + Reorder (014), Expiry (016), Stock counts (017)
+    expect(tabs("store", "inv")).toHaveLength(7); // + Reorder (014), Stock counts (017); Expiry (016) removed
     expect(canSee(ROLES.store, "sales")).toBe(false);
     expect(canSee(ROLES.store, "cust")).toBe(false);
   });

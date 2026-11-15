@@ -53,7 +53,7 @@ test("launcher opens a new chat; answers come from live data with actions (quick
   await expect(lastReply(page)).toContainText("3 items need restocking:");
   await expect(lastReply(page)).toContainText("• Laser Printer at Office: 0 left (reorder at 5)");
   await ask(page, "How do I give a refund?");
-  await expect(lastReply(page)).toContainText("Go to Sales › Refunds (credit notes)");
+  await expect(lastReply(page)).toContainText("Go to Customers › Refunds (credit notes)");
   await ask(page, "sales today");
   await expect(lastReply(page)).toHaveText("Sales so far: KES 184K today, KES 1.12M this week and KES 4.82M this month.");
   await ask(page, "hello");

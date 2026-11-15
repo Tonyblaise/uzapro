@@ -89,8 +89,8 @@ describe("content integrity", () => {
     }
   });
 
-  it("has the 20 planned articles with unique ids, including the design's three guides", () => {
-    expect(HELP_ARTICLES).toHaveLength(20); // + 012, 013, 014, 016, 017, 018, 020 and van sales (021)
+  it("has the 19 planned articles with unique ids, including the design's three guides", () => {
+    expect(HELP_ARTICLES).toHaveLength(19); // + 012, 013, 014, 017, 018, 020 and van sales (021); 016 removed
     expect(ids.size).toBe(HELP_ARTICLES.length);
     const titles = HELP_ARTICLES.map((a) => a.title);
     for (const t of ["Setting up a POS terminal", "How to give a refund", "Reconciling a bank feed"]) expect(titles).toContain(t);

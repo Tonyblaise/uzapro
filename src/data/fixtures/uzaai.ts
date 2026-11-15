@@ -31,8 +31,8 @@ export const AI_CHATS: AiChat[] = [
     msgs: [
       U("How do I give a refund?"),
       B(
-        "Go to Sales › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items being returned, and say whether they go back into stock.",
-        { label: "Open Refunds", module: "sales", tab: "Refunds (credit notes)" },
+        "Go to Customers › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items being returned, and say whether they go back into stock.",
+        { label: "Open Refunds", module: "cust", tab: "Refunds (credit notes)" },
       ),
     ],
   },
@@ -103,7 +103,7 @@ export const AI_COPY = {
   bugAsk: "Sorry about that. Tell me what went wrong, which page you were on and what you expected to happen. I'll pass it to the support team.",
   bugLogged: (ref: string) => `Thanks for telling me. I logged this as ${ref} and sent it to the support team. They usually reply within 4 hours, and you can follow it under Support.`,
   greeting: (first: string) => `Hi ${first}. What can I help you with? You can ask about sales, stock, money owed, expenses, or report a problem.`,
-  refund: "Go to Sales › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items coming back, and say whether they go back into stock.",
+  refund: "Go to Customers › Refunds (credit notes) and choose New credit note. Pick the original sale, choose the items coming back, and say whether they go back into stock.",
   invoice: "To bill a customer, go to Sales › Invoices and choose New invoice. Pick the customer, add the items and save. You can send it from the invoice once it's saved.",
   sales: "Sales so far: KES 184K today, KES 1.12M this week and KES 4.82M this month.",
   purchase: "To order stock, go to Purchases › Purchase orders and choose New purchase order. When the goods arrive, open the order and choose Receive goods.",
@@ -123,7 +123,7 @@ export const AI_TARGETS: Record<AiTopic, { module: ModuleId; tab: string; area: 
   owed: { module: "rcv", tab: "Receivables", area: "Receivables", label: "Open Receivables" },
   stock: { module: "inv", tab: "Overview", area: "Stock", label: "Open Stock" },
   spending: { module: "exp", tab: "Expenses", area: "Expenses", label: "Open Expenses" },
-  refund: { module: "sales", tab: "Refunds (credit notes)", area: "Refunds", label: "Open Refunds" },
+  refund: { module: "cust", tab: "Refunds (credit notes)", area: "Refunds", label: "Open Refunds" },
   invoice: { module: "sales", tab: "Invoices", area: "Invoices", label: "Open Invoices" },
   sales: { module: "sales", tab: "All sales", area: "Sales", label: "Open Sales" },
   purchase: { module: "buy", tab: "Purchase orders", area: "Purchases", label: "Open Purchases" },

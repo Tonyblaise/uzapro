@@ -14,7 +14,7 @@ import { variantLevels } from "../queries-stock";
 import { getStore, showToast } from "../store";
 import { posUiDefault } from "../store/seed";
 import type { AppState } from "../store/state";
-import { KIND, applyStockChanges, findExpiredShortfall, type StockChange } from "../store/stockOps";
+import { KIND, applyStockChanges, type StockChange } from "../store/stockOps";
 import type { PosCheckout, PosMethod, PosSaleDoc, PosSettings, PosUi, PosView, Sale, Terminal } from "../types";
 import { addReceivable } from "./money";
 import { discountBlock, myApprovals } from "../approvals";
@@ -484,12 +484,6 @@ export function completePosSale(): string | null {
     ...(gate.approval ? { creditApproval: gate.approval } : {}),
   };
   const changes: StockChange[] = doc.lines.map((l) => ({ product: l.product, variant: l.variant, store, change: -l.qty, kind: KIND.sold, ref, by: ui.who, unit: l.unit }));
-  // Feature 016: the till may oversell, but it never sells expired stock.
-  const expired = findExpiredShortfall(s, changes);
-  if (expired) {
-    setCo(() => ({ err: `Only ${expired.available} ${expired.product} in date at ${expired.store}. The rest has expired.` }));
-    return null;
-  }
   getStore().setState((st) => {
     let next: AppState = { ...st, ...applyStockChanges(st, changes), sales: { ...st.sales, sales: [sale, ...st.sales.sales], saleNo } };
     for (const p of pays) next = post(next, { date: DEMO_TODAY, account: ACCOUNT_FOR[p.method], ref, desc: `POS sale, ${term?.name ?? "Terminal"}`, kind: "Sale", amt: p.amount });

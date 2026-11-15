@@ -371,20 +371,6 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "count in progress");
   });
 
-  test("the expiry list and batch form fit 320px and pass the scan (feature 016)", async ({ page, errors }) => {
-    void errors;
-    await loginAs(page, "owner");
-    await page.goto("/stock/expiry");
-    await expect(page.getByRole("row").filter({ hasText: "MP-2409" })).toBeVisible();
-    await noSideways(page, "expiry list");
-    await scan(page, "main", "expiry list");
-    await page.goto("/stock/expiry?action=new");
-    const form = page.getByRole("dialog", { name: "Record batch" });
-    await expect(form.getByLabel("Batch number")).toBeVisible();
-    await noSideways(page, "batch form");
-    await scan(page, '[role="dialog"]', "batch form");
-  });
-
   test("the reorder list and form fit 320px and pass the scan (feature 014, SC-006)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");

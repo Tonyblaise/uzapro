@@ -67,6 +67,7 @@ test("approving a cash refund on a sale's credit note takes the money out of Cas
   await expect(toast(page)).toContainText("CRN-0008 raised");
   await drawer(page).getByRole("button", { name: "Close" }).click();
 
+  await nav(page).getByRole("link", { name: "Customers" }).click();
   await tab(page, "Refunds (credit notes)");
   await page.getByRole("row", { name: /CRN-0008/ }).click();
   await drawer(page).getByRole("button", { name: "Approve" }).click();

@@ -43,7 +43,6 @@ export * from "./commands/permissions";
 export * from "./queries-pricing";
 export * from "./queries-orders";
 export * from "./queries-reorder";
-export * from "./queries-batches";
 export * from "./queries-counts";
 export * from "./queries-whatsapp";
 export * from "./queries-visits";
@@ -54,8 +53,6 @@ export { invoiceMessage, receiptMessage, reminderMessage, waLink, waNumber } fro
 export { APPROVAL_KEYS, APPROVAL_LABEL, FULL_APPROVALS, NO_APPROVALS, sameApprovals, validDiscountMax, type ApprovalKey } from "./approvals";
 export * from "./commands/counts";
 export { isOpenCount, signed as signedQty, variance as countVariance } from "./counts";
-export * from "./commands/batches";
-export { SOON_DAYS } from "./batches";
 export { createReorderDrafts, removeReorderRule, saveReorderRule } from "./commands/reorder";
 export { baseUnitOf, containsLabel, defaultContains, unitFactor } from "./units";
 export * from "./commands/orders";

@@ -172,8 +172,8 @@ test("screen links open the app screen, and are plain text when the role can't s
   void errors;
   await loginAs(page, "owner");
   await page.goto(REFUND);
-  await page.getByRole("link", { name: "Open Sales › Refunds (credit notes)" }).click();
-  await page.waitForURL("**/sales/refunds-credit-notes");
+  await page.getByRole("link", { name: "Open Customers › Refunds (credit notes)" }).click();
+  await page.waitForURL("**/customers/refunds-credit-notes");
   await expect(page.getByRole("link", { name: "Refunds (credit notes)", exact: true })).toHaveAttribute("aria-current", "page");
 });
 

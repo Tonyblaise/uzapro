@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-15
 
-**Status**: Draft
+**Status**: Removed (2026-11-15). The Expiry tab, batches, earliest-expiry-first and the expired-stock check were taken out of the app; this spec is kept as a record.
 
 **Input**: User description: "go ahead and build them" (roadmap item: "Batch and expiry tracking. Sell the earliest-expiring batch first and alert on stock close to expiry. This matters for food, drinks, cosmetics and pharmacy.")
 

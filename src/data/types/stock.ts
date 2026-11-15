@@ -32,19 +32,6 @@ export interface StockItem {
   variant: string;
   qty: number;
   unit: string;
-  /** Take the stock from this batch first (feature 016: writing off an expired batch). */
-  batchId?: string;
-}
-
-/** Part of a store's stock of a product, with its expiry date (feature 016). `qty` is in base units. */
-export interface StockBatch {
-  id: string;
-  product: string;
-  store: string;
-  /** Batch number, unique per product and store. */
-  batch: string;
-  expiry: string; // ISO
-  qty: number;
 }
 
 /** "Confirmed" is what the design's "Confirm transfer" button sets (trFinish); the seed uses "Not finished". */

@@ -10,7 +10,6 @@ import { CUSTOMER_CREDIT } from "../fixtures/pricing";
 import { DELIVERY_SEED, ORDER_SEED } from "../fixtures/orders";
 import { REORDER_SEED } from "../fixtures/reorder";
 import { VAN_LOAD, VAN_LOAD_FROM, VAN_STORE, VISIT_SEED } from "../fixtures/visits";
-import { BATCH_SEED } from "../fixtures/batches";
 import { COUNT_SEED } from "../fixtures/counts";
 import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
@@ -187,7 +186,6 @@ export function createSeed(): AppState {
       transfers,
       wastage,
       reorder: REORDER_SEED.map((r) => ({ ...r })),
-      batches: BATCH_SEED.map((b) => ({ ...b })),
       counts: COUNT_SEED.map((c) => ({ ...c, lines: c.lines.map((l) => ({ ...l })) })),
     },
     sales: {

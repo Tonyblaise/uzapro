@@ -76,8 +76,6 @@ export const MODULES: Module[] = [
       ["Reorder", "table", [C("Product"), C("Store"), N("On hand"), N("On order"), N("Reorder at"), N("Order up to"), C("Suggested order"), C("Supplier"), C("Status")]],
       // Feature 017 (spec › Design deviations).
       ["Stock counts", "table", [C("Count"), C("Store"), C("Date"), C("Type"), C("Lines counted"), N("Variance"), N("Variance value (KES)"), C("Status")]],
-      // Feature 016 (spec › Design deviations).
-      ["Expiry", "table", [C("Product"), C("Store"), C("Batch"), C("Expiry date"), C("Days left"), N("Quantity"), C("Status")]],
     ],
     true,
   ),
@@ -103,11 +101,6 @@ export const MODULES: Module[] = [
         [C("Invoice #"), C("Customer"), C("Invoice date"), C("Due date"), C("Status"), N("Amount (KES)"), N("Balance due (KES)")],
       ],
       [
-        "Refunds (credit notes)",
-        "table",
-        [C("Credit note"), C("Customer"), C("Date"), C("Invoice"), C("Reason"), N("Amount (KES)"), C("Status")],
-      ],
-      [
         "Voided items",
         "table",
         [C("Void ref"), C("Original sale"), C("Customer"), C("Voided on"), C("Reason"), C("Voided by"), N("Amount (KES)")],
@@ -131,6 +124,8 @@ export const MODULES: Module[] = [
     [
       // Feature 012 adds Group, Credit limit and Balance owed, and the Customer groups tab (spec › Design deviations).
       ["Customers", "table", [C("Name"), C("Phone"), C("Email"), C("Address"), C("Group"), N("Credit limit (KES)"), N("Balance owed (KES)"), C("Status")]],
+      // Credit notes moved here from Sales: they are money owed back to a customer.
+      ["Refunds (credit notes)", "table", [C("Credit note"), C("Customer"), C("Date"), C("Invoice"), C("Reason"), N("Amount (KES)"), C("Status")]],
       ["Customer groups", "table", [C("Group"), C("Price list"), N("Customers")]],
     ],
     true,

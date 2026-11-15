@@ -120,7 +120,6 @@ export async function updateProduct(original: string, input: NewProduct): Promis
         : {
             ...s.stock,
             reorder: s.stock.reorder.map((r) => ({ ...r, product: rename(r.product) })),
-            batches: s.stock.batches.map((b) => ({ ...b, product: rename(b.product) })),
             levels: s.stock.levels.map((l) => ({ ...l, product: rename(l.product) })),
             movements: s.stock.movements.map((m) => ({ ...m, product: rename(m.product) })),
           },
@@ -136,7 +135,7 @@ export async function deleteProduct(name: string): Promise<Result<void>> {
   store.setState((s) => ({
     catalog: { ...s.catalog, products: s.catalog.products.filter((p) => p.name !== name) },
     pricing: { ...s.pricing, prices: s.pricing.prices.filter((e) => e.product !== name) },
-    stock: { ...s.stock, reorder: s.stock.reorder.filter((r) => r.product !== name), batches: s.stock.batches.filter((b) => b.product !== name) },
+    stock: { ...s.stock, reorder: s.stock.reorder.filter((r) => r.product !== name) },
   }));
   const message = `${name} deleted.`;
   showToast(message);
