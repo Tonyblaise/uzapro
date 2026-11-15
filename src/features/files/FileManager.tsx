@@ -1,7 +1,7 @@
 "use client";
 /**
- * File Manager › All documents (design `docsView`, markup lines 1154–1208): storage rings, the
- * "All Files" toolbar, breadcrumbs from `?dir=`, grid cards or the list table, and the empty states.
+ * File Manager › All documents (design `docsView`, markup lines 1154–1208): the "All Files"
+ * toolbar (the storage rings were removed on request, 2026-11-15), breadcrumbs from `?dir=`, grid cards or the list table, and the empty states.
  */
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { Card } from "@/components/ui/Card";
@@ -18,11 +18,9 @@ import {
   folderItemCount,
   folderPath,
   setSearch,
-  storagePct,
   toggleStar,
   useDocs,
   useSearch,
-  useStorageTotals,
   type DocKind,
 } from "@/data";
 import { FileOverlays } from "./FileOverlays";
@@ -43,24 +41,6 @@ interface Item {
   on: boolean;
 }
 
-/** One storage ring (design `stat`): the conic fill uses the ring's token colour. */
-function Ring({ label, icon, color, kb }: { label: string; icon: string; color: string; kb: number }) {
-  return (
-    <div className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-surface px-4 py-3">
-      <span className="grid size-[52px] flex-none place-items-center rounded-full" style={{ background: `conic-gradient(${color} ${storagePct(kb)}%, var(--border) 0)` }} aria-hidden="true">
-        <span className="grid size-[42px] place-items-center rounded-full bg-surface" style={{ color }}>
-          <DocIcon name={icon} size={20} />
-        </span>
-      </span>
-      <span className="min-w-0">
-        <span className="type-small block text-text-muted">{label}</span>
-        <span className="type-title u-num block text-text">{docSize(kb)}</span>
-        <span className="type-caption block text-text-muted">of 5 GB</span>
-      </span>
-    </div>
-  );
-}
-
 function Chip({ type, size, round }: { type: DocLook; size: number; round: string }) {
   const l = LOOK[type];
   return (
@@ -72,7 +52,6 @@ function Chip({ type, size, round }: { type: DocLook; size: number; round: strin
 
 export function FileManager() {
   const { folders, files, starred } = useDocs();
-  const totals = useStorageTotals();
   const q = useSearch();
   const { dir, go } = useDocsUrl();
   const [type, setType] = useState<DocType>("All file types");
@@ -152,13 +131,6 @@ export function FileManager() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="uz-c4 uz-c4-four uz-c4-rings">
-        <Ring label="Total storage" icon="folder" color="var(--grey-700)" kb={totals.total} />
-        <Ring label="Images" icon="image" color="var(--green-600)" kb={totals.images} />
-        <Ring label="Documents" icon="file-text" color="var(--info)" kb={totals.documents} />
-        <Ring label="Spreadsheets" icon="sheet" color="var(--green-700)" kb={totals.spreadsheets} />
-      </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="type-card-title m-0 mr-2 text-text">All Files</h2>
         <div className="w-[170px]">

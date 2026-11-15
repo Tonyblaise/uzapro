@@ -21,7 +21,7 @@ async function openFiles(page: Page) {
   await nav(page).getByRole("link", { name: "File Manager" }).click();
   await expect(page).toHaveURL(/\/file-manager\/all-documents$/);
   await expect(page.getByRole("heading", { name: "All Files" })).toBeVisible();
-  await expect(page.getByText("Total storage", { exact: true })).toBeVisible();
+  await expect(page.getByText("Total storage", { exact: true })).toHaveCount(0);
 }
 
 test("Create Receipts in Finance and upload a file into it (quickstart 4)", async ({ page, errors }) => {
