@@ -7,19 +7,22 @@ import { GenericTable } from "./GenericTable";
 import { ReportCards } from "./ReportCards";
 
 /**
- * Generic list, form and card screens (feature 005, US5): rep, ppl, the Settings tabs
+ * Generic list, form and card screens (feature 005, US5): rep (cards only), ppl, the Settings tabs
  * Staff logins and Taxes. The screen kind and the columns
  * come from the module registry; every tab gets the header "New" button (design `headerActions`
  * last fallback).
  */
 const BODIES: Partial<Record<ScreenKind, typeof GenericTable>> = { table: GenericTable, form: GenericForm, cards: ReportCards };
 
+/** Reports has no header button (design `headerActions`: `m.id === 'rep' ? null`). */
+const NO_ACTIONS: readonly ModuleId[] = ["rep"];
+
 function screen(moduleId: ModuleId, tab: string, kind: ScreenKind): ScreenDef {
   const View = BODIES[kind];
   if (!View) throw new Error(`No generic screen for ${moduleId}/${tab} (${kind})`);
   const Body = () => <View moduleId={moduleId} tab={tab} />;
   Body.displayName = `Generic(${moduleId}/${tab})`;
-  return { Body, Actions: NewAction };
+  return NO_ACTIONS.includes(moduleId) ? { Body } : { Body, Actions: NewAction };
 }
 
 export function screensFor(moduleId: ModuleId, only?: readonly string[]): ScreenMap {

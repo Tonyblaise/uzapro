@@ -378,6 +378,23 @@ export interface ReportResult {
   missing?: boolean;
 }
 
+/** Charts and analysis above a report's table (design `repCharts`). Colours are the design's hex values. */
+export interface ReportCharts {
+  bars: { title: string; sub: string; aria: string; bars: { label: string; value: string; width: number; color: string; tip: string }[] } | null;
+  donut: { title: string; sub: string; aria: string; background: string; label: string; total: string; legend: { label: string; color: string; pct: string }[] } | null;
+  trend: {
+    title: string;
+    sub: string;
+    aria: string;
+    series: { label: string; color: string }[];
+    /** Bar colours of the first and second series. */
+    colors: [string, string];
+    /** Heights in % of the chart; h2 null for one series; the last month is partial (drawn lighter). */
+    months: { label: string; h1: number; h2: number | null; partial: boolean; tip: string }[];
+  } | null;
+  insights: { text: string; color: string }[];
+}
+
 // ---- Help Center (feature 007, specs/007-help-center-articles/data-model.md) ------------------
 
 export interface HelpCategory {

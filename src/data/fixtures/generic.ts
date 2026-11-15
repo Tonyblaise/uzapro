@@ -1,6 +1,6 @@
 /**
  * Verbatim port of the `UZ_MODS` rows, form fields and card items for the standard list, form and
- * card screens (design/canvas/erp-data.js): Reports, Team and Settings ›
+ * card screens (design/canvas/erp-data.js): Reports (cards), Team and Settings ›
  * Staff logins and Taxes. Keys are "{moduleId}/{tabSlug}".
  * Permissions moved to role cards in feature 011 (canvas rows: Owner / Admin 1 Full, Accountant 2
  * Edit, Cashier 4 Limited, Store / Inventory 3 Edit — see src/data/fixtures/permissions.ts).
@@ -12,10 +12,6 @@ import { REPORT_DESCRIPTIONS, REPORT_NAMES, REPORT_NOT_AVAILABLE, type ReportNam
 
 /** Table rows, cells in column order (the columns live in src/config/modules.ts). */
 export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
-  "rep/sent-automatically": [
-    ["Daily sales", "Daily 6pm", "Owner", P("Active", "good")],
-    ["Weekly P&L", "Mon 8am", "Finance", P("Active", "good")],
-  ],
   "ppl/team": [
     ["Tony Blaise", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
     ["Grant Jensen", "Store keeper", "Nairobi HQ", P("Active", "good")],
@@ -35,22 +31,8 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
   ],
 };
 
-/** `[label, value, 'ph'?, full?]` as in the design; 'ph' means the value is a placeholder. */
-type FieldDef = readonly [label: string, value: string, ph?: "ph" | "", full?: 1];
-const F = (defs: readonly FieldDef[]): GenericField[] =>
-  defs.map(([label, value, ph, full]) => ({ label, value, placeholder: ph === "ph", full: full === 1 }));
-
-/** Form fields (read-only fixture). */
-export const GENERIC_FORMS: Readonly<Record<string, readonly GenericField[]>> = {
-  "rep/build-a-report": F([
-    ["Report name", "Weekly sales by rep", "ph"],
-    ["Data source", "Sales"],
-    ["Columns", "Rep, Net sales, Orders, Margin", "ph", 1],
-    ["Group by", "Sales rep"],
-    ["Date range", "This month"],
-    ["Schedule", "Every Monday 8am"],
-  ]),
-};
+/** Form fields (read-only fixture). Reports › Build a report was removed in the design (v1794778583). */
+export const GENERIC_FORMS: Readonly<Record<string, readonly GenericField[]>> = {};
 
 /** A card per title: the design's description and whether a report exists for it (feature 009). */
 const C = (titles: readonly string[]): ReportCard[] =>

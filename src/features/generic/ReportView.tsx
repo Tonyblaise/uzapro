@@ -1,9 +1,10 @@
 "use client";
 /**
  * The design's report view (`isRepView`, design lines 870–892): back, title and dates, period
- * picker, Export CSV, KPI tiles, the table with a bold total row, an empty state and a note.
+ * picker, Export CSV, KPI tiles, charts and the Analysis panel (design `repCharts`), the table with a bold total row, an empty state and a note.
  */
 import { usePathname, useRouter } from "next/navigation";
+import { useMemo } from "react";
 import {
   REPORT_DEFAULT_EMPTY,
   REPORT_DEFAULT_NOTE,
@@ -11,6 +12,7 @@ import {
   copyText,
   formatCell,
   periodSlug,
+  reportCharts,
   reportCsv,
   reportSlug,
   setReportPeriod,
@@ -25,6 +27,7 @@ import { Card } from "@/components/ui/Card";
 import { Table, type DataColumn } from "@/components/ui/DataTable";
 import { SearchSelect } from "@/components/ui/SearchSelect";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { ReportCharts } from "./ReportCharts";
 
 const TONE: Record<ReportTone, string> = {
   green: "text-green-700",
@@ -48,6 +51,7 @@ function cellView(cell: ReportCell | undefined, col: ReportColumn, total: boolea
 
 export function ReportView({ name, period }: { name: string; period: ReportPeriod }) {
   const r = useReport(name, period);
+  const charts = useMemo(() => reportCharts(name, r, period), [name, r, period]);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -98,6 +102,8 @@ export function ReportView({ name, period }: { name: string; period: ReportPerio
           ))}
         </ul>
       )}
+
+      <ReportCharts ch={charts} />
 
       {r.rows.length > 0 ? (
         <Card flush>

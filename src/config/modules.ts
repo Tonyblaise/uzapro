@@ -271,8 +271,6 @@ export const MODULES: Module[] = [
       ["Sales", "cards"],
       ["Money", "cards"],
       ["Stock", "cards"],
-      ["Build a report", "form"],
-      ["Sent automatically", "table", [C("Report"), C("Cadence"), C("Recipients"), C("Status")]],
     ],
     true,
   ),

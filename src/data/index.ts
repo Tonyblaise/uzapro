@@ -33,6 +33,7 @@ export * from "./helpcenter";
 export * from "./uzaai";
 export * from "./targets";
 export * from "./reports";
+export { reportCharts } from "./reportCharts";
 export * from "./pos";
 export * from "./commands/pos";
 export { DEMO_PIN, POS_FLOATS } from "./fixtures/pos";

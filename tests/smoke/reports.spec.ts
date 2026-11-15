@@ -48,6 +48,14 @@ test("cards run reports; back, history and reload work (quickstart 1–3)", asyn
   const body = page.getByRole("table").getByRole("row");
   await expect(body).toHaveCount(5);
   await expect(body.nth(1)).toContainText("POS");
+
+  // Charts and the Analysis panel (design repCharts).
+  await expect(page.getByRole("img", { name: /^Bar chart of sales for POS KES 2,050,000/ })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Share of sales" })).toContainText("4,820,000");
+  await expect(page.getByRole("img", { name: /^Sales by month: May 3.1M/ })).toBeVisible();
+  const analysis = page.getByRole("region", { name: "Analysis" });
+  await expect(analysis).toContainText("POS is the largest at KES 2,050,000, 43% of the total.");
+  await expect(analysis).toContainText("Sales in Oct were up 12% on Sep, and up 55% since May.");
   await expect(body.nth(4)).toContainText("Total");
   await expect(body.nth(4).getByText("4,820,000")).toHaveClass(/font-semibold/);
 
@@ -79,7 +87,7 @@ test("the period picker re-runs period reports; point-in-time reports have none 
 
   await back(page).click();
   await runReport(page, "Balance sheet");
-  await expect(page.getByText("As at 10 Nov 2026")).toBeVisible();
+  await expect(page.locator("[data-report-view] > div").first().getByText("As at 10 Nov 2026")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Period/ })).toHaveCount(0);
 
   // The next run starts on the period last chosen.

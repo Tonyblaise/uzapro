@@ -35,6 +35,8 @@ const PAGES = [
   "/integrations/quickbooks",
   "/profile/profile",
   "/reports/popular",
+  "/reports/popular?report=sales-summary&period=this-month",
+  "/reports/money?report=profit-loss&period=this-month",
   "/help/help-center",
   "/help/help-center?article=how-to-give-a-refund",
 ];

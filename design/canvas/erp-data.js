@@ -162,8 +162,6 @@ window.UZ_MODS=[
    {t:'Sales',s:{k:'cards',items:[['Sales summary'],['Sales by product'],['Sales by customer'],['Sales by channel'],['Returns & refunds'],['Sales targets']]}},
    {t:'Money',s:{k:'cards',items:[['Profit & loss'],['Balance sheet'],['Trial balance'],['Cash flow'],['VAT return'],['Aged receivables']]}},
    {t:'Stock',s:{k:'cards',items:[['Stock valuation'],['Stock movement'],['Low stock'],['Wastage'],['Reorder forecast']]}},
-   {t:'Build a report',s:{k:'form',fields:[['Report name','Weekly sales by rep','ph'],['Data source','Sales'],['Columns','Rep, Net sales, Orders, Margin','ph',1],['Group by','Sales rep'],['Date range','This month'],['Schedule','Every Monday 8am']]}},
-   {t:'Sent automatically',s:{k:'table',cols:[{t:'Report'},{t:'Cadence'},{t:'Recipients'},{t:'Status'}],rows:[['Daily sales','Daily 6pm','Owner',P('Active','good')],['Weekly P&L','Mon 8am','Finance',P('Active','good')]]}},
  ]},
  {id:'ppl',sec:'People',ic:'users',n:'Team',sub:'The people who work for you',tabs:[
    {t:'Team',s:{k:'table',cols:[{t:'Name'},{t:'Role'},{t:'Branch'},{t:'Status'}],rows:[['Tony Ashiuma','Owner / Admin','Nairobi HQ',P('Active','good')],['Grant Jensen','Store keeper','Nairobi HQ',P('Active','good')],['Mary Achieng','Accountant','Nairobi HQ',P('Active','good')],['Jane Smith','Cashier','New Jersey',P('Active','good')]]}},

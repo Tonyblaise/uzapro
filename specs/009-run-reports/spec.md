@@ -399,3 +399,14 @@ Required by Constitution Principle I. These are the only intended differences fr
 Visual review (T019, 2026-11-12): the cards, Sales summary, Profit & loss and Aged receivables were compared with the canvas markup at 1440px and 375px. There are no differences beyond the rows above.
 
 Noticed but outside this feature: the active module tab (`--green-600` on the canvas background) scores 4.26:1 contrast, just under 4.5:1. It appears on every module page and comes from the design.
+
+## Design update (canvas v1794778583-c3c7, 2026-11-16)
+
+- **Charts and analysis.** Every report view shows charts and an **Analysis** panel between the key figures and the table. They come from a one-for-one port of the canvas `repCharts` in `src/data/reportCharts.ts`, rendered by `src/features/generic/ReportCharts.tsx`.
+  - **Bar chart:** the top 8 lines by the report's main value. "Owed by age" for Aged receivables, "Line by line" for statements.
+  - **Donut:** each line's share of the total, when every value is positive.
+  - **Monthly trend:** the dashboard's sales, purchases and cash series for the sales, P&L, VAT, purchase and cash-flow reports. November is shown as month to date.
+  - **Analysis:** up to five plain-language points, worded as in the design.
+
+  Charts are plain elements, as in the canvas. Each chart is one labelled image (`role="img"`) with tooltips.
+- **Removed:** Reports › Build a report and Sent automatically, and the header **New** button on Reports. Reports has Popular, Sales, Money and Stock only.
