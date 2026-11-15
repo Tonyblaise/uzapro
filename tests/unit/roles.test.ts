@@ -10,8 +10,8 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
     expect(tabs("owner", "sales")).toEqual(["overview", "all-sales", "quotations", "sales-orders", "deliveries", "invoices", "voided-items", "sales-targets"]);
     expect(tabs("owner", "field")).toEqual(["field-sales", "sales-reps", "deliveries"]);
     expect(tabs("store", "field")).toEqual(["deliveries"]); // design UZ_ROLES: the Store keeper only delivers
-    expect(tabs("owner", "cust")).toEqual(["customers", "refunds-credit-notes", "customer-groups"]); // customer credits are listed with credit notes
-    expect(tabs("owner", "vend")).toEqual(["suppliers"]); // supplier credits are listed with purchase returns
+    expect(tabs("owner", "cust")).toEqual(["customers", "refunds-credit-notes", "customer-credits", "customer-groups"]);
+    expect(tabs("owner", "vend")).toEqual(["suppliers", "supplier-credits"]); // Supplier credits moved from Payables
   });
   it("accountant: sales without quotations, no products or stock", () => {
     expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "voided-items", "sales-targets"]);

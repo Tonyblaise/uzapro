@@ -97,7 +97,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         blocks: [
           { kind: "faq", q: "Can I refund only part of a sale?", a: ["Yes. Choose **Partial** and set the credit quantity on each line. You cannot credit more than is still open on the sale."] },
           { kind: "faq", q: "What if the customer never paid?", a: ["The credit note reduces what the customer owes instead of paying money out."] },
-          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Customers › Refunds (credit notes), on the credit note’s line under **Credit left**, once the credit note is approved."] },
+          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Customers › Customer credits, once the credit note is approved."] },
         ],
       },
       NEED_HELP,

@@ -137,6 +137,8 @@ export const MODULES: Module[] = [
       ["Customers", "table", [C("Name"), C("Phone"), C("Email"), C("Address"), C("Group"), N("Credit limit (KES)"), N("Balance owed (KES)"), C("Status")]],
       // Credit notes moved here from Sales: they are money owed back to a customer.
       ["Refunds (credit notes)", "table", [C("Credit note"), C("Customer"), C("Date"), C("Invoice"), C("Reason"), N("Amount (KES)"), C("Status")]],
+      // Customer credits moved here from Receivables, next to the credit notes that create them.
+      ["Customer credits", "table", [C("Ref"), C("Customer"), C("Reason"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
       ["Customer groups", "table", [C("Group"), C("Price list"), N("Customers")]],
     ],
     true,
@@ -168,7 +170,11 @@ export const MODULES: Module[] = [
     "Suppliers",
     "The businesses you buy from",
     "suppliers",
-    [["Suppliers", "table", [C("Name"), C("Type"), C("Phone"), C("Email"), C("Town or city"), C("Status")]]],
+    [
+      ["Suppliers", "table", [C("Name"), C("Type"), C("Phone"), C("Email"), C("Town or city"), C("Status")]],
+      // Supplier credits moved here from Payables.
+      ["Supplier credits", "table", [C("Ref"), C("Supplier"), C("Source"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
+    ],
     true,
   ),
   mod(

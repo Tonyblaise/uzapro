@@ -129,9 +129,9 @@ test("Payment plan on RCV-0008 and its first instalment (quickstart 8)", async (
 test("Issue CRD-0005, use it to pay, and void CRD-0004 (quickstart 9)", async ({ page, errors }) => {
   void errors;
   await openReceivables(page);
-  // Customer credits are listed with the credit notes (in-app navigation keeps the session's data).
+  // Customer credits sit under Customers (in-app navigation keeps the session's data).
   await nav(page).getByRole("link", { name: "Customers" }).click();
-  await tab(page, "Refunds (credit notes)");
+  await tab(page, "Customer credits");
   await expect(row(page, "CRD-0004")).toBeVisible();
   await page.getByRole("button", { name: "Issue credit" }).click();
   const form = page.getByRole("dialog", { name: "Issue customer credit" });
@@ -142,7 +142,7 @@ test("Issue CRD-0005, use it to pay, and void CRD-0004 (quickstart 9)", async ({
   await form.getByRole("button", { name: "Issue credit" }).click();
   await expect(toast(page)).toContainText("CRD-0005: KES 3,000 credit for Morningview Bicycles.");
   await expect(form).toBeHidden();
-  await expect(cell(row(page, "CRD-0005"), 7)).toHaveText("3,000"); // Credit left
+  await expect(cell(row(page, "CRD-0005"), 6)).toHaveText("3,000");
 
   await rowAction(page, "CRD-0005", "Use to pay");
   const pay = page.getByRole("dialog", { name: "Record payment" });
@@ -153,12 +153,12 @@ test("Issue CRD-0005, use it to pay, and void CRD-0004 (quickstart 9)", async ({
   await pay.getByRole("button", { name: "Save payment" }).click();
   await expect(toast(page)).toContainText("PAY-0022 saved. KES 3,000 applied to RCV-0012.");
   await expect(pay).toBeHidden();
-  await expect(cell(row(page, "CRD-0005"), 7)).toHaveText("0");
-  await expect(cell(row(page, "CRD-0005"), 8)).toHaveText("Used up");
+  await expect(cell(row(page, "CRD-0005"), 6)).toHaveText("0");
+  await expect(cell(row(page, "CRD-0005"), 7)).toHaveText("Used up");
 
   await rowAction(page, "CRD-0004", "Void credit");
   await expect(toast(page)).toContainText("CRD-0004 voided.");
-  await expect(cell(row(page, "CRD-0004"), 8)).toHaveText("Voided");
+  await expect(cell(row(page, "CRD-0004"), 7)).toHaveText("Voided");
 });
 
 test("Receivables statement regenerates (quickstart 10)", async ({ page, errors }) => {
