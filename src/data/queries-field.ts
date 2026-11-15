@@ -31,7 +31,7 @@ export function useFieldReps(): FieldRepRow[] {
   return useMemo(
     () =>
       reps.map((r) => {
-        const mine = sales.filter((x) => x.rep === r.name && x.delivery.status !== "Cancelled");
+        const mine = sales.filter((x) => x.kind !== "delivery" && x.rep === r.name && x.delivery.status !== "Cancelled");
         return {
           ...r,
           ordersToday: mine.filter((x) => x.date === DEMO_TODAY).length,

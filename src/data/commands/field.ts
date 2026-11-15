@@ -8,7 +8,7 @@ import { DEMO_TODAY, addDays, demoTime } from "@/lib/demo-clock";
 import { date as fmtDate, kes } from "@/lib/format";
 import { nextRef } from "@/lib/refs";
 import { WALK_IN } from "../fixtures/customers";
-import { fail, ok, type FieldDelivery, type FieldSale, type NewFieldSale, type Pill, type Result, type Sale } from "../types";
+import { fail, ok, type FieldDelivery, type FieldSale, type NewDelivery, type NewFieldRep, type NewFieldSale, type Pill, type Result, type Sale } from "../types";
 import { getStore, showToast } from "../store";
 import type { AppState } from "../store/state";
 import { creditGate } from "../creditGate";
@@ -233,7 +233,89 @@ export async function cancelField(ref: string, reason: string): Promise<Result<v
     if (x.pay.mode === "credit") st = { ...st, money: closeReceivableFor(st, x.ref) };
     return st;
   });
-  const message = `${x.delivery.ref} cancelled.${x.pay.mode === "now" ? " The customer already paid, so record a refund in Sales." : ""}`;
+  const message = `${x.delivery.ref} cancelled.${x.pay.mode === "now" && x.kind !== "delivery" ? " The customer already paid, so record a refund in Sales." : ""}`;
   showToast(message);
   return ok(undefined, message);
+}
+
+/**
+ * "New delivery" on Field sales › Deliveries: send goods to a customer for a sale already made or
+ * anything else. No sale is created; stock leaves at dispatch as for a field sale.
+ */
+export async function createDelivery(input: NewDelivery): Promise<Result<FieldSale>> {
+  if (!input.customer) return fail("Pick the customer.");
+  if (!input.lines.length) return fail("Add at least one item.");
+  if (!input.location.trim()) return fail("Add where to deliver it.");
+  if (!input.date) return fail("Pick the delivery date.");
+  if (!input.driver) return fail("Pick the driver.");
+  const store = getStore();
+  const state = store.getState();
+  const by = who();
+  const at = stamp();
+  const ref = nextRef(state.field.sales.map((x) => x.delivery.ref), "DLV-", 4);
+  const link = input.link.trim();
+  const x: FieldSale = {
+    kind: "delivery",
+    link,
+    ref,
+    date: DEMO_TODAY,
+    time: at.slice(-5),
+    rep: "",
+    route: "",
+    customer: input.customer,
+    phone: input.phone.trim() || "—",
+    location: input.location.trim(),
+    store: input.store,
+    lines: input.lines.map((l) => ({ ...l })),
+    pay: { mode: input.pay === "delivery" ? "delivery" : input.pay === "paid" ? "now" : "none", method: "", ref: "" },
+    delivery: {
+      ref,
+      date: input.date,
+      driver: input.driver,
+      status: "Pending",
+      note: input.note.trim(),
+      history: [{ when: at, what: `Delivery created${link ? ` for ${link}` : ""}`, who: by }],
+    },
+  };
+  store.setState((s) => ({ field: { ...s.field, sales: [x, ...s.field.sales] } }));
+  const message = `${ref} created. It's in Field sales › Deliveries.`;
+  showToast(message);
+  return ok(x, message);
+}
+
+const KE_PHONE = /^(\+?254|0)\s?[17]\d{2}\s?\d{3}\s?\d{3}$/;
+
+/** "New sales rep" / "Edit sales rep" (design `fr`). Renaming moves their sales and deliveries with them. */
+export async function saveFieldRep(input: NewFieldRep, edit?: string): Promise<Result<void>> {
+  const name = input.name.trim();
+  if (!name) return fail("Enter the rep's name.");
+  if (!KE_PHONE.test(input.phone.trim())) return fail("Enter a Kenyan phone number, for example 0712 345 678.");
+  if (!input.route.trim()) return fail("Add the route or area they cover.");
+  const store = getStore();
+  const reps = store.getState().field.reps;
+  if (reps.some((r) => r.name.toLowerCase() === name.toLowerCase() && r.name !== edit)) return fail("There is already a rep with this name.");
+  if (edit && !reps.some((r) => r.name === edit)) return fail("That rep is not in the list.");
+  const rec = { name, phone: input.phone.trim(), route: input.route.trim(), vehicle: input.vehicle.trim() || "—", active: input.active };
+  store.setState((s) => {
+    if (!edit) return { field: { ...s.field, reps: [...s.field.reps, rec] } };
+    const renamed = edit !== name;
+    return {
+      field: {
+        ...s.field,
+        reps: s.field.reps.map((r) => (r.name === edit ? rec : r)),
+        sales: renamed
+          ? s.field.sales.map((x) => (x.rep === edit || x.delivery.driver === edit ? { ...x, rep: x.rep === edit ? name : x.rep, delivery: { ...x.delivery, driver: x.delivery.driver === edit ? name : x.delivery.driver } } : x))
+          : s.field.sales,
+      },
+    };
+  });
+  const message = edit ? `${name} updated.` : `${name} added. They can now take field sales and drive deliveries.`;
+  showToast(message);
+  return ok(undefined, message);
+}
+
+/** "Mark off duty" / "Mark on route". Off-duty reps stay in the list. */
+export async function setFieldRepActive(name: string, active: boolean): Promise<Result<void>> {
+  getStore().setState((s) => ({ field: { ...s.field, reps: s.field.reps.map((r) => (r.name === name ? { ...r, active } : r)) } }));
+  return ok(undefined);
 }

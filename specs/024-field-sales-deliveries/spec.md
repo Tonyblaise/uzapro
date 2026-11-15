@@ -35,3 +35,13 @@ The design adds **Field sales** to the Sales menu: orders reps take on the road.
 - **Prices and credit.** Prices follow the customer's price list (feature 012), and a credit field sale goes through the credit gate. The design used the standard price and no limit check.
 - **Stock counting.** Stock is counted per product and store (the app's model), not per variant. Dispatch does not refuse a shortfall, as in the design.
 - **Seed data.** The seeded field sales are not added to All sales (the design adds only new ones). Their stock is not moved: DLV-0239 is seeded as out for delivery without a stock movement.
+
+## Design update (canvas v1794778583-c3c7, 2026-11-16)
+
+- **Sales reps:** the header button is **New sales rep**. The form has full name, Kenyan phone, route, an optional vehicle and an On route switch. Each row has **See their sales**, **Edit** and **Mark off duty** / **Mark on route**. Renaming a rep moves their sales and deliveries with them.
+- **Deliveries:** the header button is **New delivery**, a delivery made on its own with no field sale or rep.
+  - It can be **Linked to** a sale or invoice. A sale's items load into the form. A seed invoice only fills the customer, matched by name, because invoice lines are free-text descriptions, not products.
+  - Payment is Already paid, Collect on delivery or Nothing to collect.
+  - It takes the DLV- ref and shows "For {ref}" or "Standalone".
+  - It is not listed in Field sales and doesn't count towards a rep's figures.
+- Each Field sales tab now has its own header button, as in the design. The Store keeper sees **New delivery** on Deliveries.

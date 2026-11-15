@@ -123,6 +123,7 @@ test("the Cashier takes field sales; the Store keeper only delivers; the Account
   await nav(page).getByRole("link", { name: "Field sales", exact: true }).click();
   await page.waitForURL("**/field-sales/deliveries");
   await expect(page.getByRole("button", { name: "New field sale" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "New delivery" })).toBeVisible();
   await row(page, "DLV-0238").click();
   await expect(page.getByRole("dialog", { name: "Delivery DLV-0238" }).getByRole("button", { name: "Dispatch" })).toBeVisible();
   await page.getByRole("dialog", { name: "Delivery DLV-0238" }).getByRole("button", { name: "Close" }).first().click();
@@ -136,4 +137,65 @@ test("the Cashier takes field sales; the Store keeper only delivers; the Account
   const view = page.getByRole("dialog", { name: "Delivery DLV-0238" });
   await expect(view).toContainText("Paid by M-Pesa");
   await expect(view.getByRole("button", { name: "Dispatch" })).toHaveCount(0);
+});
+
+test("add, edit and take a sales rep off duty (design `fr`)", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await page.goto("/field-sales/sales-reps");
+  await page.getByRole("button", { name: "New sales rep" }).click();
+  const form = page.getByRole("dialog", { name: "New sales rep" });
+  await form.getByLabel("Full name").fill("Brian Mutua");
+  await form.getByLabel("Phone number").fill("12345");
+  await form.getByRole("button", { name: "Add rep" }).click();
+  await expect(form.getByRole("alert")).toHaveText("Enter a Kenyan phone number, for example 0712 345 678.");
+  await form.getByLabel("Phone number").fill("0712 345 678");
+  await form.getByLabel("Route or area").fill("Ngong Road");
+  await form.getByRole("button", { name: "Add rep" }).click();
+  await expect(toast(page)).toContainText("Brian Mutua added. They can now take field sales and drive deliveries.");
+  await expect(form).toBeHidden();
+  await expect(row(page, "Brian Mutua")).toContainText("Ngong Road");
+
+  await row(page, "Brian Mutua").getByRole("button", { name: "Actions" }).click();
+  await page.getByRole("menuitem", { name: "Edit" }).click();
+  const edit = page.getByRole("dialog", { name: "Edit sales rep" });
+  await edit.getByLabel("Vehicle (optional)").fill("KBZ 101A · bike");
+  await edit.getByRole("button", { name: "Save" }).click();
+  await expect(toast(page)).toContainText("Brian Mutua updated.");
+  await expect(row(page, "Brian Mutua")).toContainText("KBZ 101A · bike");
+
+  await row(page, "Brian Mutua").getByRole("button", { name: "Actions" }).click();
+  await page.getByRole("menuitem", { name: "Mark off duty" }).click();
+  await expect(row(page, "Brian Mutua")).toContainText("Off duty");
+});
+
+test("New delivery: linked to an invoice, nothing to collect; it is not a field sale", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await nav(page).getByRole("link", { name: "Field sales", exact: true }).click();
+  await tab(page, "Deliveries");
+  await page.getByRole("button", { name: "New delivery" }).click();
+  const form = page.getByRole("dialog", { name: "New delivery" });
+  await pick(form, page, "Sale or invoice", "INV-0351 · Morningview");
+  await expect(form.getByRole("button", { name: "Customer", exact: true })).toContainText("Morningview Bicycles");
+  await pick(form, page, "Product", "Bike Pump");
+  await form.getByRole("button", { name: "Add", exact: true }).click();
+  await form.getByLabel("Delivery location").fill("Westlands, shop 2");
+  await form.getByRole("button", { name: "Nothing to collect" }).click();
+  await form.getByRole("button", { name: "Create delivery" }).click();
+  await expect(form.getByRole("alert")).toHaveText("Pick the driver.");
+  await pick(form, page, "Driver", "Sam Mwangi");
+  await form.getByRole("button", { name: "Create delivery" }).click();
+  await expect(toast(page)).toContainText("DLV-0241 created. It's in Field sales › Deliveries.");
+  await expect(form).toBeHidden();
+  await expect(row(page, "DLV-0241")).toContainText("For INV-0351");
+
+  await row(page, "DLV-0241").click();
+  const view = page.getByRole("dialog", { name: "Delivery DLV-0241" });
+  await expect(view).toContainText("For INV-0351 · created");
+  await expect(view).toContainText("Nothing to collect");
+  await view.getByRole("button", { name: "Close" }).first().click();
+
+  await tab(page, "Field sales");
+  await expect(row(page, "DLV-0241")).toHaveCount(0);
 });

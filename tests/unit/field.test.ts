@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { cancelField, createFieldSale, deliverField, dispatchFieldDelivery, fieldTotal, fieldVat, rescheduleField } from "@/data/commands/field";
+import { cancelField, createDelivery, createFieldSale, deliverField, dispatchFieldDelivery, fieldTotal, fieldVat, rescheduleField, saveFieldRep, setFieldRepActive } from "@/data/commands/field";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
-import type { NewFieldSale } from "@/data/types";
+import type { NewDelivery, NewFieldSale } from "@/data/types";
 
 let store: AppStore;
 const s = () => store.getState();
@@ -107,5 +107,38 @@ describe("field sales (feature 024)", () => {
   it("tells you to refund when a paid-now delivery is cancelled", async () => {
     await createFieldSale(input({ pay: "now", method: "Cash" }));
     expect((await cancelField("DLV-0241", "Wrong address")).message).toBe("DLV-0241 cancelled. The customer already paid, so record a refund in Sales.");
+  });
+
+  it("adds and edits a sales rep with the design's checks; renaming moves their sales", async () => {
+    const rep = { name: "Brian Mutua", phone: "0712 345 678", route: "Thika Road", vehicle: "", active: true };
+    expect((await saveFieldRep({ ...rep, name: " " })).message).toBe("Enter the rep's name.");
+    expect((await saveFieldRep({ ...rep, phone: "12345" })).message).toBe("Enter a Kenyan phone number, for example 0712 345 678.");
+    expect((await saveFieldRep({ ...rep, route: "" })).message).toBe("Add the route or area they cover.");
+    expect((await saveFieldRep({ ...rep, name: "peter roadie" })).message).toBe("There is already a rep with this name.");
+    expect((await saveFieldRep(rep)).message).toBe("Brian Mutua added. They can now take field sales and drive deliveries.");
+    expect(s().field.reps.at(-1)).toMatchObject({ name: "Brian Mutua", vehicle: "—", active: true });
+
+    expect((await saveFieldRep({ name: "Peter Mwangi", phone: "+254 722 100 200", route: "Thika Road", vehicle: "KDA 412M · van", active: true }, "Peter Roadie")).message).toBe("Peter Mwangi updated.");
+    expect(s().field.sales.filter((x) => x.rep === "Peter Roadie")).toHaveLength(0);
+    expect(s().field.sales.filter((x) => x.rep === "Peter Mwangi").length).toBeGreaterThan(0);
+    await setFieldRepActive("Peter Mwangi", false);
+    expect(s().field.reps.find((r) => r.name === "Peter Mwangi")!.active).toBe(false);
+  });
+
+  it("creates a standalone delivery: no sale, stock at dispatch, nothing to collect", async () => {
+    const d: NewDelivery = { link: "", customer: "Mountain Goats", phone: "", location: "Ridgeways Mall", lines: [{ product: "Bike Pump", variant: "Standard", qty: 1, price: 345 }], store: "Main Store", date: "2026-11-11", driver: "", note: "", pay: "none" };
+    expect((await createDelivery({ ...d, location: "" })).message).toBe("Add where to deliver it.");
+    expect((await createDelivery(d)).message).toBe("Pick the driver.");
+    const sales = s().sales.sales.length;
+    expect((await createDelivery({ ...d, driver: "Sam Mwangi", link: "SAL-001184" })).message).toBe("DLV-0241 created. It's in Field sales › Deliveries.");
+    expect(field("DLV-0241")).toMatchObject({ kind: "delivery", link: "SAL-001184", rep: "", pay: { mode: "none" } });
+    expect(field("DLV-0241").delivery.history[0]!.what).toBe("Delivery created for SAL-001184");
+    expect(s().sales.sales).toHaveLength(sales);
+
+    const pumps = qtyAt("Bike Pump", "Main Store");
+    await dispatchFieldDelivery("DLV-0241", "Sam Mwangi");
+    expect(qtyAt("Bike Pump", "Main Store")).toBe(pumps - 1);
+    expect((await deliverField("DLV-0241", { receivedBy: "Ann", method: "", payRef: "", note: "" })).message).toBe("DLV-0241 delivered.");
+    expect(field("DLV-0241").delivery.collected).toBeUndefined();
   });
 });

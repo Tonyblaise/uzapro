@@ -17,8 +17,11 @@ export interface FieldLine {
   price: number;
 }
 
-/** Paid now (the rep collected), on delivery (the driver collects) or on credit (Receivables). */
-export type FieldPayMode = "now" | "delivery" | "credit";
+/**
+ * Paid now (the rep collected, or already paid for a delivery), on delivery (the driver collects),
+ * on credit (Receivables), or nothing to collect (a standalone delivery: a replacement, a sample…).
+ */
+export type FieldPayMode = "now" | "delivery" | "credit" | "none";
 
 export interface FieldPay {
   mode: FieldPayMode;
@@ -50,7 +53,11 @@ export interface FieldDelivery {
 }
 
 export interface FieldSale {
-  ref: string; // FS-####
+  /** "delivery" for a delivery created on its own (Field sales › Deliveries › New delivery); its ref is the DLV- ref and it has no rep. */
+  kind?: "delivery";
+  /** A delivery's sale or invoice ("SAL-001184"), or "". */
+  link?: string;
+  ref: string; // FS-#### (or DLV-#### for a standalone delivery)
   date: string; // ISO
   time: string; // "HH:MM"
   rep: string;
@@ -80,4 +87,31 @@ export interface NewFieldSale {
   pay: FieldPayMode;
   method: string;
   ref: string;
+}
+
+/** New or edited sales rep (design `fr`). */
+export interface NewFieldRep {
+  name: string;
+  phone: string;
+  route: string;
+  vehicle: string;
+  active: boolean;
+}
+
+/** How a standalone delivery is paid (design New delivery). */
+export type DeliveryPay = "paid" | "delivery" | "none";
+
+/** "New delivery" on Field sales › Deliveries (design `fs` in delivery mode). */
+export interface NewDelivery {
+  /** Sale or invoice ref it's for, or "". */
+  link: string;
+  customer: string;
+  phone: string;
+  location: string;
+  lines: FieldLine[];
+  store: string;
+  date: string;
+  driver: string;
+  note: string;
+  pay: DeliveryPay;
 }
