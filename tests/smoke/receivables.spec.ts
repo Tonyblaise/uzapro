@@ -129,6 +129,8 @@ test("Payment plan on RCV-0008 and its first instalment (quickstart 8)", async (
 test("Issue CRD-0005, use it to pay, and void CRD-0004 (quickstart 9)", async ({ page, errors }) => {
   void errors;
   await openReceivables(page);
+  // Customer credits sit under Customers (in-app navigation keeps the session's data).
+  await nav(page).getByRole("link", { name: "Customers" }).click();
   await tab(page, "Customer credits");
   await expect(row(page, "CRD-0004")).toBeVisible();
   await page.getByRole("button", { name: "Issue credit" }).click();

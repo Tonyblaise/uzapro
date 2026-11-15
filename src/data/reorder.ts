@@ -79,11 +79,26 @@ export function ruleCost(products: readonly Product[], rule: Pick<ReorderRule, "
   return unit === baseUnitOf(v) ? v.cost : (v.extraUnits.find((u) => u.unit === unit)?.cost ?? v.cost);
 }
 
+/** The reorder-at and order-up-to checks shared by the Reorder edit form and the product form. */
+export function validateLevels(min: number, max: number): string | null {
+  if (!Number.isFinite(min) || min < 0) return "Enter a reorder point of 0 or more";
+  if (!Number.isFinite(max) || max <= min) return "Order up to must be above the reorder point";
+  return null;
+}
+
+/**
+ * Stores a product-wide reorder point applies to: every store stock is bought into. Transit
+ * locations and vans are filled by transfers, not purchase orders, so they are left out.
+ */
+export function reorderStores<T extends { type: string }>(stores: readonly T[]): T[] {
+  return stores.filter((s) => s.type !== "Transfer" && s.type !== "Van");
+}
+
 export function validateRule(rule: ReorderRule, rules: readonly ReorderRule[], products: readonly Product[], editing?: Pick<ReorderRule, "product" | "store">): string | null {
   const p = products.find((x) => x.name === rule.product);
   if (!p || !p.variants.some((v) => v.name === rule.variant) || !rule.store) return "Pick a product, variant and store";
-  if (!Number.isFinite(rule.min) || rule.min < 0) return "Enter a reorder point of 0 or more";
-  if (!Number.isFinite(rule.max) || rule.max <= rule.min) return "Order up to must be above the reorder point";
+  const levels = validateLevels(rule.min, rule.max);
+  if (levels) return levels;
   const clash = rules.some((r) => r.product === rule.product && r.store === rule.store && !(editing && r.product === editing.product && r.store === editing.store));
   if (clash) return `${rule.product} already has a reorder point at ${rule.store}. Edit that one.`;
   return null;

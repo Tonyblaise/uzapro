@@ -97,7 +97,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         blocks: [
           { kind: "faq", q: "Can I refund only part of a sale?", a: ["Yes. Choose **Partial** and set the credit quantity on each line. You cannot credit more than is still open on the sale."] },
           { kind: "faq", q: "What if the customer never paid?", a: ["The credit note reduces what the customer owes instead of paying money out."] },
-          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Receivables › Customer credits, once the credit note is approved."] },
+          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Customers › Customer credits, once the credit note is approved."] },
         ],
       },
       NEED_HELP,
@@ -1134,7 +1134,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     updated: "2026-11-15",
     intro: [
       "Sell the same product by the piece and by the carton from one stock figure, and let UzaPro tell you when to buy more.",
-      "**Who can do this:** anyone with Write on Products can set what a unit contains. Anyone with Write on Stock can set reorder points, and creating purchase orders from them also needs Write on Purchases.",
+      "**Who can do this:** anyone with Write on Products can set what a unit contains. Setting reorder points on a product needs Write on Products and Write on Stock; changing one store's reorder point needs Write on Stock. Creating purchase orders from them also needs Write on Purchases.",
     ],
     sections: [
       {
@@ -1163,11 +1163,10 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
           {
             kind: "ol",
             items: [
-              "Go to Stock › Reorder and choose **Set reorder point**.",
-              "Pick the **Product**, the **Variant to order** and the **Store**.",
-              "Enter **Reorder at** and **Order up to**, both in the base unit.",
-              "Pick the **Order unit** and, if you want purchase orders made for you, the **Supplier**.",
-              "Choose **Save**. The message reads **Reorder point saved.**",
+              "Go to Products › All products and choose **New product**, or open a product and choose **Edit**.",
+              "On the variant you order, enter **Reorder at** and **Order up to**, both in the base unit.",
+              "Choose **Save**. The reorder point applies at every store you buy stock into (not transit locations or vans).",
+              "To change one store, or to set the **Order unit** and the **Supplier** for purchase orders, go to Stock › Reorder and choose **Edit** on that line.",
             ],
           },
           {
@@ -1180,7 +1179,8 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
               ["On order", "Stock is low, but purchase orders already cover it."],
             ],
           },
-          { kind: "links", screens: [{ label: "Open Stock › Reorder", module: "inv", tab: "reorder" }] },
+          { kind: "note", tone: "info", text: "Stock is counted per product, not per variant, so a product has one reorder point per store. If you enter one on more than one variant, the first is used." },
+          { kind: "links", screens: [{ label: "Open Products › All products", module: "prod", tab: "all-products" }, { label: "Open Stock › Reorder", module: "inv", tab: "reorder" }] },
         ],
       },
       {

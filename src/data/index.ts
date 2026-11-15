@@ -53,8 +53,9 @@ export { invoiceMessage, receiptMessage, reminderMessage, waLink, waNumber } fro
 export { APPROVAL_KEYS, APPROVAL_LABEL, FULL_APPROVALS, NO_APPROVALS, sameApprovals, validDiscountMax, type ApprovalKey } from "./approvals";
 export * from "./commands/counts";
 export { isOpenCount, signed as signedQty, variance as countVariance } from "./counts";
-export { createReorderDrafts, removeReorderRule, saveReorderRule } from "./commands/reorder";
+export { createReorderDrafts, removeReorderRule, saveReorderRule, setProductReorder } from "./commands/reorder";
 export { baseUnitOf, containsLabel, defaultContains, unitFactor } from "./units";
+export { validateLevels } from "./reorder";
 export * from "./commands/orders";
 export { DELIVERY_RETURN_REASONS, checkDispatch, checkReturn, itemName, leftToDispatch, orderLinesFromQuote, orderTotals, returnable, returnedQty, toInvoice } from "./orders";
 export * from "./queries-integrations";

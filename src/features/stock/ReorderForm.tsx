@@ -1,5 +1,8 @@
 "use client";
-/** Set / edit a reorder point (feature 014, contracts/ui.md › Stock › Reorder). */
+/**
+ * Edit one store's reorder point (feature 014). New reorder points are set on a product's variant
+ * in the product form, for every store at once.
+ */
 import { useState } from "react";
 import { saveReorderRule, unitFactor, unitsOf, useProducts, useSuppliers, type ReorderRule } from "@/data";
 import { Button } from "@/components/ui/Button";
@@ -11,21 +14,21 @@ import { useStoreNames } from "./shared";
 const NO_SUPPLIER = "No supplier";
 
 export function ReorderForm({ open, edit, onClose }: { open: boolean; edit?: ReorderRule; onClose: () => void }) {
-  if (!open) return null;
-  return <Body key={edit ? `${edit.product}|${edit.store}` : "new"} edit={edit} onClose={onClose} />;
+  if (!open || !edit) return null;
+  return <Body key={`${edit.product}|${edit.store}`} edit={edit} onClose={onClose} />;
 }
 
-function Body({ edit, onClose }: { edit?: ReorderRule; onClose: () => void }) {
+function Body({ edit, onClose }: { edit: ReorderRule; onClose: () => void }) {
   const products = useProducts();
   const stores = useStoreNames();
   const suppliers = useSuppliers();
-  const [product, setProduct] = useState(edit?.product ?? "");
-  const [variant, setVariant] = useState(edit?.variant ?? "");
-  const [store, setStore] = useState(edit?.store ?? "");
-  const [min, setMin] = useState(edit ? String(edit.min) : "");
-  const [max, setMax] = useState(edit ? String(edit.max) : "");
-  const [unit, setUnit] = useState(edit?.unit ?? "");
-  const [supplier, setSupplier] = useState(edit?.supplier || NO_SUPPLIER);
+  const [product, setProduct] = useState(edit.product);
+  const [variant, setVariant] = useState(edit.variant);
+  const [store, setStore] = useState(edit.store);
+  const [min, setMin] = useState(String(edit.min));
+  const [max, setMax] = useState(String(edit.max));
+  const [unit, setUnit] = useState(edit.unit);
+  const [supplier, setSupplier] = useState(edit.supplier || NO_SUPPLIER);
   const [error, setError] = useState("");
 
   const p = products.find((x) => x.name === product);
@@ -55,13 +58,13 @@ function Body({ edit, onClose }: { edit?: ReorderRule; onClose: () => void }) {
 
   const save = async () => {
     const rule: ReorderRule = { product, variant, store, min: min === "" ? NaN : Number(min), max: max === "" ? NaN : Number(max), unit, supplier: supplier === NO_SUPPLIER ? "" : supplier };
-    const r = await saveReorderRule(rule, edit ? { product: edit.product, store: edit.store } : undefined);
+    const r = await saveReorderRule(rule, { product: edit.product, store: edit.store });
     if (r.ok) onClose();
     else setError(r.message);
   };
 
   return (
-    <Drawer open title={edit ? "Edit reorder point" : "Set reorder point"} subtitle="Stock" width={480} onClose={onClose}>
+    <Drawer open title="Edit reorder point" subtitle="Stock" width={480} onClose={onClose}>
       <div className="flex flex-col gap-4">
         <SearchSelect label="Product" noun="product" options={products.map((x) => x.name)} value={product} onChange={pickProduct} />
         <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>

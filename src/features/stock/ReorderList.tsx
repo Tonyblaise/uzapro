@@ -1,7 +1,8 @@
 "use client";
 /**
  * Stock › Reorder (feature 014): each product and store with a reorder point, what is on hand and
- * on order, and what to order. "Set reorder point" → `?action=new`; Edit → `?edit=<product>|<store>`.
+ * on order, and what to order. Reorder points are set on a product's variant in the product form
+ * (every store at once); here a store's line can be edited (`?edit=<product>|<store>`) or removed.
  */
 import { useState } from "react";
 import { createReorderDrafts, removeReorderRule, useCan, useReorderRows, type ReorderRow } from "@/data";
@@ -17,18 +18,9 @@ import { useCanDelete, useOverlayParams } from "./shared";
 const keyOf = (r: { product: string; store: string }) => `${r.product}|${r.store}`;
 const suggested = (r: ReorderRow) => (r.units > 0 ? `${num(r.units)} ${r.unit}` : "—");
 
-export function ReorderActions() {
-  const { open } = useOverlayParams();
-  return (
-    <Button icon="plus" onClick={() => open({ action: "new" })}>
-      Set reorder point
-    </Button>
-  );
-}
-
 export function ReorderList() {
   const rows = useReorderRows();
-  const { action, get, open, close } = useOverlayParams();
+  const { get, open, close } = useOverlayParams();
   const canWrite = useCan("write");
   const canBuy = useCan("write", "buy");
   const canDelete = useCanDelete();
@@ -104,11 +96,10 @@ export function ReorderList() {
         rows={rows}
         rowKey={keyOf}
         onRowClick={canWrite ? (r) => open({ edit: keyOf(r) }) : undefined}
-        empty="No reorder points set yet."
+        empty="No reorder points yet. Set them on a product's variants in Products › All products."
         noun="reorder point"
         minWidth={980}
       />
-      <ReorderForm open={action === "new"} onClose={close} />
       <ReorderForm open={!!editing} edit={editing} onClose={close} />
       <ConfirmDialog
         open={!!confirm}

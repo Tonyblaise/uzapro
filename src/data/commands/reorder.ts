@@ -1,10 +1,10 @@
 /** Reorder point commands (feature 014, contracts/data-access.md). */
 import { DEMO_TODAY } from "@/lib/demo-clock";
-import { onOrderQty, reorderPosition, ruleCost, ruleUnit, ruleVariant, validateRule } from "../reorder";
+import { onOrderQty, reorderPosition, reorderStores, ruleCost, ruleUnit, ruleVariant, validateLevels, validateRule } from "../reorder";
 import { getStore, showToast } from "../store";
 import type { AppState } from "../store/state";
 import { fail, ok, type ReorderRule, type Result } from "../types";
-import { unitFactor } from "../units";
+import { baseUnitOf, unitFactor } from "../units";
 import { savePurchaseOrder } from "./purchases";
 
 const same = (r: Pick<ReorderRule, "product" | "store">, product: string, store: string) => r.product === product && r.store === store;
@@ -23,6 +23,39 @@ export async function saveReorderRule(rule: ReorderRule, editing?: { product: st
   });
   showToast("Reorder point saved.");
   return ok(undefined, "Reorder point saved.");
+}
+
+/**
+ * Sets a product's reorder point from its variant in the product form: the same levels at every
+ * store stock is bought into (`reorderStores`), ordering that variant. Stock is counted per product
+ * and store, so this is one rule per store. An existing rule keeps its order unit and supplier.
+ * `null` removes the product's reorder points. Silent: the product save shows the message.
+ */
+export async function setProductReorder(product: string, point: { variant: string; min: number; max: number } | null): Promise<Result<void>> {
+  const store = getStore();
+  const s = store.getState();
+  if (!point) {
+    store.setState((st) => ({ stock: { ...st.stock, reorder: st.stock.reorder.filter((r) => r.product !== product) } }));
+    return ok(undefined, "Reorder points removed.");
+  }
+  const p = s.catalog.products.find((x) => x.name === product);
+  const v = p?.variants.find((x) => x.name === point.variant);
+  if (!p || !v) return fail("Pick a product and variant");
+  const min = Math.round(point.min);
+  const max = Math.round(point.max);
+  const err = validateLevels(min, max);
+  if (err) return fail(err);
+  const stores = reorderStores(s.stock.stores).map((x) => x.name);
+  store.setState((st) => {
+    const kept = st.stock.reorder.filter((r) => r.product !== product || !stores.includes(r.store));
+    const next = stores.map((name): ReorderRule => {
+      const cur = st.stock.reorder.find((r) => same(r, product, name));
+      const draft: ReorderRule = { product, variant: v.name, store: name, min, max, unit: cur?.unit ?? baseUnitOf(v), supplier: cur?.supplier ?? "" };
+      return { ...draft, unit: ruleUnit(st.catalog.products, draft) };
+    });
+    return { stock: { ...st.stock, reorder: [...kept, ...next] } };
+  });
+  return ok(undefined, "Reorder points saved.");
 }
 
 export async function removeReorderRule(product: string, store: string): Promise<Result<void>> {

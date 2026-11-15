@@ -128,7 +128,7 @@ export const PO_ACCOUNTS = ["Equity Bank — Main", "M-Pesa Till", "Cash drawer"
 export const RETURN_REASONS = ["Damaged", "Wrong item", "Expired", "Poor quality", "Too many delivered", "Other"] as const;
 
 /**
- * Supplier credits that name a purchase return (erp-data.js Payables › Supplier credits), used by
+ * Supplier credits that name a purchase return (erp-data.js Payables › Supplier credits, now Suppliers › Supplier credits), used by
  * the purchase return view's "What it does" panel. Read-only: Payables is out of scope (FR-018).
  */
 export const SUPPLIER_CREDITS: readonly { ref: string; text: string; amount: number }[] = [{ ref: "SCR-0002", text: "Returned damaged wheels (PRT-0005)", amount: 684 }];

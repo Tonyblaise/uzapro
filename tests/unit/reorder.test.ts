@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { deleteProduct } from "@/data/commands/catalog";
 import { receiveGoods } from "@/data/commands/purchases";
-import { createReorderDrafts, removeReorderRule, reorderRows, saveReorderRule } from "@/data/commands/reorder";
+import { createReorderDrafts, removeReorderRule, reorderRows, saveReorderRule, setProductReorder } from "@/data/commands/reorder";
 import { recordSale } from "@/data/commands/sales";
-import { onOrderQty, reorderPosition, validateRule } from "@/data/reorder";
+import { onOrderQty, reorderPosition, reorderStores, validateRule } from "@/data/reorder";
 import { createAppStore, registerStore, type AppStore } from "@/data/store";
 import type { ReorderRule } from "@/data/types";
 
@@ -121,5 +121,38 @@ describe("reorder commands (feature 014)", () => {
   it("says so when nothing needs reordering", async () => {
     for (const r of s().stock.reorder.filter((x) => reorderRows(s()).find((y) => y.product === x.product)!.units > 0)) await removeReorderRule(r.product, r.store);
     expect((await createReorderDrafts()).message).toBe("Nothing needs reordering.");
+  });
+});
+
+describe("reorder points set from the product form", () => {
+  const shoes = () => s().stock.reorder.filter((r) => r.product === "Carbon Sole Shoes");
+  const STORES = ["Main Store", "Finished Goods", "Stores", "Point of Sale"];
+
+  it("applies to every store stock is bought into, not transit or vans", () => {
+    expect(reorderStores(s().stock.stores).map((x) => x.name)).toEqual(STORES);
+  });
+
+  it("creates the same rule at every store, ordering that variant in its base unit", async () => {
+    expect(shoes()).toHaveLength(0);
+    const r = await setProductReorder("Carbon Sole Shoes", { variant: "Size 43", min: 10, max: 30 });
+    expect(r.ok).toBe(true);
+    expect(shoes().map((x) => x.store).sort()).toEqual([...STORES].sort());
+    for (const x of shoes()) expect(x).toMatchObject({ variant: "Size 43", min: 10, max: 30, unit: "Piece", supplier: "" });
+  });
+
+  it("keeps a store's order unit and supplier, and replaces its levels", async () => {
+    await saveReorderRule(rule({ supplier: "Eastside Bicycle Supplies" }));
+    await setProductReorder("Carbon Sole Shoes", { variant: "Size 42", min: 5, max: 20 });
+    expect(shoes()).toHaveLength(STORES.length);
+    expect(shoes().find((x) => x.store === "Main Store")).toMatchObject({ min: 5, max: 20, supplier: "Eastside Bicycle Supplies" });
+  });
+
+  it("refuses bad levels and removes every store's rule with null", async () => {
+    expect((await setProductReorder("Carbon Sole Shoes", { variant: "Size 42", min: 50, max: 40 })).message).toBe("Order up to must be above the reorder point");
+    expect((await setProductReorder("Carbon Sole Shoes", { variant: "Size 99", min: 1, max: 2 })).ok).toBe(false);
+    expect(shoes()).toHaveLength(0);
+    await setProductReorder("Carbon Sole Shoes", { variant: "Size 42", min: 1, max: 2 });
+    await setProductReorder("Carbon Sole Shoes", null);
+    expect(shoes()).toHaveLength(0);
   });
 });

@@ -83,34 +83,40 @@ test("the reorder list suggests orders and turns them into draft purchase orders
   await expect(page.getByRole("row").filter({ hasText: "Draft" })).toHaveCount(2);
 });
 
-test("set, edit and remove a reorder point (US2)", async ({ page, errors }) => {
+test("set a reorder point on a product variant, then edit and remove one store's line (US2)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await page.goto("/stock/reorder");
-  await page.getByRole("button", { name: "Set reorder point" }).click();
-  const form = page.getByRole("dialog", { name: "Set reorder point" });
-  await pick(page, "Product", "Carbon Sole Shoes");
-  await pick(page, "Store", "Main Store");
-  await form.getByLabel("Reorder at").fill("50");
-  await form.getByLabel("Order up to").fill("40");
-  await form.getByRole("button", { name: "Save" }).click();
+  await page.goto("/products/all-products?edit=Carbon%20Sole%20Shoes");
+  const form = page.getByRole("dialog", { name: "Edit product" });
+  // Size 42 is the first variant row; its Reorder at / Order up to are the first of each.
+  await form.getByLabel("Reorder at").first().fill("50");
+  await form.getByLabel("Order up to").first().fill("40");
   await expect(form.getByRole("alert")).toHaveText("Order up to must be above the reorder point");
-  await form.getByLabel("Order up to").fill("80");
+  await expect(form.getByRole("button", { name: "Save" })).toBeDisabled();
+  await form.getByLabel("Order up to").first().fill("80");
   await form.getByRole("button", { name: "Save" }).click();
-  await expect(toast(page)).toHaveText("Reorder point saved.");
-  for (const text of ["Reorder now", "40 Piece", "Not set"]) await expect(row(page, "Carbon Sole Shoes")).toContainText(text);
+  await expect(form).toHaveCount(0);
 
-  await row(page, "Carbon Sole Shoes").click();
+  // One line per store stock is bought into; there is no separate "Set reorder point".
+  await nav(page).getByRole("link", { name: "Stock", exact: true }).click();
+  await tab(page, "Reorder");
+  await expect(page.getByRole("button", { name: "Set reorder point" })).toHaveCount(0);
+  await expect(row(page, "Carbon Sole Shoes")).toHaveCount(4);
+  const main = () => row(page, "Carbon Sole Shoes").filter({ hasText: "Main Store" });
+  for (const text of ["Size 42", "Reorder now", "40 Piece", "Not set"]) await expect(main()).toContainText(text);
+
+  await main().click();
   const edit = page.getByRole("dialog", { name: "Edit reorder point" });
   await edit.getByLabel("Reorder at").fill("10");
   await edit.getByRole("button", { name: "Save" }).click();
-  await expect(row(page, "Carbon Sole Shoes")).toContainText("OK");
+  await expect(main()).toContainText("OK");
 
-  await row(page, "Carbon Sole Shoes").getByRole("button", { name: "Actions" }).click();
+  await main().getByRole("button", { name: "Actions" }).click();
   await page.getByRole("menuitem", { name: "Remove" }).click();
   await page.getByRole("dialog", { name: "Remove this reorder point?" }).getByRole("button", { name: "Remove" }).click();
   await expect(toast(page)).toHaveText("Reorder point removed.");
-  await expect(row(page, "Carbon Sole Shoes")).toHaveCount(0);
+  await expect(main()).toHaveCount(0);
+  await expect(row(page, "Carbon Sole Shoes")).toHaveCount(3);
 });
 
 test("a role with Read on Stock sees the list but cannot change it (FR-016)", async ({ page, errors }) => {

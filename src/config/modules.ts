@@ -126,6 +126,8 @@ export const MODULES: Module[] = [
       ["Customers", "table", [C("Name"), C("Phone"), C("Email"), C("Address"), C("Group"), N("Credit limit (KES)"), N("Balance owed (KES)"), C("Status")]],
       // Credit notes moved here from Sales: they are money owed back to a customer.
       ["Refunds (credit notes)", "table", [C("Credit note"), C("Customer"), C("Date"), C("Invoice"), C("Reason"), N("Amount (KES)"), C("Status")]],
+      // Customer credits moved here from Receivables, next to the credit notes that create them.
+      ["Customer credits", "table", [C("Ref"), C("Customer"), C("Reason"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
       ["Customer groups", "table", [C("Group"), C("Price list"), N("Customers")]],
     ],
     true,
@@ -157,7 +159,11 @@ export const MODULES: Module[] = [
     "Suppliers",
     "The businesses you buy from",
     "suppliers",
-    [["Suppliers", "table", [C("Name"), C("Type"), C("Phone"), C("Email"), C("Town or city"), C("Status")]]],
+    [
+      ["Suppliers", "table", [C("Name"), C("Type"), C("Phone"), C("Email"), C("Town or city"), C("Status")]],
+      // Supplier credits moved here from Payables.
+      ["Supplier credits", "table", [C("Ref"), C("Supplier"), C("Source"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
+    ],
     true,
   ),
   mod(
@@ -197,7 +203,7 @@ export const MODULES: Module[] = [
     "Financials",
     "banknote",
     "Receivables",
-    "Money customers owe you, payments, payment plans and credits",
+    "Money customers owe you, payments and payment plans",
     "receivables",
     [
       [
@@ -207,7 +213,6 @@ export const MODULES: Module[] = [
       ],
       ["Payments", "table", [C("Ref"), C("Date"), C("Customer"), C("Receivables"), C("Method"), C("Type"), N("Amount (KES)"), C("Verification")]],
       ["Payment plans", "table", [C("Ref"), C("Customer"), C("Receivable"), N("Total (KES)"), C("Instalments"), N("Each (KES)"), C("Next due"), C("Status")]],
-      ["Customer credits", "table", [C("Ref"), C("Customer"), C("Reason"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
       ["Bulk payments", "table", [C("Ref"), C("Date"), C("Customer"), C("Receivables paid"), C("Method"), N("Amount (KES)")]],
       [
         "Receivables statement",
@@ -222,7 +227,7 @@ export const MODULES: Module[] = [
     "Financials",
     "landmark",
     "Payables",
-    "Money you owe suppliers, approvals, payments, payment plans and supplier credits",
+    "Money you owe suppliers, approvals, payments and payment plans",
     "payables",
     [
       [
@@ -232,7 +237,6 @@ export const MODULES: Module[] = [
       ],
       ["Payments", "table", [C("Ref"), C("Date"), C("Supplier"), C("Payables"), C("Method"), C("Type"), N("Amount (KES)"), C("Verification")]],
       ["Bulk payments", "table", [C("Ref"), C("Date"), C("Supplier"), C("Payables paid"), C("Method"), N("Amount (KES)")]],
-      ["Supplier credits", "table", [C("Ref"), C("Supplier"), C("Source"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
       [
         "Supplier ageing",
         "table",
