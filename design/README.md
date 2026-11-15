@@ -2,7 +2,7 @@
 
 Read-only reference material for the UzaPro prototype. Copied on 2026-11-12 (canvas re-copied on 2026-11-16) from the Claude Design
 canvas "Uzapoint ERP dashboard rebuild"
-(https://claude.ai/artifact/KKMZcTUgzkopE2izUei3TS, version `1794778583-c3c7`).
+(https://claude.ai/artifact/KKMZcTUgzkopE2izUei3TS, version `1794780681-ee67`).
 
 Nothing in this folder is imported by the app at runtime. Port values from here into
 `src/` (see the constitution, `.specify/memory/constitution.md`). If the canvas changes,

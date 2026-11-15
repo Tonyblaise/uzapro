@@ -261,7 +261,7 @@ export function useViewingLabel(): string {
 }
 
 /** Run a report over the live store (feature 009, research R1). */
-export function useReport(name: string, period: ReportPeriod): ReportResult {
+export function useReport(name: string, period: ReportPeriod, from?: string | null, to?: string | null): ReportResult {
   const receivables = useAppStore((s) => s.money.receivables);
   const payables = useAppStore((s) => s.money.payables);
   const creditNotes = useAppStore((s) => s.sales.creditNotes);
@@ -277,13 +277,20 @@ export function useReport(name: string, period: ReportPeriod): ReportResult {
   const stores = useAppStore((s) => s.stock.stores);
   return useMemo(() => {
     const src: ReportSource = { receivables: receivableRows(receivables), payables, creditNotes, expenses, accounts, ledger, levels, movements, wastage, products, targets, sales, stores };
-    return runReport(name, period, src);
-  }, [name, period, receivables, payables, creditNotes, expenses, accounts, ledger, levels, movements, wastage, products, targets, sales, stores]);
+    return runReport(name, period, src, from, to);
+  }, [name, period, from, to, receivables, payables, creditNotes, expenses, accounts, ledger, levels, movements, wastage, products, targets, sales, stores]);
 }
 
 /** The period last chosen for reports. */
 export function useReportPeriod(): ReportPeriod {
   return useAppStore((s) => s.ui.reportPeriod);
+}
+
+/** The custom range last chosen for reports, ["", ""] until one is. */
+export function useReportCustomRange(): [string, string] {
+  const from = useAppStore((s) => s.ui.reportFrom);
+  const to = useAppStore((s) => s.ui.reportTo);
+  return [from, to];
 }
 
 /** Point of sale slice (feature 010). */

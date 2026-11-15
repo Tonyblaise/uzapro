@@ -878,13 +878,14 @@
       </sc-if>
 
       <sc-if value="{{ v.isRepView }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
-          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap">
-            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" variant="secondary" icon="chevron-left" on-click="{{ v.rp.back }}" hint-size="120px,36px">All reports</x-import>
-            <div style="flex:1;min-width:200px"><div style="font:var(--type-card-title);color:var(--text)">{{ v.rp.title }}</div><div style="font:var(--type-small);color:var(--text-muted)">{{ v.rp.sub }}</div></div>
-            <sc-if value="{{ v.rp.hasPeriod }}" hint-placeholder-val="{{ true }}"><div style="flex:0 1 200px;min-width:160px"><x-import component-from-global-scope="UzForms.SearchSelect" aria-label="Period" options="{{ v.rp.periods }}" value="{{ v.rp.period }}" on-change="{{ v.rp.onPeriod }}" hint-size="100%,36px"></x-import></div></sc-if>
+        <div role="dialog" aria-modal="true" aria-label="{{ v.rp.title }}" style="position:fixed;inset:0;z-index:96;background:var(--canvas);display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;padding:var(--space-3) var(--space-6);border-bottom:1px solid var(--border);background:var(--surface);flex:none">
+            <x-import component-from-global-scope="UzapointDesignSystem_dfe583.IconButton" icon="x" size="sm" label="Close report" on-click="{{ v.rp.back }}" hint-size="30px,30px"></x-import>
+            <div style="flex:1;min-width:200px"><div style="font:var(--type-title);font-size:18px;color:var(--text)">{{ v.rp.title }}</div><div style="font:var(--type-small);color:var(--text-muted)">{{ v.rp.sub }}</div></div>
+            <sc-if value="{{ v.rp.hasPeriod }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:6px;flex:0 1 auto;flex-wrap:wrap"><span style="font:var(--type-small);color:var(--text-muted)">From</span><div style="width:150px"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" type="date" aria-label="From date" value="{{ v.rp.from }}" on-change="{{ v.rp.onFrom }}" hint-size="100%,36px"></x-import></div><span style="font:var(--type-small);color:var(--text-muted)">to</span><div style="width:150px"><x-import component-from-global-scope="UzapointDesignSystem_dfe583.Input" type="date" aria-label="To date" value="{{ v.rp.to }}" on-change="{{ v.rp.onTo }}" hint-size="100%,36px"></x-import></div></div></sc-if>
             <x-import component-from-global-scope="UzapointDesignSystem_dfe583.Button" variant="secondary" icon="download" on-click="{{ v.rp.csv }}" hint-size="120px,36px">Export CSV</x-import>
           </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:var(--space-5) var(--space-6)"><div style="max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:var(--space-4)">
           <sc-if value="{{ v.rp.hasKpis }}" hint-placeholder-val="{{ true }}">
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--space-3)">
               <sc-for list="{{ v.rp.kpis }}" as="k" hint-placeholder-count="3"><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4)"><div style="font:var(--type-eyebrow);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-muted)">{{ k.label }}</div><div style="font:var(--type-title);font-size:20px;color:{{ k.color }};margin-top:4px;font-variant-numeric:tabular-nums">{{ k.value }}</div><div style="font:var(--type-small);color:var(--text-secondary);margin-top:2px">{{ k.note }}</div></div></sc-for>
@@ -910,6 +911,7 @@
           </sc-if>
           <sc-if value="{{ v.rp.noRows }}" hint-placeholder-val="{{ false }}"><div style="border:1.5px dashed var(--border-strong);border-radius:var(--radius-lg);padding:var(--space-6);text-align:center;font:var(--type-body);color:var(--text-secondary)">{{ v.rp.empty }}</div></sc-if>
           <div style="font:var(--type-small);color:var(--text-muted)">{{ v.rp.note }}</div>
+          </div></div>
         </div>
       </sc-if>
 
@@ -4195,7 +4197,7 @@ class Component extends DCLogic {
   repCharts(name, R, per) {
     const P = ['#16a34a', '#2563eb', '#f59e0b', '#8b5cf6', '#0891b2', '#94a3b8'], NEG = '#dc2626', none = { hasAny: false, hasInsights: false };
     try {
-      const num = c => typeof c === 'number' ? c : this.expNum(this.plain(c)), K = n => 'KES ' + this.repFmt(n), cols = R.cols || [], rows = R.rows || [];
+      const num = c => typeof c === 'number' ? c : this.expNum(String(this.plain(c)).replace('−', '-').replace('+', '')), K = n => 'KES ' + this.repFmt(n), cols = R.cols || [], rows = R.rows || [];
       const pick = { 'Sales targets': 'Progress', 'Low stock': 'On hand', 'Stock movement': 'Change', 'Customer statements': 'Balance', 'Aged receivables': 'Balance', 'Trial balance': 'Debit', 'Cash flow': 'Net', 'Stock valuation': 'Value at cost' }[name];
       let vi = -1, best = -1;
       cols.forEach((c, i) => { if (i === 0 || !c.num) return; if (pick && c.t.indexOf(pick) === 0) { vi = i; best = Infinity; return; } if (c.pct && best !== Infinity) return; const sum = rows.reduce((a, r) => a + Math.abs(num(r[i])), 0); if (sum > best) { best = sum; vi = i; } });
@@ -4208,7 +4210,7 @@ class Component extends DCLogic {
       const ch = { hasAny: false }, sumAll = items.reduce((a, x) => a + x.v, 0), vt = cols[vi] ? cols[vi].t.replace(/\s*\(KES\)/i, '').toLowerCase() : 'value';
       if (items.length) {
         const top = items.slice(0, 8), mx = Math.max(...top.map(x => Math.abs(x.v))) || 1;
-        Object.assign(ch, { hasBars: true, barsTitle: (name === 'Aged receivables' ? 'Owed by age' : li ? vt.charAt(0).toUpperCase() + vt.slice(1) + ' by ' + cols[li].t.toLowerCase() : stmt ? 'Line by line' : 'Top ' + top.length + ' by ' + vt), barsSub: items.length > 8 ? 'Showing 8 of ' + items.length : (R.asAt ? R.sub : per),
+        Object.assign(ch, { hasBars: true, barsTitle: (name === 'Aged receivables' ? 'Owed by age' : li ? vt.charAt(0).toUpperCase() + vt.slice(1) + ' by ' + cols[li].t.toLowerCase() : stmt ? 'Line by line' : 'Top ' + top.length + ' by ' + vt), barsSub: items.length > 8 ? 'Showing 8 of ' + items.length : (R.asAt ? R.sub : (R.sub || per).split(' · ').pop()),
           bars: top.map((x, i) => ({ label: x.l, value: fv(x.v), w: (x.v ? Math.max(2, Math.abs(x.v) / mx * 100) : 0).toFixed(1), color: x.v < 0 ? NEG : name === 'Aged receivables' ? ['#16a34a', '#f59e0b', '#f97316', '#ef4444', '#dc2626'][i] || NEG : (i === 0 ? P[0] : '#4ade80'), tip: x.l + ': ' + fv(x.v) })), barsAria: 'Bar chart of ' + vt + ' for ' + top.map(x => x.l + ' ' + fv(x.v)).join(', ') });
       }
       const pos = items.filter(x => x.v > 0);
@@ -4218,6 +4220,10 @@ class Component extends DCLogic {
         Object.assign(ch, { hasDonut: true, donutTitle: 'Share of ' + vt, donutSub: 'Each slice is a share of the total', donutBg: 'conic-gradient(' + stops.join(', ') + ')', donutLabel: 'Total', donutTotal: fv(tot).replace('KES ', ''),
           legend: sl.map((x, i) => ({ label: x.l, color: P[i], pct: (x.v / tot * 100).toFixed(1) + '%' })), donutAria: 'Donut chart: ' + sl.map(x => x.l + ' ' + (x.v / tot * 100).toFixed(0) + '%').join(', ') });
       }
+      if (name === 'Profit & loss') { const ex = []; let inE = false; rows.forEach(r => { const l = this.plain(r[0]).trim(); if (l === 'Expenses') { inE = true; return; } if (/^Total expenses/.test(l)) inE = false; else if (inE && num(r[1])) ex.push({ l, v: -num(r[1]) }); }); ex.sort((a, b) => b.v - a.v);
+        if (ex.length >= 2) { const tot = ex.reduce((a, x) => a + x.v, 0), sl = ex.slice(0, 5); if (ex.length > 5) sl.push({ l: 'Everything else', v: ex.slice(5).reduce((a, x) => a + x.v, 0) }); let at = 0; const stops = sl.map((x, i) => { const a = at; at += x.v / tot * 100; return P[i] + ' ' + a.toFixed(2) + '% ' + at.toFixed(2) + '%'; });
+          Object.assign(ch, { hasDonut: true, donutTitle: 'Where expenses went', donutSub: 'Share of total expenses', donutBg: 'conic-gradient(' + stops.join(', ') + ')', donutLabel: 'Expenses', donutTotal: this.repFmt(tot), legend: sl.map((x, i) => ({ label: x.l, color: P[i], pct: (x.v / tot * 100).toFixed(1) + '%' })), donutAria: 'Donut chart of expenses: ' + sl.map(x => x.l + ' ' + (x.v / tot * 100).toFixed(0) + '%').join(', ') });
+          ch._pe = ex; } }
       const H = window.UZ_HOME || {}, cmp = H.compare, cash = H.cash, sc = { 'This month': 1, 'Last month': 4.29 / 4.82, 'This year': 38.6 / 4.82 }[per] || 1;
       const tr = { 'Sales summary': [cmp, ['a'], 'Sales by month'], 'Sales by channel': [cmp, ['a'], 'Sales by month'], 'Sales by product': [cmp, ['a'], 'Sales by month'], 'Sales by customer': [cmp, ['a'], 'Sales by month'], 'Profit & loss': [cmp, ['a', 'b'], 'Sales and purchases by month'], 'Purchase analysis': [cmp, ['b'], 'Purchases by month'], 'Cash flow': [cash, ['a', 'b'], 'Money in and out by month'], 'VAT return': [cmp, ['a', 'b'], 'Sales and purchases by month'] }[name];
       let growth = null;
@@ -4235,10 +4241,10 @@ class Component extends DCLogic {
       if (items.length >= 2 && !isPct && !stmt && !['Aged receivables', 'Low stock', 'Stock movement'].includes(name) && items[0].v > 0) {
         const t1 = items[0], absTot = items.reduce((a, x) => a + Math.abs(x.v), 0), sh = Math.abs(t1.v) / (absTot || 1) * 100;
         add(t1.l + ' is the largest at ' + fv(t1.v) + (sumAll > 0 && items.every(x => x.v >= 0) ? ', ' + sh.toFixed(0) + '% of the total.' : '.'));
-        if (items.length >= 4 && items.every(x => x.v >= 0)) { const t3 = items.slice(0, 3).reduce((a, x) => a + x.v, 0) / sumAll * 100; add('The top 3 make up ' + t3.toFixed(0) + '% of the total' + (t3 > 70 ? '. That is a lot riding on a few names, so watch them closely.' : ', so the spread is fairly healthy.'), t3 > 70 ? '#f59e0b' : P[0]); }
+        if (items.length >= 4 && !li && items.every(x => x.v >= 0)) { const t3 = items.slice(0, 3).reduce((a, x) => a + x.v, 0) / sumAll * 100; add('The top 3 make up ' + t3.toFixed(0) + '% of the total' + (t3 > 70 ? '. That is a lot riding on a few names, so watch them closely.' : ', so the spread is fairly healthy.'), t3 > 70 ? '#f59e0b' : P[0]); }
         const low = items[items.length - 1]; if (items.length >= 3 && low.v > 0) add(low.l + ' is the smallest at ' + fv(low.v) + '.', '#94a3b8');
       }
-      const negs = items.filter(x => x.v < 0); if (negs.length && name !== 'Profit & loss') add(negs.length + ' item' + (negs.length > 1 ? 's are' : ' is') + ' negative: ' + negs.slice(0, 3).map(x => x.l).join(', ') + '.', NEG);
+      const negs = items.filter(x => x.v < 0); if (negs.length && !['Profit & loss', 'Stock movement'].includes(name)) add(negs.length + ' item' + (negs.length > 1 ? 's are' : ' is') + ' negative: ' + negs.slice(0, 3).map(x => x.l).join(', ') + (negs.length > 3 ? ' and ' + (negs.length - 3) + ' more.' : '.'), NEG);
       if (growth) { const mo = (growth.last - growth.prev) / growth.prev * 100, six = (growth.last - growth.first) / growth.first * 100;
         const nmC = growth.nm.charAt(0).toUpperCase() + growth.nm.slice(1); add(nmC + ' in ' + growth.m + (/s$/.test(growth.nm) ? ' were ' : ' was ') + (mo >= 0 ? 'up ' : 'down ') + Math.abs(mo).toFixed(0) + '% on ' + growth.pm + ', and ' + (six >= 0 ? 'up ' : 'down ') + Math.abs(six).toFixed(0) + '% since ' + growth.f + '.', mo >= 0 ? P[0] : NEG);
         if (growth.b) { const a = cmp && name !== 'Cash flow' ? cmp.a : cash.a, b = growth.b, m = (a[a.length - 1] - b[b.length - 1]) / a[a.length - 1] * 100; add(name === 'Cash flow' ? 'More money came in than went out in each of the last 6 months. In ' + growth.m + ' you kept ' + m.toFixed(0) + '% of what came in.' : 'Purchases were ' + (100 - m).toFixed(0) + '% of sales in ' + growth.m + '.', P[1]); } }
@@ -4246,15 +4252,30 @@ class Component extends DCLogic {
       if (name === 'Sales targets' && items.length) { const behind = items.filter(x => x.v < 50); add(behind.length ? behind.length + ' target' + (behind.length > 1 ? 's are' : ' is') + ' under halfway: ' + behind.map(x => x.l).join(', ') + '.' : 'Every target is at least halfway there.', behind.length ? '#f59e0b' : P[0]); }
       if (name === 'Low stock' && rows.length) { const need = rows.filter(r => this.plain(r[4]) !== 'Healthy'), out = rows.filter(r => num(r[2]) <= 0).map(r => this.plain(r[0])); add(need.length + ' of ' + rows.length + ' items are at or below their reorder level.' + (out.length ? ' Out of stock: ' + out.join(', ') + '.' : ''), need.length ? '#f59e0b' : P[0]); }
       if (name === 'Trial balance' && R.total) { const d = num(R.total[1]), c = num(R.total[2]); add(Math.abs(d - c) < 1 ? 'Debits and credits both come to ' + K(d) + ', so the books balance.' : 'Debits and credits are ' + K(Math.abs(d - c)) + ' apart. Check recent entries.', Math.abs(d - c) < 1 ? P[0] : NEG); }
+      if (ch._pe) { const t = ch._pe.reduce((a, x) => a + x.v, 0); add(ch._pe[0].l + ' is the biggest expense at ' + K(ch._pe[0].v) + ', ' + (ch._pe[0].v / t * 100).toFixed(0) + '% of all expenses.', '#f59e0b'); delete ch._pe; }
+      if (name === 'Stock movement' && rows.length) { const ins = rows.reduce((a, r) => a + Math.max(0, num(r[5])), 0), outs = rows.reduce((a, r) => a - Math.min(0, num(r[5])), 0), byT = {}; rows.forEach(r => { const t = this.plain(r[3]); byT[t] = (byT[t] || 0) + 1; });
+        add(ins + ' units came in and ' + outs + ' went out' + (outs > ins ? ', so stock is running down.' : ', so stock is building up.'), outs > ins ? '#f59e0b' : P[0]); add('Movements by type: ' + Object.keys(byT).map(k => k.toLowerCase() + ' ' + byT[k]).join(', ') + '.', P[1]);
+        if (items.length) add(items[0].l + ' changed the most (' + (items[0].v > 0 ? '+' : '') + items[0].v + ' units).', '#94a3b8'); }
+      if (name === 'Returns & refunds' && rows.length) add(rows.length + ' credit notes in this period. Look at the top reason first, it often points to a supplier or packing problem.', '#94a3b8');
       (R.kpis || []).filter(k => /margin|profit|net/i.test(k[0])).slice(0, 1).forEach(k => add(k[0] + ': ' + k[1] + (k[2] ? ' (' + k[2] + ')' : '') + '.', k[3] && /red|danger/.test(k[3]) ? NEG : P[0]));
       ch.insights = ins.slice(0, 5); ch.hasInsights = ins.length > 0;
       return ch;
     } catch (e) { return none; }
   }
-  repRun(name, period) {
-    const per = period || 'This month', range = { 'This month': ['2026-11-01', '2026-11-10'], 'Last month': ['2026-10-01', '2026-10-31'], 'This year': ['2026-01-01', '2026-11-10'] }[per] || ['2026-11-01', '2026-11-10'];
-    const sc = { 'This month': 1, 'Last month': 4.29 / 4.82, 'This year': 38.6 / 4.82 }[per] || 1, iso = d => { const t = Date.parse(d); return isNaN(t) ? '' : new Date(t + 12 * 36e5).toISOString().slice(0, 10); };
-    const inR = d => { const x = /^\d{4}-/.test(d) ? d : iso(d); return x >= range[0] && x <= range[1]; }, N = x => this.expNum(x), K = n => 'KES ' + this.repFmt(n), sub = per + ' · ' + this.docDate(range[0]) + ' to ' + this.docDate(range[1]);
+  repRange(per, from, to) {
+    const P = { 'Today': ['2026-11-10', '2026-11-10'], 'Yesterday': ['2026-11-09', '2026-11-09'], 'This week': ['2026-11-09', '2026-11-10'], 'Last 7 days': ['2026-11-04', '2026-11-10'], 'Last week': ['2026-11-02', '2026-11-08'], 'This month': ['2026-11-01', '2026-11-10'], 'Last month': ['2026-10-01', '2026-10-31'], 'Last 30 days': ['2026-10-12', '2026-11-10'], 'This quarter': ['2026-10-01', '2026-11-10'], 'Last quarter': ['2026-07-01', '2026-09-30'], 'Last 6 months': ['2026-05-11', '2026-11-10'], 'This year': ['2026-01-01', '2026-11-10'] };
+    let r = P[per];
+    if (per === 'Custom range') { const a = /^\d{4}-\d{2}-\d{2}$/.test(from || '') ? from : '2026-11-01', b = /^\d{4}-\d{2}-\d{2}$/.test(to || '') ? to : '2026-11-10'; r = a <= b ? [a, b] : [b, a]; }
+    r = r || P['This month'];
+    const fixed = { 'This month': 1, 'Last month': 4.29 / 4.82, 'This year': 38.6 / 4.82 }[per];
+    const daily = { '2026-11': 0.482, '2026-10': 4.29 / 31, '2026-09': 4.1 / 30, '2026-08': 3.9 / 31, '2026-07': 3.4 / 31, '2026-06': 3.1 / 30, '2026-05': 2.9 / 31 };
+    let tot = 0, days = 0; for (let t = Date.parse(r[0] + 'T12:00:00Z'), e = Date.parse(r[1] + 'T12:00:00Z'); t <= e && days < 2000; t += 864e5) { const m = new Date(t).toISOString().slice(0, 7); days++; tot += m > '2026-11' ? 0 : (daily[m] || 2.6 / 30); }
+    return { r, days, sc: fixed || tot / 4.82, ef: days / 30 };
+  }
+  repRun(name, period, from, to) {
+    const per = period || 'This month', RG = this.repRange(per, from, to), range = RG.r;
+    const sc = RG.sc, iso = d => { const t = Date.parse(d); return isNaN(t) ? '' : new Date(t + 12 * 36e5).toISOString().slice(0, 10); };
+    const inR = d => { const x = /^\d{4}-/.test(d) ? d : iso(d); return x >= range[0] && x <= range[1]; }, N = x => this.expNum(x), K = n => 'KES ' + this.repFmt(n), sub = (per === 'Custom range' ? '' : per + ' · ') + (range[0] === range[1] ? this.docDate(range[0]) : this.docDate(range[0]) + ' to ' + this.docDate(range[1]));
     const tab = (mod, t) => ((window.UZ_MODS.find(x => x.id === mod) || { tabs: [] }).tabs.find(x => x.t === t) || { s: { rows: [] } }).s.rows;
     const S = window.UZ_SALES || {}, board = t => ((S.boards || []).find(b => b.t === t) || { rows: [] }).rows, salesTotal = 4820000 * sc, orders = Math.round(1100 * sc);
     const C = (t, num, pct) => ({ t, num: !!num, pct: !!pct });
@@ -4287,7 +4308,7 @@ class Component extends DCLogic {
           cols: [C('Customer'), C('Orders', 1), C('Sales (KES)', 1), C('Owes you now (KES)', 1)], rows, total: ['Total', String(rows.reduce((a, r) => a + Number(r[1]), 0)), rows.reduce((a, r) => a + r[2], 0), rows.reduce((a, r) => a + r[3], 0)] };
       }
       case 'Returns & refunds': {
-        const rows = cns.map(r => [r[0], r[1], r[2], r[3], r[4], N(r[5])]);
+        const rows = cns.map(r => [r[0], r[1], r[2], r[3], r[4], N(r[5])]).concat(((window.UZ_REPDEMO || {}).refunds || []).filter(r => inR(r[2])));
         return { title: name, sub, kpis: [['Credit notes', String(rows.length)], ['Refunded', K(rows.reduce((a, r) => a + r[5], 0)), '', 'var(--danger-text)'], ['Share of sales', (rows.reduce((a, r) => a + r[5], 0) / salesTotal * 100).toFixed(2) + '%']],
           cols: [C('Credit note'), C('Customer'), C('Date'), C('Invoice'), C('Reason'), C('Amount (KES)', 1)], rows, total: rows.length ? ['Total', '', '', '', '', rows.reduce((a, r) => a + r[5], 0)] : null, empty: 'No refunds in this period.' };
       }
@@ -4297,6 +4318,7 @@ class Component extends DCLogic {
       }
       case 'Profit & loss': {
         const cogs = salesTotal * 0.58, by = {}; exps.forEach(r => { by[r[2]] = (by[r[2]] || 0) + N(r[7]) + (((window.UZ_EXPDETAIL || {})[r[0]] || {}).fee || 0); });
+        const em = (window.UZ_REPDEMO || {}).expMonth || {}, ef = RG.ef; Object.keys(em).forEach(k => { by[k] = (by[k] || 0) + Math.round(em[k] * ef); });
         const opex = Object.keys(by).reduce((a, k) => a + by[k], 0), gross = salesTotal - cogs, net = gross - opex, B = t => ({ main: t, bold: true });
         const rows = [[B('Income'), ''], ['Sales', salesTotal], ['Cost of goods sold', -cogs], [B('Gross profit'), { main: this.repFmt(gross), bold: true, right: true }], [B('Expenses'), '']].concat(Object.keys(by).sort((a, b) => by[b] - by[a]).map(k => ['   ' + k, -by[k]]), [[B('Total expenses'), { main: this.repFmt(-opex), bold: true, right: true }]]);
         return { title: name, sub, kpis: [['Sales', K(salesTotal), '', 'var(--green-700)'], ['Gross profit', K(gross), (gross / salesTotal * 100).toFixed(1) + '% margin'], ['Expenses', K(opex), exps.length + ' paid expenses', 'var(--danger-text)'], ['Net profit', K(net), '', net >= 0 ? 'var(--green-700)' : 'var(--danger-text)']],
@@ -4313,7 +4335,7 @@ class Component extends DCLogic {
         return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Assets', K(assets), '', 'var(--green-700)'], ['Liabilities', K(liab), '', 'var(--danger-text)'], ['Net worth', K(eq)]], cols: [C('Item'), C('Amount (KES)', 1)], rows, total: ["Owner's equity (net worth)", eq] };
       }
       case 'Cash flow': {
-        const led = (window.UZ_LEDGER || []).filter(e => inR(e.date)), by = {}; led.forEach(e => { const b = by[e.kind] || (by[e.kind] = [0, 0, 0]); if (e.amt >= 0) b[0] += e.amt; else b[1] -= e.amt; b[2]++; });
+        const led = (window.UZ_LEDGER || []).concat((window.UZ_REPDEMO || {}).ledger || []).filter(e => inR(e.date)), by = {}; led.forEach(e => { const b = by[e.kind] || (by[e.kind] = [0, 0, 0]); if (e.amt >= 0) b[0] += e.amt; else b[1] -= e.amt; b[2]++; });
         const rows = Object.keys(by).sort((a, b) => (by[b][0] + by[b][1]) - (by[a][0] + by[a][1])).map(k => [k, String(by[k][2]), by[k][0], by[k][1], by[k][0] - by[k][1]]), i = rows.reduce((a, r) => a + r[2], 0), o = rows.reduce((a, r) => a + r[3], 0);
         return { title: name, sub, kpis: [['Money in', K(i), '', 'var(--green-700)'], ['Money out', K(o), '', 'var(--danger-text)'], ['Net cash flow', K(i - o), led.length + ' transactions', i - o >= 0 ? 'var(--green-700)' : 'var(--danger-text)']],
           cols: [C('Type'), C('Transactions', 1), C('Money in (KES)', 1), C('Money out (KES)', 1), C('Net (KES)', 1)], rows, total: rows.length ? ['Total', String(led.length), i, o, i - o] : null, empty: 'No money moved in this period.', note: 'From the transactions recorded in your bank, M-Pesa and cash accounts.' };
@@ -4340,7 +4362,7 @@ class Component extends DCLogic {
           cols: [C('Product'), C('Store'), C('Quantity', 1), C('Unit cost (KES)', 1), C('Value at cost (KES)', 1), C('Value at price (KES)', 1)], rows, total: ['Total', '', String(rows.reduce((a, r) => a + Number(r[2]), 0)), '', rows.reduce((a, r) => a + r[4], 0), rows.reduce((a, r) => a + r[5], 0)], note: 'Unit cost is estimated at 60% of the selling price where no buying price is recorded.' };
       }
       case 'Stock movement': {
-        const rows = ((window.UZ_STOCK || {}).moves || []).filter(r => inR(r[0])).map(r => [r[0], r[1], r[2], this.plain(r[3]), r[4], r[5], r[6], r[7], r[8]]);
+        const rows = ((window.UZ_STOCK || {}).moves || []).concat(((window.UZ_REPDEMO || {}).moves || []).map(r => r.slice(0, 3).concat([{ pill: r[3], tone: 'info' }], r.slice(4)))).filter(r => inR(r[0])).sort((x, y) => Date.parse(y[0]) - Date.parse(x[0])).map(r => [r[0], r[1], r[2], this.plain(r[3]), r[4], r[5], r[6], r[7], r[8]]);
         return { title: name, sub, kpis: [['Movements', String(rows.length)], ['Units in', String(rows.reduce((a, r) => a + Math.max(0, N(String(r[5]).replace('−', '-'))), 0))], ['Units out', String(rows.reduce((a, r) => a + Math.max(0, -N(String(r[5]).replace('−', '-'))), 0))]],
           cols: [C('Date'), C('Product'), C('Variant'), C('Type'), C('Store'), C('Change', 1), C('Balance', 1), C('By'), C('Reference')], rows, empty: 'No stock moved in this period.' };
       }
@@ -4349,7 +4371,7 @@ class Component extends DCLogic {
         return { title: name, sub: 'As at 10 Nov 2026', asAt: true, kpis: [['Need restocking', String(rows.filter(r => this.plain(r[4]) !== 'Healthy').length), '', 'var(--warning-text)'], ['Out of stock', String(rows.filter(r => Number(r[2]) === 0).length), '', 'var(--danger-text)']], cols: [C('Product'), C('Store'), C('In stock', 1), C('Reorder at', 1), C('Status')], rows };
       }
       case 'Wastage': {
-        const rows = tab('inv', 'Wastage').map(r => [r[0], r[1], r[2], r[3], N(r[4])]);
+        const rows = tab('inv', 'Wastage').map(r => [r[0], r[1], r[2], r[3], N(r[4])]).concat((window.UZ_REPDEMO || {}).wastage || []);
         return { title: name, sub, kpis: [['Records', String(rows.length)], ['Value lost', K(rows.reduce((a, r) => a + r[4], 0)), '', 'var(--danger-text)']], cols: [C('Ref'), C('Item'), C('Qty', 1), C('Reason'), C('Value (KES)', 1)], rows, total: rows.length ? ['Total', '', String(rows.reduce((a, r) => a + N(r[2]), 0)), '', rows.reduce((a, r) => a + r[4], 0)] : null };
       }
       default: return { title: name, sub, missing: true, cols: [C('Item')], rows: [], empty: 'This report isn\'t in the sample yet.' };
@@ -5328,16 +5350,19 @@ class Component extends DCLogic {
     if (tableCols) { const t = this.table(tableCols, tableRows, DS, rowActions); v.columns = t.columns; v.rows = t.objs; }
     if (v.isForm) v.fields = s.fields.map(f => ({ label: f[0], value: f[2] ? undefined : f[1], placeholder: f[2] ? f[1] : undefined, span: f[3] ? '1 / -1' : 'auto' }));
     if (v.isCards && m.id === 'rep' && this.state.repName) {
-      v.isCards = false; v.isRepView = true;
-      const per = this.state.repPeriod || 'This month', R = this.repRun(this.state.repName, per), t = this.table(R.cols, R.rows.concat(R.total ? [R.total.map((c, i) => ({ main: i === 0 ? String(c) : (typeof c === 'number' ? this.repFmt(c) : String(c == null ? '' : c)), bold: true, right: i > 0 }))] : []).map(r => r.map((c, i) => typeof c === 'number' ? (R.cols[i] && R.cols[i].pct ? c.toFixed(1) + '%' : this.repFmt(c)) : c)), DS);
-      v.rp = { title: R.title, sub: R.sub, periods: ['This month', 'Last month', 'This year'], period: per, hasPeriod: !R.asAt, onPeriod: e => this.setState({ repPeriod: e.target.value }),
+      v.isRepView = true;
+      const per = this.state.repPeriod || 'This month', R = this.repRun(this.state.repName, per, this.state.repFrom, this.state.repTo), t = this.table(R.cols, R.rows.concat(R.total ? [R.total.map((c, i) => ({ main: i === 0 ? String(c) : (typeof c === 'number' ? this.repFmt(c) : String(c == null ? '' : c)), bold: true, right: i > 0 }))] : []).map(r => r.map((c, i) => typeof c === 'number' ? (R.cols[i] && R.cols[i].pct ? c.toFixed(1) + '%' : this.repFmt(c)) : c)), DS);
+      v.rp = { title: R.title, sub: R.sub, periods: ['Today', 'Yesterday', 'This week', 'Last week', 'Last 7 days', 'This month', 'Last month', 'Last 30 days', 'This quarter', 'Last quarter', 'Last 6 months', 'This year', 'Custom range'], period: per, hasPeriod: !R.asAt, isCustom: !R.asAt && per === 'Custom range',
+        from: this.repRange(per, this.state.repFrom, this.state.repTo).r[0], to: this.repRange(per, this.state.repFrom, this.state.repTo).r[1],
+        onFrom: e => { const cur = this.repRange(per, this.state.repFrom, this.state.repTo).r; this.setState({ repPeriod: 'Custom range', repFrom: e.target.value, repTo: cur[1] }); }, onTo: e => { const cur = this.repRange(per, this.state.repFrom, this.state.repTo).r; this.setState({ repPeriod: 'Custom range', repFrom: cur[0], repTo: e.target.value }); },
+        onPeriod: e => { const p = e.target.value; if (p === 'Custom range') { const cur = this.repRange(per, this.state.repFrom, this.state.repTo).r; this.setState({ repPeriod: p, repFrom: cur[0], repTo: cur[1] }); } else this.setState({ repPeriod: p }); },
         kpis: (R.kpis || []).map(k => ({ label: k[0], value: k[1], note: k[2] || '', color: k[3] || 'var(--text)' })), hasKpis: !!(R.kpis && R.kpis.length), ch: this.repCharts(this.state.repName, R, per),
         columns: t.columns, rows: t.objs, hasRows: !!R.rows.length, noRows: !R.rows.length, empty: R.empty || 'Nothing to show for this period.', note: R.note || 'Built from the sample data in UzaPro. Figures update as you record sales, expenses and payments.',
         back: () => this.setState({ repName: null }),
         csv: () => { const csv = [R.cols.map(c => c.t)].concat(R.rows, R.total ? [R.total] : []).map(r => r.map(c => JSON.stringify(typeof c === 'number' ? Math.round(c * 100) / 100 : this.plain(c))).join(',')).join('\n');
           (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(csv) : Promise.reject()).then(() => this.showToast('Copied ' + R.title + ' as CSV.')).catch(() => this.showToast('Copy is not available here.')); },
         ask: () => { this.setState({ aiOpen: true, aiTab: 'chat', aiView: 'chat', aiConv: null, aiDraft: '' }); setTimeout(() => { this.setState({ aiDraft: R.title + ' ' + per.toLowerCase() }); }, 0); } };
-    } else if (v.isCards) v.cards = s.items.map(r => { const open = () => this.setState({ repName: r[0], repPeriod: this.state.repPeriod || 'This month' }), soon = !!this.repRun(r[0], 'This month').missing;
+    } if (v.isCards) v.cards = s.items.map(r => { const open = () => this.setState({ repName: r[0], repPeriod: this.state.repPeriod || 'This month' }), soon = !!this.repRun(r[0], 'This month').missing;
       const desc = { 'Sales summary': 'Total sales, orders and refunds', 'Sales by product': 'Which products bring in the most', 'Sales by customer': 'Your biggest customers and what they owe', 'Sales by channel': 'POS, invoices and online compared', 'Returns & refunds': 'Credit notes issued in the period', 'Sales targets': 'Progress against each target', 'Profit & loss': 'Sales, costs, expenses and profit', 'Balance sheet': 'What the business owns and owes', 'Trial balance': 'Debits and credits by account', 'Cash flow': 'Money in and out of your accounts', 'VAT return': 'VAT on sales, VAT to claim, VAT to pay', 'Aged receivables': 'Money owed, by how late it is', 'Customer statements': 'Invoiced, paid and balance per customer', 'Purchase analysis': 'Spending with each supplier', 'Stock valuation': 'What your stock is worth', 'Stock movement': 'Stock in, out and transferred', 'Low stock': 'Items to reorder now', 'Wastage': 'Damaged, expired and lost stock' }[r[0]] || 'Not available yet';
       return { title: r[0], desc: r[1] || desc, open, aria: 'Run ' + r[0], canRun: !soon, soon }; });
     if (v.isKanban) v.kcols = s.cols.map(c => ({ title: c[0], color: c[1], count: c[2].length, cards: c[2].map(k => ({ title: k[0], sub: k[1] })) }));

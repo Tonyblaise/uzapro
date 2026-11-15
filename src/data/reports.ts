@@ -5,7 +5,7 @@
  */
 import { date, num, parseAmount } from "@/lib/format";
 import { UZ_HOME, UZ_SALES, UZ_STOCK_FIXED } from "./fixtures/overviews";
-import { REPORT_FIXED, REPORT_NAMES, REPORT_PERIODS, type ReportName } from "./fixtures/reports";
+import { REPORT_DAILY, REPORT_DAILY_OTHER, REPORT_DEMO, REPORT_FIXED, REPORT_FIXED_SCALE, REPORT_NAMES, REPORT_PERIODS, REPORT_PERIOD_NAMES, type ReportName } from "./fixtures/reports";
 import { balance } from "./money";
 import { targetAchieved } from "./targets";
 import type {
@@ -20,6 +20,7 @@ import type {
   ReportColumn,
   ReportKpi,
   ReportPeriod,
+  ReportRange,
   ReportResult,
   ReportTone,
   Sale,
@@ -77,7 +78,7 @@ export function reportFromSlug(slug: string | null | undefined): ReportName | nu
 export const periodSlug = (p: ReportPeriod) => reportSlug(p);
 
 export function periodFromSlug(slug: string | null | undefined): ReportPeriod | null {
-  return (Object.keys(REPORT_PERIODS) as ReportPeriod[]).find((p) => periodSlug(p) === slug) ?? null;
+  return REPORT_PERIOD_NAMES.find((p) => periodSlug(p) === slug) ?? null;
 }
 
 export const isRunnable = (name: string) => (REPORT_NAMES as readonly string[]).includes(name);
@@ -96,12 +97,37 @@ const AS_AT = `As at ${date(REPORT_FIXED.asAt)}`;
 export const POINT_IN_TIME: readonly string[] = ["Customer statements", "Sales targets", "Balance sheet", "Trial balance", "Aged receivables", "Stock valuation", "Low stock"];
 const day = (iso: string) => Date.parse(`${iso.slice(0, 10)}T00:00:00Z`);
 
-/** Run a report (design `repRun(name, period)`). Point-in-time reports use "This month" for their period-scaled inputs. */
-export function runReport(name: string, period: ReportPeriod, src: ReportSource): ReportResult {
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A period's dates and scale (design `repRange(per, from, to)`). "Custom range" uses `from`/`to`
+ * (swapped if reversed; 1–10 Nov when missing). Sales scale: fixed for This month, Last month and
+ * This year, otherwise the daily sales rate of each day in the range, over November's 4.82M.
+ */
+export function reportRange(per: ReportPeriod, from?: string | null, to?: string | null): ReportRange {
+  let r: [string, string];
+  if (per === "Custom range") {
+    const a = from && ISO_DAY.test(from) ? from : "2026-11-01";
+    const b = to && ISO_DAY.test(to) ? to : "2026-11-10";
+    r = a <= b ? [a, b] : [b, a];
+  } else r = [...(REPORT_PERIODS[per] ?? REPORT_PERIODS["This month"])];
+  let tot = 0;
+  let days = 0;
+  for (let t = Date.parse(`${r[0]}T12:00:00Z`), e = Date.parse(`${r[1]}T12:00:00Z`); t <= e && days < 2000; t += 864e5) {
+    const m = new Date(t).toISOString().slice(0, 7);
+    days++;
+    tot += m > "2026-11" ? 0 : (REPORT_DAILY[m] ?? REPORT_DAILY_OTHER);
+  }
+  return { start: r[0], end: r[1], days, scale: REPORT_FIXED_SCALE[per] ?? tot / 4.82, ef: days / 30 };
+}
+
+/** Run a report (design `repRun(name, period, from, to)`). Point-in-time reports use "This month" for their period-scaled inputs. */
+export function runReport(name: string, period: ReportPeriod, src: ReportSource, from?: string | null, to?: string | null): ReportResult {
   const per: ReportPeriod = POINT_IN_TIME.includes(name) ? "This month" : period;
-  const { start, end, scale: sc } = REPORT_PERIODS[per];
+  const RG = reportRange(per, from, to);
+  const { start, end, scale: sc } = RG;
   const inR = (iso: string) => iso.slice(0, 10) >= start && iso.slice(0, 10) <= end;
-  const sub = `${per} · ${date(start)} to ${date(end)}`;
+  const sub = `${per === "Custom range" ? "" : `${per} · `}${start === end ? date(start) : `${date(start)} to ${date(end)}`}`;
   const salesTotal = REPORT_FIXED.salesMonth * sc;
   const orders = Math.round(REPORT_FIXED.ordersMonth * sc);
   const exps = src.expenses.filter((e) => e.status === "Paid" && inR(e.date));
@@ -188,8 +214,11 @@ export function runReport(name: string, period: ReportPeriod, src: ReportSource)
       };
     }
     case "Returns & refunds": {
-      const rows: ReportCell[][] = cns.map((c) => [c.number, c.customer, date(c.date), c.source, c.reason, c.amount]);
-      const refunded = sum(cns.map((c) => c.amount));
+      const rows: ReportCell[][] = [
+        ...cns.map((c): ReportCell[] => [c.number, c.customer, date(c.date), c.source, c.reason, c.amount]),
+        ...REPORT_DEMO.refunds.filter((r) => inR(r[2])).map((r): ReportCell[] => [r[0], r[1], date(r[2]), r[3], r[4], r[5]]),
+      ];
+      const refunded = sum(rows.map((r) => r[5] as number));
       return {
         ...base,
         kpis: [kpi("Credit notes", String(rows.length)), kpi("Refunded", K(refunded), "", "danger"), kpi("Share of sales", `${((refunded / salesTotal) * 100).toFixed(2)}%`)],
@@ -217,6 +246,7 @@ export function runReport(name: string, period: ReportPeriod, src: ReportSource)
       const cogs = salesTotal * REPORT_FIXED.cogsRate;
       const by = new Map<string, number>();
       for (const e of exps) by.set(e.category, (by.get(e.category) ?? 0) + e.amount + (e.fee || 0));
+      for (const [k, v] of Object.entries(REPORT_DEMO.expMonth)) by.set(k, (by.get(k) ?? 0) + Math.round(v * RG.ef));
       const opex = sum([...by.values()]);
       const gross = salesTotal - cogs;
       const net = gross - opex;
@@ -294,7 +324,7 @@ export function runReport(name: string, period: ReportPeriod, src: ReportSource)
       };
     }
     case "Cash flow": {
-      const led = src.ledger.filter((e) => inR(e.date));
+      const led = [...src.ledger, ...REPORT_DEMO.ledger].filter((e) => inR(e.date));
       const by = new Map<string, [number, number, number]>();
       for (const e of led) {
         const b = by.get(e.kind) ?? [0, 0, 0];
@@ -392,8 +422,13 @@ export function runReport(name: string, period: ReportPeriod, src: ReportSource)
       };
     }
     case "Stock movement": {
-      const mv = src.movements.filter((m) => inR(m.date));
-      const rows: ReportCell[][] = mv.map((m) => [date(m.date), m.product, m.variant, m.kind.label, m.store, m.change < 0 ? `−${Math.abs(m.change)}` : `+${m.change}`, String(m.left), m.by, m.ref]);
+      const mv = [
+        ...src.movements.map((m) => ({ date: m.date, product: m.product, variant: m.variant, kind: m.kind.label, store: m.store, change: m.change, left: m.left, by: m.by, ref: m.ref })),
+        ...REPORT_DEMO.moves.map(([d, product, variant, kind, store, change, left, by, ref]) => ({ date: d, product, variant, kind, store, change, left, by, ref })),
+      ]
+        .filter((m) => inR(m.date))
+        .sort((a, b) => day(b.date) - day(a.date));
+      const rows: ReportCell[][] = mv.map((m) => [date(m.date), m.product, m.variant, m.kind, m.store, m.change < 0 ? `−${Math.abs(m.change)}` : `+${m.change}`, String(m.left), m.by, m.ref]);
       return {
         ...base,
         kpis: [
@@ -422,17 +457,20 @@ export function runReport(name: string, period: ReportPeriod, src: ReportSource)
       };
     }
     case "Wastage": {
-      const rows: ReportCell[][] = src.wastage.map((w) => {
-        const i = w.items[0];
-        return [w.ref, i ? (w.session && i.variant ? `${i.product} · ${i.variant}` : i.product) : "—", String(i?.qty ?? 0), i?.reason ?? "—", w.value];
-      });
-      const value = sum(src.wastage.map((w) => w.value));
+      const rows: ReportCell[][] = [
+        ...src.wastage.map((w): ReportCell[] => {
+          const i = w.items[0];
+          return [w.ref, i ? (w.session && i.variant ? `${i.product} · ${i.variant}` : i.product) : "—", String(i?.qty ?? 0), i?.reason ?? "—", w.value];
+        }),
+        ...REPORT_DEMO.wastage.map((r): ReportCell[] => [...r]),
+      ];
+      const value = sum(rows.map((r) => r[4] as number));
       return {
         ...base,
         kpis: [kpi("Records", String(rows.length)), kpi("Value lost", K(value), "", "danger")],
         cols: [C("Ref"), C("Item"), C("Qty", true), C("Reason"), C("Value (KES)", true)],
         rows,
-        total: rows.length ? ["Total", "", String(sum(src.wastage.map((w) => w.items[0]?.qty ?? 0))), "", value] : null,
+        total: rows.length ? ["Total", "", String(sum(rows.map((r) => Number(r[2])))), "", value] : null,
       };
     }
     default:

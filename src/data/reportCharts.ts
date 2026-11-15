@@ -1,6 +1,6 @@
 /**
  * Report charts and analysis — a one-for-one port of the canvas `repCharts(name, R, per)`
- * (`Uzapoint ERP.dc.html` v1794778583-c3c7): a bar chart of the biggest lines, a donut of shares,
+ * (`Uzapoint ERP.dc.html` v1794780681-ee67): a bar chart of the biggest lines, a donut of shares,
  * a monthly trend for the sales, purchase and cash reports, and up to five plain-language points.
  * Pure: reads only the report result and the dashboard's monthly series.
  */
@@ -15,7 +15,7 @@ const NONE: ReportCharts = { bars: null, donut: null, trend: null, insights: [] 
 
 /** The design's `plain` + `expNum`: a cell's text, as a number (0 when it isn't one). */
 const plain = (c: ReportCell | undefined): string => (c === undefined ? "" : typeof c === "object" ? c.text : String(c));
-const num = (c: ReportCell | undefined): number => (typeof c === "number" ? c : Number(plain(c).replace(/,/g, "")) || 0);
+const num = (c: ReportCell | undefined): number => (typeof c === "number" ? c : Number(plain(c).replace("−", "-").replace("+", "").replace(/,/g, "")) || 0);
 const K = (n: number) => `KES ${repFmt(n)}`;
 
 /** Value column picked by name (the first column whose title starts with it). */
@@ -102,7 +102,7 @@ function build(name: string, R: ReportResult, per: ReportPeriod): ReportCharts {
     const mx = Math.max(...top.map((x) => Math.abs(x.v))) || 1;
     out.bars = {
       title: name === "Aged receivables" ? "Owed by age" : li ? `${vt.charAt(0).toUpperCase()}${vt.slice(1)} by ${cols[li]!.t.toLowerCase()}` : stmt ? "Line by line" : `Top ${top.length} by ${vt}`,
-      sub: items.length > 8 ? `Showing 8 of ${items.length}` : R.asAt ? R.sub : per,
+      sub: items.length > 8 ? `Showing 8 of ${items.length}` : R.asAt ? R.sub : ((R.sub || per).split(" · ").pop() ?? per),
       bars: top.map((x, i) => ({
         label: x.l,
         value: fv(x.v),
@@ -134,6 +134,44 @@ function build(name: string, R: ReportResult, per: ReportPeriod): ReportCharts {
       legend: sl.map((x, i) => ({ label: x.l, color: P[i]!, pct: `${((x.v / tot) * 100).toFixed(1)}%` })),
       aria: `Donut chart: ${sl.map((x) => `${x.l} ${((x.v / tot) * 100).toFixed(0)}%`).join(", ")}`,
     };
+  }
+
+  // Profit & loss: where the expenses went (design donut "Where expenses went").
+  let pe: { l: string; v: number }[] | null = null;
+  if (name === "Profit & loss") {
+    const ex: { l: string; v: number }[] = [];
+    let inE = false;
+    rows.forEach((r) => {
+      const l = plain(r[0]).trim();
+      if (l === "Expenses") {
+        inE = true;
+        return;
+      }
+      if (/^Total expenses/.test(l)) inE = false;
+      else if (inE && num(r[1])) ex.push({ l, v: -num(r[1]) });
+    });
+    ex.sort((a, b) => b.v - a.v);
+    if (ex.length >= 2) {
+      const tot = ex.reduce((a, x) => a + x.v, 0);
+      const sl = ex.slice(0, 5);
+      if (ex.length > 5) sl.push({ l: "Everything else", v: ex.slice(5).reduce((a, x) => a + x.v, 0) });
+      let at = 0;
+      const stops = sl.map((x, i) => {
+        const a = at;
+        at += (x.v / tot) * 100;
+        return `${P[i]} ${a.toFixed(2)}% ${at.toFixed(2)}%`;
+      });
+      out.donut = {
+        title: "Where expenses went",
+        sub: "Share of total expenses",
+        background: `conic-gradient(${stops.join(", ")})`,
+        label: "Expenses",
+        total: repFmt(tot),
+        legend: sl.map((x, i) => ({ label: x.l, color: P[i]!, pct: `${((x.v / tot) * 100).toFixed(1)}%` })),
+        aria: `Donut chart of expenses: ${sl.map((x) => `${x.l} ${((x.v / tot) * 100).toFixed(0)}%`).join(", ")}`,
+      };
+      pe = ex;
+    }
   }
 
   let growth: { last: number; prev: number; first: number; nm: string; m: string; pm: string; f: string; b?: readonly number[] } | null = null;
@@ -173,7 +211,7 @@ function build(name: string, R: ReportResult, per: ReportPeriod): ReportCharts {
     const absTot = items.reduce((a, x) => a + Math.abs(x.v), 0);
     const sh = (Math.abs(t1.v) / (absTot || 1)) * 100;
     add(`${t1.l} is the largest at ${fv(t1.v)}${sumAll > 0 && items.every((x) => x.v >= 0) ? `, ${sh.toFixed(0)}% of the total.` : "."}`);
-    if (items.length >= 4 && items.every((x) => x.v >= 0)) {
+    if (items.length >= 4 && !li && items.every((x) => x.v >= 0)) {
       const t3 = (items.slice(0, 3).reduce((a, x) => a + x.v, 0) / sumAll) * 100;
       add(
         `The top 3 make up ${t3.toFixed(0)}% of the total${t3 > 70 ? ". That is a lot riding on a few names, so watch them closely." : ", so the spread is fairly healthy."}`,
@@ -184,8 +222,8 @@ function build(name: string, R: ReportResult, per: ReportPeriod): ReportCharts {
     if (items.length >= 3 && low.v > 0) add(`${low.l} is the smallest at ${fv(low.v)}.`, "#94a3b8");
   }
   const negs = items.filter((x) => x.v < 0);
-  if (negs.length && name !== "Profit & loss")
-    add(`${negs.length} item${negs.length > 1 ? "s are" : " is"} negative: ${negs.slice(0, 3).map((x) => x.l).join(", ")}.`, NEG);
+  if (negs.length && !["Profit & loss", "Stock movement"].includes(name))
+    add(`${negs.length} item${negs.length > 1 ? "s are" : " is"} negative: ${negs.slice(0, 3).map((x) => x.l).join(", ")}${negs.length > 3 ? ` and ${negs.length - 3} more.` : "."}`, NEG);
   if (growth) {
     const mo = ((growth.last - growth.prev) / growth.prev) * 100;
     const six = ((growth.last - growth.first) / growth.first) * 100;
@@ -228,6 +266,21 @@ function build(name: string, R: ReportResult, per: ReportPeriod): ReportCharts {
     const c = num(R.total[2]);
     add(Math.abs(d - c) < 1 ? `Debits and credits both come to ${K(d)}, so the books balance.` : `Debits and credits are ${K(Math.abs(d - c))} apart. Check recent entries.`, Math.abs(d - c) < 1 ? P[0] : NEG);
   }
+  if (pe) {
+    const t = pe.reduce((a, x) => a + x.v, 0);
+    add(`${pe[0]!.l} is the biggest expense at ${K(pe[0]!.v)}, ${((pe[0]!.v / t) * 100).toFixed(0)}% of all expenses.`, "#f59e0b");
+  }
+  if (name === "Stock movement" && rows.length) {
+    const ins_ = rows.reduce((a, r) => a + Math.max(0, num(r[5])), 0);
+    const outs = rows.reduce((a, r) => a - Math.min(0, num(r[5])), 0);
+    const byT = new Map<string, number>();
+    rows.forEach((r) => byT.set(plain(r[3]), (byT.get(plain(r[3])) ?? 0) + 1));
+    add(`${ins_} units came in and ${outs} went out${outs > ins_ ? ", so stock is running down." : ", so stock is building up."}`, outs > ins_ ? "#f59e0b" : P[0]);
+    add(`Movements by type: ${[...byT].map(([k, n]) => `${k.toLowerCase()} ${n}`).join(", ")}.`, P[1]);
+    if (items.length) add(`${items[0]!.l} changed the most (${items[0]!.v > 0 ? "+" : ""}${items[0]!.v} units).`, "#94a3b8");
+  }
+  if (name === "Returns & refunds" && rows.length)
+    add(`${rows.length} credit notes in this period. Look at the top reason first, it often points to a supplier or packing problem.`, "#94a3b8");
   R.kpis
     .filter((k) => /margin|profit|net/i.test(k.label))
     .slice(0, 1)

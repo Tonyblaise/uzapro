@@ -258,7 +258,7 @@ export function createSeed(): AppState {
     settings: seedSettings(),
     profiles: seedProfiles(),
     generic: Object.fromEntries(Object.entries(GENERIC_ROWS).map(([k, rows]) => [k, rows.map((r) => r.map((c) => (typeof c === "string" ? c : { ...c })))])),
-    ui: { toast: null, search: "", reportPeriod: "This month" },
+    ui: { toast: null, search: "", reportPeriod: "This month", reportFrom: "", reportTo: "" },
     ai: seedAi(),
     pos: seedPos(),
     permissions: seedPermissions(),

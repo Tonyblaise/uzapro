@@ -165,7 +165,7 @@ test.describe("reports on phones", () => {
     await loginAs(page, "owner");
     for (const path of ["/reports/money?report=aged-receivables", "/reports/stock?report=low-stock", "/reports/popular?report=sales-summary"]) {
       await page.goto(path);
-      await expect(page.getByRole("button", { name: "All reports" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Close report" })).toBeVisible();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       expect(overflow, `${path} overflows by ${overflow}px at 320px`).toBeLessThanOrEqual(0);
       await page.addScriptTag({ path: AXE });

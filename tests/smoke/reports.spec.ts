@@ -12,7 +12,7 @@ const cards = (page: Page) => page.getByRole("list", { name: "Reports" }).getByR
 const heading = (page: Page, name: string) => page.getByRole("heading", { level: 2, name, exact: true });
 const kpi = (page: Page, label: string) => page.getByRole("list", { name: "Key figures" }).getByRole("listitem").filter({ hasText: label });
 const kpiValue = async (page: Page, label: string) => Number(((await kpi(page, label).locator("div").nth(1).textContent()) ?? "").replace(/[^0-9.−-]/g, "").replace("−", "-"));
-const back = (page: Page) => page.getByRole("button", { name: "All reports" });
+const back = (page: Page) => page.getByRole("button", { name: "Close report" });
 
 async function choose(scope: Locator | Page, picker: string | RegExp, option: string) {
   await scope.getByRole("button", typeof picker === "string" ? { name: picker, exact: true } : { name: picker }).click();
@@ -41,6 +41,8 @@ test("cards run reports; back, history and reload work (quickstart 1–3)", asyn
 
   await runReport(page, "Sales summary");
   await expect(page).toHaveURL(/report=sales-summary/);
+  // The report opens full screen over the cards (design v1794780681).
+  await expect(page.getByRole("dialog", { name: "Sales summary" })).toBeVisible();
   await expect(page.getByText("This month · 1 Nov 2026 to 10 Nov 2026")).toBeVisible();
   await expect(page.getByRole("list", { name: "Key figures" }).getByRole("listitem")).toHaveCount(4);
   await expect(kpi(page, "Total sales")).toContainText("KES 4,820,000");
@@ -75,25 +77,28 @@ test("cards run reports; back, history and reload work (quickstart 1–3)", asyn
   }
 });
 
-test("the period picker re-runs period reports; point-in-time reports have none (quickstart 4)", async ({ page, errors }) => {
+test("From and To dates re-run period reports as a custom range; point-in-time reports have none", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/reports/money");
   await runReport(page, "Profit & loss");
-  await choose(page, /^Period: /, "This year");
-  await expect(page.getByText("This year · 1 Jan 2026 to 10 Nov 2026")).toBeVisible();
-  await expect(kpi(page, "Sales")).toContainText("KES 38,600,000");
-  await expect(page).toHaveURL(/period=this-year/);
+  await expect(page.getByLabel("From date")).toHaveValue("2026-11-01");
+  await expect(page.getByLabel("To date")).toHaveValue("2026-11-10");
+  await page.getByLabel("From date").fill("2026-01-01");
+  await expect(page.getByRole("dialog").getByText("1 Jan 2026 to 10 Nov 2026", { exact: true }).first()).toBeVisible();
+  await expect(kpi(page, "Sales")).toContainText("KES 36,910,000");
+  await expect(page).toHaveURL(/period=custom-range&from=2026-01-01&to=2026-11-10/);
 
   await back(page).click();
   await runReport(page, "Balance sheet");
   await expect(page.locator("[data-report-view] > div").first().getByText("As at 10 Nov 2026")).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Period/ })).toHaveCount(0);
+  await expect(page.getByLabel("From date")).toHaveCount(0);
 
-  // The next run starts on the period last chosen.
+  // The next run starts on the range last chosen.
   await back(page).click();
   await runReport(page, "Cash flow");
-  await expect(page.getByText(/^This year · /)).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("1 Jan 2026 to 10 Nov 2026", { exact: true }).first()).toBeVisible();
+  await expect(page.getByLabel("From date")).toHaveValue("2026-01-01");
 });
 
 test("every report runs; Coming soon cannot (quickstart 5)", async ({ page, errors }) => {
@@ -144,6 +149,7 @@ test("reports follow payments, expenses and credit notes recorded in the demo (q
   await back(page).click();
   await runReport(page, "VAT return");
   const claim0 = await kpiValue(page, "VAT you can claim");
+  await back(page).click(); // the report covers the screen; close it before using the sidebar
 
   // Pay RCV-0011 and record a KES 2,000 Transport expense.
   await nav(page).getByRole("link", { name: "Receivables" }).click();
@@ -180,12 +186,13 @@ test("reports follow payments, expenses and credit notes recorded in the demo (q
   expect(await kpiValue(page, "VAT you can claim")).toBeGreaterThanOrEqual(claim0);
   await back(page).click();
   await runReport(page, "Profit & loss");
-  await expect(page.getByRole("row").filter({ hasText: "Transport" })).toContainText("−2,000");
-  await expect(kpi(page, "Expenses")).toContainText("KES 187,000");
+  await expect(page.getByRole("row").filter({ hasText: /^\s*Transport\s*−/ })).toContainText("−2,000");
+  await expect(kpi(page, "Expenses")).toContainText("KES 335,300"); // 185,000 rent + the design's sample expenses + 2,000
+  await back(page).click();
   await tab(page, "Sales");
   await runReport(page, "Returns & refunds");
   await expect(page.getByRole("row").filter({ hasText: "CRN-0008" })).toBeVisible();
-  await expect(kpi(page, "Credit notes")).toContainText("1");
+  await expect(kpi(page, "Credit notes")).toContainText("7"); // CRN-0008 + the design's 6 sample credit notes this month
 });
 
 test("Export CSV copies the report (quickstart 7)", async ({ page, context, errors }) => {

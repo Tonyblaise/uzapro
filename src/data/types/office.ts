@@ -343,7 +343,31 @@ export interface ReportCard {
 
 // ---- Run reports (feature 009, specs/009-run-reports/data-model.md) -------------------------
 
-export type ReportPeriod = "This month" | "Last month" | "This year";
+export type ReportPeriod =
+  | "Today"
+  | "Yesterday"
+  | "This week"
+  | "Last week"
+  | "Last 7 days"
+  | "This month"
+  | "Last month"
+  | "Last 30 days"
+  | "This quarter"
+  | "Last quarter"
+  | "Last 6 months"
+  | "This year"
+  | "Custom range";
+
+/** A report's dates (design `repRange`): the range, its length in days, the sales scale and the expense factor. */
+export interface ReportRange {
+  start: string;
+  end: string;
+  days: number;
+  /** Scale applied to the design's fixed monthly figures (sales, orders, purchases). */
+  scale: number;
+  /** days / 30, for monthly expense figures. */
+  ef: number;
+}
 
 export interface ReportColumn {
   t: string;

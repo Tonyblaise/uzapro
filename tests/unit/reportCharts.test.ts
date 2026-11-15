@@ -27,7 +27,7 @@ const texts = (name: string) => charts(name).insights.map((i) => i.text);
 describe("report charts and analysis (design repCharts)", () => {
   it("Sales summary: bars, a donut adding up to 100%, the monthly trend and the analysis", () => {
     const c = charts("Sales summary");
-    expect(c.bars).toMatchObject({ title: "Top 3 by sales", sub: "This month" });
+    expect(c.bars).toMatchObject({ title: "Top 3 by sales", sub: "1 Nov 2026 to 10 Nov 2026" });
     expect(c.bars!.bars[0]).toMatchObject({ label: "POS", value: "KES 2,050,000", width: 100, color: "#16a34a" });
     expect(c.donut).toMatchObject({ title: "Share of sales", total: "4,820,000" });
     expect(c.donut!.legend.reduce((a, l) => a + parseFloat(l.pct), 0)).toBeCloseTo(100, 0);
@@ -46,11 +46,13 @@ describe("report charts and analysis (design repCharts)", () => {
     expect(charts("Stock valuation").bars!.bars).toHaveLength(8);
   });
 
-  it("Profit & loss: line by line without totals, no donut, sales and purchases trend", () => {
+  it("Profit & loss: line by line without totals, where expenses went, sales and purchases trend", () => {
     const c = charts("Profit & loss");
     expect(c.bars!.title).toBe("Line by line");
     expect(c.bars!.bars.some((b) => /^(total|gross profit|net )/i.test(b.label))).toBe(false);
-    expect(c.donut).toBeNull();
+    expect(c.donut).toMatchObject({ title: "Where expenses went", sub: "Share of total expenses", label: "Expenses", total: "333,300" });
+    expect(c.donut!.legend.map((l) => l.label)).toEqual(["Rent", "Salaries", "Transport & fuel", "Marketing", "Electricity", "Everything else"]);
+    expect(texts("Profit & loss")).toContain("Rent is the biggest expense at KES 185,000, 56% of all expenses.");
     expect(c.trend!.series.map((s) => s.label)).toEqual(["Sales", "Purchases"]);
     expect(texts("Profit & loss")).toContain("Purchases were 71% of sales in Oct.");
   });
@@ -71,16 +73,30 @@ describe("report charts and analysis (design repCharts)", () => {
 
   it("Cash flow flags negative lines and money kept", () => {
     expect(texts("Cash flow")).toEqual([
-      "1 item is negative: Withdrawal.",
+      "M-Pesa sales is the largest at KES 547,500.",
+      "5 items are negative: Supplier payments, Withdrawal, Salaries and 2 more.",
       "Inflow in Oct was up 11% on Sep, and up 52% since May.",
       "More money came in than went out in each of the last 6 months. In Oct you kept 26% of what came in.",
-      "Net cash flow: KES −139,400 (2 transactions).",
+      "Net cash flow: KES 350,900 (13 transactions).",
     ]);
     expect(charts("Cash flow").bars!.bars.find((b) => b.label === "Withdrawal")!.color).toBe("#dc2626");
   });
 
+  it("Stock movement and Returns & refunds get their own sentences", () => {
+    expect(texts("Stock movement")).toEqual([
+      "95 units came in and 39 went out, so stock is building up.",
+      "Movements by type: sold 7, received 3, transferred 1, wasted 1.",
+      "Bike Pump changed the most (+40 units).",
+    ]);
+    expect(texts("Returns & refunds")).toEqual([
+      "Returned goods is the largest at KES 15,300, 44% of the total.",
+      "Price adjustment is the smallest at KES 1,500.",
+      "6 credit notes in this period. Look at the top reason first, it often points to a supplier or packing problem.",
+    ]);
+  });
+
   it("a report with no rows shows no charts", () => {
-    const c = reportCharts("Stock movement", runReport("Stock movement", "This month", { ...src, movements: [] }), "This month");
+    const c = reportCharts("Returns & refunds", runReport("Returns & refunds", "Custom range", src, "2026-01-01", "2026-01-31"), "Custom range");
     expect(c).toEqual({ bars: null, donut: null, trend: null, insights: [] });
   });
 });

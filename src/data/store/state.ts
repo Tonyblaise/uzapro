@@ -110,6 +110,9 @@ export interface UiState {
   search: string;
   /** The last report period chosen (design `repPeriod`, feature 009). */
   reportPeriod: ReportPeriod;
+  /** A custom range's dates (design `repFrom` / `repTo`), ISO; "" until chosen. */
+  reportFrom: string;
+  reportTo: string;
 }
 
 export interface PurchasesState {

@@ -410,3 +410,20 @@ Noticed but outside this feature: the active module tab (`--green-600` on the ca
 
   Charts are plain elements, as in the canvas. Each chart is one labelled image (`role="img"`) with tooltips.
 - **Removed:** Reports › Build a report and Sent automatically, and the header **New** button on Reports. Reports has Popular, Sales, Money and Stock only.
+
+## Design update (canvas v1794780681-ee67, 2026-11-16)
+
+- **Full screen:** a report opens full screen over the cards. It has a **Close report** button (×), the title and dates, **From** and **To** date fields, and Export CSV. The period dropdown is gone. Changing either date makes a custom range, and the sub-line then shows only the dates. The range is kept for the next report and is stored in the URL (`period=custom-range&from=…&to=…`).
+- **Periods:** the design's `repRange` presets are Today, Yesterday, This week, Last week, Last 7 days, This month, Last month, Last 30 days, This quarter, Last quarter, Last 6 months, This year and Custom range. This month, Last month and This year keep their fixed sales scale. Any other range adds up each day's sales rate.
+- **Sample figures:** the design's `UZ_REPDEMO` adds sample figures so every chart has data. They are in `REPORT_DEMO` in `fixtures/reports.ts`:
+  - credit notes in Returns & refunds;
+  - monthly expenses in Profit & loss, scaled by days ÷ 30;
+  - cash lines in Cash flow;
+  - stock movements in Stock movement;
+  - wastage records in Wastage, shown whatever the period, as in the design.
+- **Charts:**
+  - Profit & loss gets a "Where expenses went" donut and a "biggest expense" point.
+  - Stock movement and Returns & refunds get their own analysis points.
+  - "Top 3" is only for reports labelled by their first column.
+  - The negative-items point lists up to three, then "and N more".
+  - Bar sub-lines show the date range.
