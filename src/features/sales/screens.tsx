@@ -1,6 +1,5 @@
 import type { ScreenMap } from "../types";
 import { InvoiceList, NewInvoiceAction, NewQuotationAction, QuotationList, VoidList } from "./DocumentLists";
-import { AddVisitAction, FieldSales } from "./FieldSales";
 import { DeliveryList, NewOrderAction, OrderList } from "./OrderLists";
 import { NewSaleAction, SalesList } from "./SalesList";
 import { SalesOverview } from "./SalesOverview";
@@ -13,7 +12,6 @@ export const salesScreens: ScreenMap = {
   quotations: { Body: QuotationList, Actions: NewQuotationAction },
   "sales-orders": { Body: OrderList, Actions: NewOrderAction },
   deliveries: { Body: DeliveryList },
-  "field-sales": { Body: FieldSales, Actions: AddVisitAction },
   invoices: { Body: InvoiceList, Actions: NewInvoiceAction },
   "voided-items": { Body: VoidList },
   "sales-targets": { Body: TargetList, Actions: NewTargetAction },

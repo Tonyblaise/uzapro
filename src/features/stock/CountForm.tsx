@@ -1,13 +1,18 @@
 "use client";
-/** New stock count (feature 017): pick a store and the products to count there. */
+/**
+ * New stock count (design `sc.newOpen`): the store, everything or one category, who is counting,
+ * and whether it is a blind count. "Start counting" opens the count.
+ */
 import { useState } from "react";
-import { startCount, useCountableProducts } from "@/data";
+import { startCount, useCountSetup, useCurrentUserName } from "@/data";
 import { Button } from "@/components/ui/Button";
-import { Checkbox } from "@/components/ui/Field";
-import { Drawer } from "@/components/ui/Overlay";
+import { Modal } from "@/components/ui/Overlay";
 import { SearchSelect } from "@/components/ui/SearchSelect";
-import { num } from "@/lib/format";
-import { useStoreNames } from "./shared";
+
+const SCOPES: ["all" | "cat", string, string][] = [
+  ["all", "Everything", "Every product in this store"],
+  ["cat", "One category", "A quick cycle count"],
+];
 
 export function CountForm({ open, onClose, onStarted }: { open: boolean; onClose: () => void; onStarted: (ref: string) => void }) {
   if (!open) return null;
@@ -15,82 +20,78 @@ export function CountForm({ open, onClose, onStarted }: { open: boolean; onClose
 }
 
 function Body({ onClose, onStarted }: { onClose: () => void; onStarted: (ref: string) => void }) {
-  const stores = useStoreNames();
-  const [store, setStore] = useState("");
-  const here = useCountableProducts(store);
-  /** Products left out of the count; everything else at the store is counted. */
-  const [skip, setSkip] = useState<string[]>([]);
+  const me = useCurrentUserName();
+  const [store, setStore] = useState("Main Store");
+  const [scope, setScope] = useState<"all" | "cat">("all");
+  const [category, setCategory] = useState("");
+  const [by, setBy] = useState(me);
+  const [blind, setBlind] = useState(true);
   const [error, setError] = useState("");
-  const picked = here.filter((p) => !skip.includes(p.product));
+  const setup = useCountSetup(scope === "cat" ? category : null);
+  const clear = () => setError("");
 
   const start = async () => {
-    const r = await startCount(store, picked.map((p) => p.product));
+    const r = await startCount({ store, scope, category, by, blind });
     if (r.ok) onStarted(r.value.ref);
     else setError(r.message);
   };
 
   return (
-    <Drawer open title="New stock count" subtitle="Stock" width={460} onClose={onClose}>
+    <Modal
+      open
+      title="New stock count"
+      subtitle="Count what is on the shelves and compare it with the system"
+      onClose={onClose}
+      width={520}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button icon="clipboard-list" onClick={() => void start()}>
+            Start counting
+          </Button>
+        </>
+      }
+    >
       <div className="flex flex-col gap-4">
-        <SearchSelect
-          label="Store"
-          noun="store"
-          options={stores}
-          value={store}
-          onChange={(s) => {
-            setStore(s);
-            setSkip([]);
-            setError("");
-          }}
-        />
-        {store && (
-          <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
-            <legend className="type-label mb-2 p-0 text-text">Products to count</legend>
-            {here.length === 0 ? (
-              <p className="type-small m-0 text-text-muted">Nothing is in stock at {store}.</p>
-            ) : (
-              <>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => setSkip([])}>
-                    Tick all
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={() => setSkip(here.map((p) => p.product))}>
-                    Untick all
-                  </Button>
-                </div>
-                {here.map((p) => (
-                  <Checkbox
-                    key={p.product}
-                    checked={!skip.includes(p.product)}
-                    onChange={(on) => {
-                      setSkip((s) => (on ? s.filter((x) => x !== p.product) : [...s, p.product]));
-                      setError("");
-                    }}
-                    label={p.product}
-                    hint={`System: ${num(p.quantity)}`}
-                  />
-                ))}
-                <p className="type-small m-0 text-text-secondary">
-                  {picked.length === here.length ? "Full count" : "Partial count"}: {picked.length} of {here.length} products.
-                </p>
-              </>
-            )}
-          </fieldset>
-        )}
+        <SearchSelect label="Store to count" noun="store" options={setup.stores} value={store} onChange={(v) => (setStore(v), clear())} />
+        <div className="flex flex-col gap-2">
+          <span className="type-label text-text">What to count</span>
+          <div role="group" aria-label="What to count" className="grid grid-cols-2 gap-2">
+            {SCOPES.map(([k, label, sub]) => (
+              <button
+                key={k}
+                type="button"
+                aria-pressed={scope === k}
+                onClick={() => (setScope(k), clear())}
+                className={`flex flex-col items-start gap-0.5 rounded-md border-2 p-3 text-left ${scope === k ? "border-green-600 bg-green-50" : "border-border bg-surface"}`}
+              >
+                <span className="type-label text-text">{label}</span>
+                <span className="type-small text-text-muted">{sub}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {scope === "cat" && <SearchSelect label="Category" noun="category" options={setup.categories} value={category} onChange={(v) => (setCategory(v), clear())} />}
+        <SearchSelect label="Counted by" noun="person" options={setup.staff} value={by} onChange={(v) => (setBy(v), clear())} />
+        <label className="flex items-start gap-3">
+          <input type="checkbox" role="switch" aria-checked={blind} checked={blind} onChange={() => setBlind((b) => !b)} className="uz-switch" />
+          <span>
+            <span className="type-label block text-text">Blind count</span>
+            <span className="type-small block text-text-muted">Hide the system quantity while counting, so people count what they see.</span>
+          </span>
+        </label>
+        <div className="type-small rounded-md bg-canvas p-3 text-text-secondary">
+          {scope === "cat" && !category ? 0 : setup.lines} lines to count in {store || "the store"}. Stock movements in this store still work while you count.{" "}
+          {blind ? "Counters won't see the system quantity." : "Counters will see the system quantity."}
+        </div>
         {error && (
           <div role="alert" className="type-small text-danger-text">
             {error}
           </div>
         )}
-        <div className="flex gap-2">
-          <Button disabled={!store || picked.length === 0} onClick={start}>
-            Start count
-          </Button>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
       </div>
-    </Drawer>
+    </Modal>
   );
 }

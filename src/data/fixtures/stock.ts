@@ -40,7 +40,7 @@ export const STOCK_MOVES = [
   ["31 Oct 2026", "Carbon Road Frame", "54cm", P("Moved out", "mut"), "Finished Goods", "−8", "135", "Grant Jensen", "TRF-0032"],
   ["30 Oct 2026", "Helmet", "Medium", P("Sold", "info"), "Point of Sale", "−1", "44", "Jane Smith", "SAL-001163"],
   ["29 Oct 2026", "Carbon Road Frame", "54cm", P("Received", "good"), "Finished Goods", "+50", "143", "Grant Jensen", "GRN-0041"],
-  ["28 Oct 2026", "Groupset", "Standard", P("Counted", "warn"), "Stores", "−3", "27", "Grant Jensen", "CNT-0014"],
+  ["28 Oct 2026", "Groupset", "Standard", P("Counted", "warn"), "Stores", "−3", "27", "Grant Jensen", "SC-0012"],
   ["28 Oct 2026", "Muthokinju Paint", "White", P("Damaged or lost", "bad"), "Stores", "−4", "0", "Grant Jensen", "WST-0008"],
   ["27 Oct 2026", "Carbon Sole Shoes", "Size 42", P("Damaged or lost", "bad"), "Stores", "−1", "68", "Grant Jensen", "WST-0007"],
   ["26 Oct 2026", "Aluminium Frame", "56cm", P("Moved in", "mut"), "Finished Goods", "+20", "165", "Grant Jensen", "TRF-0031"],

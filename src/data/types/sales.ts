@@ -71,8 +71,6 @@ export interface NewSale {
   payRef?: string;
   /** Approval of a credit stop (feature 012). */
   approval?: { reason: string };
-  /** The store the goods leave (feature 021: a van). Left out = the counter's "Point of Sale". */
-  store?: string;
 }
 
 export interface DocLine {

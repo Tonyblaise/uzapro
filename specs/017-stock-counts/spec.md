@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-15
 
-**Status**: Draft
+**Status**: Replaced by feature 025 (stock counts as in the design, 2026-11-15); kept as a record.
 
 **Input**: User description: "go ahead and build them" (roadmap item: "Stock counts. Full and partial counts with a variance report and approval.")
 

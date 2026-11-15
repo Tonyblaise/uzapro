@@ -2,6 +2,7 @@
  * Pure seed: converts the verbatim design fixtures into typed state (research R5).
  * No browser storage access here; StoreProvider applies uzAuth / uzNavClosed after mount.
  */
+import { FIELD_DRIVERS, FIELD_REPS, FIELD_SALE_SEED } from "../fixtures/field";
 import { parseAmount } from "@/lib/format";
 import { seedIntegrations } from "../integrations";
 import { seedPermissions } from "../permissions";
@@ -9,7 +10,6 @@ import { RETAIL_GROUP, seedPricing } from "../pricing";
 import { CUSTOMER_CREDIT } from "../fixtures/pricing";
 import { DELIVERY_SEED, ORDER_SEED } from "../fixtures/orders";
 import { REORDER_SEED } from "../fixtures/reorder";
-import { VAN_LOAD, VAN_LOAD_FROM, VAN_STORE, VISIT_SEED } from "../fixtures/visits";
 import { COUNT_SEED } from "../fixtures/counts";
 import { DEMO_LOGIN } from "../fixtures/reference";
 import { CATEGORY_ROWS, EXTRA_UNITS, PRODUCT_ROWS, UZ_PRODADDED, UZ_VARIANTS } from "../fixtures/catalog";
@@ -17,9 +17,7 @@ import { CUSTOMER_ROWS } from "../fixtures/customers";
 import { UZ_NONTAX, UZ_UNITS } from "../fixtures/reference";
 import { CREDIT_NOTE_ROWS, INVOICE_ROWS, QUOTATION_ROWS, SALE_NO_START, SALE_ROWS, UZ_TARGETS, VOID_ROWS } from "../fixtures/sales";
 import { STOCK_LINES, STOCK_MOVES, TRANSFER_DETAILS, TRANSFER_ROWS, WAREHOUSE_ROWS, WASTAGE_ROWS } from "../fixtures/stock";
-import type { Product, Sale, SalesTarget, Store, TransferStatus, Variant,
-  StockLevel,
-} from "../types";
+import type { Product, Sale, SalesTarget, Store, TransferStatus, Variant } from "../types";
 import { GRN_ROWS, PO_ROWS, PRT_ROWS, REJ_ROWS } from "../fixtures/purchases";
 import { SUPPLIER_ROWS, UZ_NATIONS } from "../fixtures/suppliers";
 import type { GoodsReceipt, PurchaseOrder, Supplier } from "../types";
@@ -86,18 +84,6 @@ function variantsFor(name: string): Variant[] {
   }));
 }
 
-/** Feature 021: move the van's load out of the Main Store, so product totals stay as ported. */
-function vanLoaded(levels: StockLevel[]): StockLevel[] {
-  const out = levels.map((l) => ({ ...l }));
-  for (const [product, qty] of VAN_LOAD) {
-    const from = out.find((l) => l.product === product && l.store === VAN_LOAD_FROM);
-    if (!from || from.quantity < qty) continue;
-    from.quantity -= qty;
-    out.push({ product, store: VAN_STORE.name, quantity: qty });
-  }
-  return out;
-}
-
 export function createSeed(): AppState {
   const products: Product[] = PRODUCT_ROWS.map(([name, category, priceLabel, , status]) => {
     const added = UZ_PRODADDED[name];
@@ -113,8 +99,7 @@ export function createSeed(): AppState {
     };
   });
 
-  // Feature 021: the van is one more storage location, added after the ported ones.
-  const stores: Store[] = [...WAREHOUSE_ROWS.map(([name, branch, type]) => ({ name, branch, type })), { ...VAN_STORE }];
+  const stores: Store[] = WAREHOUSE_ROWS.map(([name, branch, type]) => ({ name, branch, type }));
 
   const movements = STOCK_MOVES.map(([d, product, variant, kind, store, change, left, by, ref], i) => ({
     id: `seed-${i}`,
@@ -181,12 +166,12 @@ export function createSeed(): AppState {
     },
     stock: {
       stores,
-      levels: vanLoaded(STOCK_LINES.map(([product, store, quantity]) => ({ product, store, quantity }))),
+      levels: STOCK_LINES.map(([product, store, quantity]) => ({ product, store, quantity })),
       movements,
       transfers,
       wastage,
       reorder: REORDER_SEED.map((r) => ({ ...r })),
-      counts: COUNT_SEED.map((c) => ({ ...c, lines: c.lines.map((l) => ({ ...l })) })),
+      counts: COUNT_SEED.map((c) => ({ ...c, lines: c.lines.map((l) => ({ ...l, variants: [...l.variants] })), history: c.history.map((h) => ({ ...h })) })),
     },
     sales: {
       sales,
@@ -242,7 +227,6 @@ export function createSeed(): AppState {
       })),
       targets: UZ_TARGETS.map((t) => ({ ...t }) as SalesTarget),
       orders: ORDER_SEED.map((o) => ({ ...o, lines: o.lines.map((l) => ({ ...l })), invoices: [...o.invoices] })),
-      visits: VISIT_SEED.map((v) => ({ ...v })),
       deliveries: DELIVERY_SEED.map((d) => ({ ...d, lines: d.lines.map((l) => ({ ...l })), returns: [] })),
     },
     customers: CUSTOMER_ROWS.map(([name, phone, email, address, status]) => {
@@ -279,6 +263,16 @@ export function createSeed(): AppState {
     permissions: seedPermissions(),
     pricing: seedPricing(),
     integrations: seedIntegrations(),
+    field: {
+      reps: FIELD_REPS.map((r) => ({ ...r })),
+      drivers: [...FIELD_DRIVERS],
+      sales: FIELD_SALE_SEED.map((x) => ({
+        ...x,
+        lines: x.lines.map((l) => ({ ...l })),
+        pay: { ...x.pay },
+        delivery: { ...x.delivery, ...(x.delivery.collected ? { collected: { ...x.delivery.collected } } : {}), history: x.delivery.history.map((h) => ({ ...h })) },
+      })),
+    },
   };
 }
 

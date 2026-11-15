@@ -1,6 +1,8 @@
 "use client";
-/** Stock count read hooks (feature 017, contracts/data-access.md). */
+/** Stock count read hooks (feature 025). */
 import { useCallback, useMemo } from "react";
+import { ROLES, ROLE_IDS } from "@/config/roles";
+import { countStores } from "./commands/counts";
 import { countStatus, countTotals, type CountTotals } from "./counts";
 import { useAppStore } from "./store/StoreProvider";
 import type { Pill, StockCount } from "./types";
@@ -24,8 +26,18 @@ export function useCount(ref: string | null): CountRow | undefined {
   return ref ? rows.find((c) => c.ref === ref) : undefined;
 }
 
-/** Products in stock at a store, for the new-count tick list. */
-export function useCountableProducts(store: string): { product: string; quantity: number }[] {
-  const levels = useAppStore((s) => s.stock.levels);
-  return useMemo(() => levels.filter((l) => l.store === store).map((l) => ({ product: l.product, quantity: l.quantity })), [levels, store]);
+/** Stores, categories and staff for "New stock count", and how many lines a count would have. */
+export function useCountSetup(category: string | null) {
+  const stock = useAppStore((s) => s.stock);
+  const products = useAppStore((s) => s.catalog.products);
+  return useMemo(
+    () => ({
+      stores: countStores({ stock }),
+      categories: Array.from(new Set(products.map((p) => p.category))),
+      // Design: the people who can count are the staff on the demo roles.
+      staff: ROLE_IDS.map((id) => ROLES[id].name),
+      lines: products.filter((p) => !category || p.category === category).length,
+    }),
+    [stock, products, category],
+  );
 }

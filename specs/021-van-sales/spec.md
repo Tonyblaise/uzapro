@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-15
 
-**Status**: Draft
+**Status**: Removed (2026-11-15). Replaced by Field sales and Deliveries (feature 024); this spec is kept as a record.
 
 **Input**: User description: "go ahead" (roadmap item 5: "Sales rep and van sales app. Route visits, order taking, cash and M-Pesa collection, and stock on the van." Chosen next by the assistant and reported to the user as such.)
 

@@ -1089,7 +1089,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
           },
           { kind: "p", text: "UzaPro creates a delivery note, for example **DN-0002**, and takes the items out of the store. The order shows **Part dispatched** until everything has been sent." },
           { kind: "p", text: "When the goods arrive, open the delivery note under Sales › Deliveries, choose **Mark delivered** and enter who received them." },
-          { kind: "links", screens: [{ label: "Open Sales › Deliveries", module: "sales", tab: "deliveries" }] },
+          { kind: "links", screens: [{ label: "Open Field sales › Deliveries", module: "field", tab: "deliveries" }] },
         ],
       },
       {
@@ -1134,7 +1134,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     updated: "2026-11-15",
     intro: [
       "Sell the same product by the piece and by the carton from one stock figure, and let UzaPro tell you when to buy more.",
-      "**Who can do this:** anyone with Write on Products can set what a unit contains. Setting reorder points on a product needs Write on Products and Write on Stock; changing one store's reorder point needs Write on Stock. Creating purchase orders from them also needs Write on Purchases.",
+      "**Who can do this:** anyone with Write on Products can set what a unit contains. Setting reorder points on a product needs Write on Products and Write on Stock.",
     ],
     sections: [
       {
@@ -1166,37 +1166,17 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
               "Go to Products › All products and choose **New product**, or open a product and choose **Edit**.",
               "Under **Reorder point**, enter **Reorder at** and **Order up to** for the product, both in the base unit.",
               "Choose **Save**. The reorder point applies at every store you buy stock into (not transit locations or vans).",
-              "To change one store, or to set the **Variant to order**, the **Order unit** and the **Supplier** for purchase orders, go to Stock › Reorder and choose **Edit** on that line.",
             ],
           },
-          {
-            kind: "table",
-            head: ["Status", "What it means"],
-            rows: [
-              ["OK", "Stock is above the reorder point."],
-              ["Reorder now", "Stock on hand and on order is at or below the reorder point."],
-              ["Out of stock", "The same, and nothing is on hand."],
-              ["On order", "Stock is low, but purchase orders already cover it."],
-            ],
-          },
-          { kind: "note", tone: "info", text: "Stock is counted per product, not per variant, so the reorder point is for the whole product. Purchase orders order its first variant unless you choose another in Stock › Reorder." },
-          { kind: "links", screens: [{ label: "Open Products › All products", module: "prod", tab: "all-products" }, { label: "Open Stock › Reorder", module: "inv", tab: "reorder" }] },
-        ],
-      },
-      {
-        heading: "Create purchase orders from the list",
-        level: 2,
-        blocks: [
-          { kind: "p", text: "Choose **Create draft purchase orders**. UzaPro makes one draft per supplier and store, with each suggested quantity rounded up to whole order units. Lines with no supplier are skipped. Check the drafts under Purchases, then approve and send them." },
-          { kind: "links", screens: [{ label: "Open Purchases › Purchase orders", module: "buy", tab: "purchase-orders" }] },
+          { kind: "note", tone: "info", text: "Stock is counted per product, not per variant, so the reorder point is for the whole product." },
+          { kind: "links", screens: [{ label: "Open Products › All products", module: "prod", tab: "all-products" }] },
         ],
       },
       {
         heading: "Frequently asked questions",
         level: 2,
         blocks: [
-          { kind: "faq", q: "Why does a product with sizes have one reorder point?", a: ["Stock is counted per product and store, not per size. The reorder point names the variant to order, and you can change the draft purchase order before you send it."] },
-          { kind: "faq", q: "I pressed Create draft purchase orders twice. Did it order twice?", a: ["No. The first drafts count as on order, so the lines show **On order** and nothing more is suggested."] },
+          { kind: "faq", q: "Why does a product with sizes have one reorder point?", a: ["Stock is counted per product and store, not per size, so the reorder point is for the whole product."] },
           { kind: "links", articles: ["adding-a-product", "ordering-from-a-supplier-and-receiving-goods"] },
         ],
       },
@@ -1210,25 +1190,27 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     category: "stock-and-products",
     updated: "2026-11-15",
     intro: [
-      "A stock count compares what UzaPro says you have with what is on the shelf, shows the difference, and corrects stock once it is approved.",
-      "**Who can do this:** anyone with Write on Stock can start a count, enter quantities and submit it. Approving, sending back and cancelling need Delete on Stock.",
+      "A stock count compares what UzaPro says you have with what is on the shelf, shows the differences, and corrects stock once it is approved.",
+      "**Who can do this:** anyone with Write on Stock can start a count, count and submit it. Approving, sending back and cancelling need the **Approve stock counts** right.",
     ],
     sections: [
       {
-        heading: "Start a count and enter what you find",
+        heading: "Start a count and count what you find",
         level: 2,
         blocks: [
           {
             kind: "ol",
             items: [
-              "Go to Stock › Stock counts and choose **New count**.",
-              "Pick the **Store**. Leave every product ticked for a full count, or untick some for a partial count.",
-              "Choose **Start count**. The count opens with the system quantity for each product.",
-              "Enter what you counted under **Counted**, in the base unit.",
-              "Choose **Save** to keep your place, or **Submit for approval** when every line is counted.",
+              "Go to Stock › Stock counts and choose **New stock count**.",
+              "Pick the **Store to count**, then **Everything** or **One category** for a quick cycle count.",
+              "Pick who is counting under **Counted by**.",
+              "Leave **Blind count** on to hide the system quantity while counting, so people count what they see.",
+              "Choose **Start counting**. The count opens with a line for each product.",
+              "Enter what you find under **Counted**, or use − and +. Add a **Note** where it helps. Your counts save as you go.",
+              "Choose **Save and close** to carry on later, or **Submit for approval** when every line is counted.",
             ],
           },
-          { kind: "note", tone: "info", text: "A store can have one count open at a time. Stock does not change while you count." },
+          { kind: "note", tone: "info", text: "Stock movements in the store still work while you count. Stock only changes when the count is approved." },
           { kind: "links", screens: [{ label: "Open Stock › Stock counts", module: "inv", tab: "stock-counts" }] },
         ],
       },
@@ -1236,25 +1218,25 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         heading: "Review and approve",
         level: 2,
         blocks: [
-          { kind: "p", text: "Each line shows its **Variance**: counted less system. The totals show how many units are over, how many are short, and the net value at the buying price." },
+          { kind: "p", text: "Each line shows its **Difference**: counted less system, and its value at the buying price. **Short**, **Over** and **Net difference** add them up. In a blind count these show after it is submitted." },
           {
             kind: "table",
             head: ["Action", "What happens"],
             rows: [
-              ["Approve", "Stock at the store changes by each line's variance. The stock history shows Counted with the count's number."],
-              ["Send back", "The count returns to In progress for a recount."],
+              ["Approve and update stock", "Stock at the store changes by each line's difference. The stock history shows Count with the count's number."],
+              ["Send back to recount", "Only the lines with differences are cleared, and the count goes back to Counting."],
               ["Cancel count", "The count is kept as Cancelled. Stock does not change."],
             ],
           },
-          { kind: "p", text: "If stock was sold or received while the count was open, the variance is applied to the stock as it is now." },
+          { kind: "p", text: "If stock was sold or received while the count was open, the difference is applied to the stock as it is now." },
         ],
       },
       {
         heading: "Frequently asked questions",
         level: 2,
         blocks: [
-          { kind: "faq", q: "Why can't I submit the count?", a: ["Every line needs a counted quantity. The message says how many are left, for example **Count every line first. 2 left.** Enter 0 for a product that has none."] },
-          { kind: "faq", q: "Why is there no Approve button?", a: ["Your role can count but not approve. Ask someone with Delete on Stock, such as the Owner."] },
+          { kind: "faq", q: "Why can't I submit the count?", a: ["Every line needs a counted quantity. The message says how many are left, for example **2 lines are not counted yet. Count them, even if the answer is 0.**"] },
+          { kind: "faq", q: "Why is there no Approve button?", a: ["Your role can count but not approve. Ask someone with the Approve stock counts right, such as the Owner."] },
           { kind: "links", articles: ["bulk-units-and-reorder-points"] },
         ],
       },
@@ -1386,78 +1368,70 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     related: ["recording-a-sale", "sending-an-invoice-and-recording-its-payment", "wholesale-prices-and-credit-limits"],
   },
   {
-    id: "selling-from-a-van",
-    title: "Selling from a van",
+    id: "field-sales-and-deliveries",
+    title: "Field sales and deliveries",
     category: "selling",
     updated: "2026-11-15",
     intro: [
-      "Field sales is for a rep on the road: the day's visits, selling from the stock on the van, and what to hand in at the end of the day. The screen is laid out for a phone.",
-      "**Who can do this:** anyone with Write on Sales.",
+      "Field sales are orders your reps take on the road. Each one goes to Deliveries, where it is sent out and confirmed when the customer receives it.",
+      "**Who can do this:** anyone with Write on Field sales takes orders and dispatches and confirms deliveries. The Store keeper sees only the Deliveries tab.",
     ],
     sections: [
       {
-        heading: "Load the van and plan the day",
-        level: 2,
-        blocks: [
-          { kind: "p", text: "A van is a storage location of the type **Van**. Its stock is moved on and off with a stock transfer, like any other store." },
-          {
-            kind: "ol",
-            items: [
-              "Move stock from your store to the van under Stock › Transfer stock.",
-              "Go to Sales › Field sales. **On the van** lists what you loaded.",
-              "Choose **Add visit** and pick a customer for each stop.",
-            ],
-          },
-          { kind: "links", screens: [{ label: "Open Sales › Field sales", module: "sales", tab: "field-sales" }, { label: "Open Stock › Transfer stock", module: "inv", tab: "transfer-stock" }] },
-        ],
-      },
-      {
-        heading: "Sell on a visit",
+        heading: "Take a field sale",
         level: 2,
         blocks: [
           {
             kind: "ol",
             items: [
-              "Choose **Start visit** on the customer. The top of the visit shows their available credit and anything overdue.",
-              "Use **Add item** for each product. Only what is on the van is listed, at the customer's prices.",
-              "Set the quantity and the unit.",
-              "Pick **Paid by**: Cash, M-Pesa or Pay later (credit).",
-              "Choose **Complete sale**. The stock leaves the van and the visit shows **Sold**.",
+              "Go to Field sales and choose **New field sale**.",
+              "Pick the **Customer** and enter the **Delivery location**.",
+              "Add each product with **Add**. The note under it shows what is in stock at the store; you can still take the order when there is none.",
+              "Under **Delivery**, pick the store it leaves from, the **Delivery date** and the **Driver**.",
+              "Pick the **Rep who took the order**. Their route fills in.",
+              "Choose how it is paid: **Paid now**, **On delivery** or **On credit**.",
+              "Choose **Save and send to deliveries**. The message reads, for example, **FS-0113 saved. Delivery DLV-0241 is waiting in Field sales › Deliveries.**",
             ],
           },
-          { kind: "p", text: "If nothing is sold, choose **No sale** and pick a reason. The visit shows **No sale**." },
-          { kind: "note", tone: "info", text: "Pay later is checked against the customer's credit limit, as on any sale." },
-        ],
-      },
-      {
-        heading: "At the end of the day",
-        level: 2,
-        blocks: [
           {
             kind: "table",
-            head: ["Summary", "What it shows"],
+            head: ["Payment", "What happens"],
             rows: [
-              ["Visits", "How many visits are closed, out of the day's total."],
-              ["Sales", "The total sold on visits."],
-              ["Cash to hand in", "Cash taken on visits."],
-              ["M-Pesa", "Paid by M-Pesa on visits."],
-              ["On credit", "Sold on Pay later."],
+              ["Paid now", "The rep collected the money. It is recorded in the account for the method (M-Pesa, Cash or Bank transfer) and the sale shows **Paid**."],
+              ["On delivery", "The driver collects the money when the goods arrive. The sale shows **Awaiting delivery** until then."],
+              ["On credit", "Added to the customer's balance in Receivables, due in 30 days. Checked against their credit limit, as on any sale."],
             ],
           },
-          { kind: "p", text: "Move what is left on the van back to the store with a stock transfer." },
+          { kind: "links", screens: [{ label: "Open Field sales", module: "field", tab: "field-sales" }] },
+        ],
+      },
+      {
+        heading: "Send it out and confirm delivery",
+        level: 2,
+        blocks: [
+          {
+            kind: "ol",
+            items: [
+              "Go to Field sales › Deliveries and open the delivery. Those still to go out are at the top.",
+              "Under **Send it out**, check the **Driver** and choose **Dispatch**. The items leave the store.",
+              "When the goods arrive, enter who **Received by** and choose **Mark as delivered**. For pay on delivery, pick how the money was **Collected by** and enter the M-Pesa code.",
+            ],
+          },
+          { kind: "p", text: "If the goods can't be delivered, choose **Couldn't deliver**, say why and pick a new date. The items go back into the store until it is sent out again. To stop it altogether, choose **Cancel this delivery**." },
+          { kind: "links", screens: [{ label: "Open Sales › Deliveries", module: "sales", tab: "deliveries" }] },
         ],
       },
       {
         heading: "Frequently asked questions",
         level: 2,
         blocks: [
-          { kind: "faq", q: "The customer wants to pay what they already owe. How do I record it?", a: ["Use **Record payment** under Receivables. It is not part of the visit's sale."] },
-          { kind: "faq", q: "Does Field sales work without a connection?", a: ["No. It is a screen in UzaPro and needs the app open and connected."] },
-          { kind: "links", articles: ["moving-stock-between-stores", "wholesale-prices-and-credit-limits"] },
+          { kind: "faq", q: "Where are deliveries for sales orders?", a: ["Under Sales › Deliveries, next to Sales orders. Field sales › Deliveries lists field-sale deliveries (DLV-…) only."] },
+          { kind: "faq", q: "The customer had already paid and the delivery was cancelled. What now?", a: ["Give the refund from the sale, under Customers › Refunds (credit notes)."] },
+          { kind: "links", articles: ["sales-orders-and-deliveries", "wholesale-prices-and-credit-limits"] },
         ],
       },
       NEED_HELP,
     ],
-    related: ["moving-stock-between-stores", "wholesale-prices-and-credit-limits", "sending-receipts-and-reminders-on-whatsapp"],
+    related: ["sales-orders-and-deliveries", "wholesale-prices-and-credit-limits", "sending-receipts-and-reminders-on-whatsapp"],
   },
 ];

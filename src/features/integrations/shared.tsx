@@ -1,9 +1,8 @@
 "use client";
 /** Building blocks shared by the Integrations screens (feature 015, contracts/ui.md). */
-import { useId, useState, type ReactNode } from "react";
-import { copyText, type ScopeOption } from "@/data";
-import { Field, Input, Select, type InputProps } from "@/components/ui/Field";
-import { IconButton } from "@/components/ui/IconButton";
+import { useState, type ReactNode } from "react";
+import type { ScopeOption } from "@/data";
+import { Input, Select, type InputProps } from "@/components/ui/Field";
 import { StatusPill } from "@/components/ui/StatusPill";
 
 export const GRID = "grid grid-cols-1 gap-4 sm:grid-cols-2";
@@ -67,19 +66,6 @@ export function SecretInput({ label, saved, ...rest }: Omit<InputProps, "type" |
       }
       {...rest}
     />
-  );
-}
-
-/** A value UzaPro created for the business, with a copy button. Secret values stay hidden but still copy. */
-export function CopyField({ label, value, secret, hint }: { label: string; value?: string; secret?: boolean; hint?: ReactNode }) {
-  const id = useId();
-  return (
-    <Field label={label} hint={hint} htmlFor={id}>
-      <div className="flex items-center gap-2">
-        <Input id={id} readOnly value={value ? (secret ? "••••••••••••" : value) : ""} placeholder="Created when you save" boxClassName="bg-grey-50" />
-        <IconButton icon="copy" variant="secondary" label={`Copy ${label}`} disabled={!value} className="flex-none disabled:opacity-45" onClick={() => value && void copyText(value, `${label} copied.`)} />
-      </div>
-    </Field>
   );
 }
 

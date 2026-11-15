@@ -1,20 +1,16 @@
 /** Pure rules for Integrations (feature 015, contracts/data-access.md). */
 import { WALK_IN } from "./fixtures/customers";
-import { INTEGRATION_BANKS, NOTIFY_BASE, QB_ACCOUNT_LABEL, QB_RECORDS } from "./fixtures/integrations";
+import { BANK_LINK_SEED, BANK_PAYBILLS, DARAJA_SEED, MPESA_PAYMENT_SEED, QB_ACCOUNT_LABEL, QB_RECORDS } from "./fixtures/integrations";
 import type { AppState } from "./store/state";
 import type {
-  BankConfig,
-  BankField,
-  BankGenerated,
-  BankId,
-  BankInput,
+  BankLink,
   DarajaConfig,
   DarajaField,
   DarajaInput,
-  IntegrationBank,
   IntegrationScope,
   IntegrationsState,
   MpesaRoute,
+  NewBankLink,
   QbRecord,
   QuickbooksField,
   QuickbooksSettings,
@@ -26,12 +22,16 @@ import type {
 export const ALL_TERMINALS = "All terminals (business-wide)";
 
 export function seedIntegrations(): IntegrationsState {
-  return { daraja: [], bank: [], quickbooks: null };
+  return {
+    daraja: [{ ...DARAJA_SEED, terminalAccounts: [], secretsSet: { ...DARAJA_SEED.secretsSet } }],
+    mpesaPayments: MPESA_PAYMENT_SEED.map((p) => ({ ...p })),
+    bank: BANK_LINK_SEED.map((b) => ({ ...b })),
+    quickbooks: null,
+  };
 }
 
-export function bankOf(id: BankId): IntegrationBank {
-  return INTEGRATION_BANKS.find((b) => b.id === id) ?? INTEGRATION_BANKS[0]!;
-}
+/** A bank's M-Pesa Paybill, "" when unknown. */
+export const paybillOf = (bank: string) => BANK_PAYBILLS.find((b) => b.bank === bank)?.paybill ?? "";
 
 /** The select value for a scope, and back ("" = nothing picked). */
 export const scopeValue = (scope: IntegrationScope | null): string => (scope === null ? "" : String(scope));
@@ -90,46 +90,17 @@ export function darajaErrors(input: DarajaInput, saved: DarajaConfig | undefined
   return e;
 }
 
-/** Field errors for a bank integration form; empty when it can be saved. */
-export function bankErrors(input: BankInput, terminals: readonly Terminal[]): Partial<Record<BankField, string>> {
-  const e: Partial<Record<BankField, string>> = {};
-  const scope = scopeError(input.scope, terminals);
-  if (scope) e.scope = scope;
-  const till = digits(input.tillNumber, `Enter your ${bankOf(input.bank).name.replace(/ Bank$/, "")} till number`);
-  if (till) e.tillNumber = till;
-  if (input.qrTillCode.trim().length > 20) e.qrTillCode = "Use 20 characters or fewer";
-  return e;
+/** Why a bank link can't be added (design messages), or undefined. */
+export function bankLinkError(input: NewBankLink, links: readonly BankLink[]): string | undefined {
+  if (!/^\d{6,16}$/.test(input.account)) return "Enter the bank account number (digits only).";
+  if (!input.name.trim()) return "Add the account name.";
+  if (links.some((b) => b.bank === input.bank && b.account === input.account)) return "This account is already linked.";
+  return undefined;
 }
 
 export const firstError = (errors: Partial<Record<string, string>>): string | undefined => Object.values(errors).find(Boolean);
 
-/** A repeatable token for demo credentials: same seed, same value. */
-function token(seed: string, length: number): string {
-  let h = 2166136261;
-  let out = "";
-  for (let i = 0; out.length < length; i++) {
-    for (const ch of `${seed}:${i}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
-    out += h.toString(36);
-  }
-  return out.slice(0, length);
-}
-
-/** `owner` names who the credentials are for: "business" or a terminal code. */
-export function generateBankCredentials(bank: BankId, owner: string): BankGenerated {
-  const slug = owner.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-  const seed = `${bank}/${slug}`;
-  return {
-    apiUsername: `uzapro-${bank}-${slug}`,
-    apiSecret: token(`${seed}/api`, 32),
-    notifyUrl: `${NOTIFY_BASE}/${bank}/notify/${token(`${seed}/url`, 12)}`,
-    notifyUsername: `uzapro-notify-${slug}`,
-    notifyPassword: token(`${seed}/pass`, 24),
-    notifySecret: token(`${seed}/secret`, 32),
-  };
-}
-
 export const darajaFor = (s: IntegrationsState, scope: IntegrationScope | null): DarajaConfig | undefined => s.daraja.find((c) => c.scope === scope);
-export const bankFor = (s: IntegrationsState, bank: BankId, scope: IntegrationScope | null): BankConfig | undefined => s.bank.find((c) => c.bank === bank && c.scope === scope);
 
 /** What a new QuickBooks connection starts with: sales and customers, sent only on request. */
 export const QB_DEFAULT_SETTINGS: QuickbooksSettings = {
@@ -174,16 +145,15 @@ function paybillAccount(c: DarajaConfig, termId: number): string {
 
 /**
  * Where a terminal's M-Pesa request goes (feature 022). A terminal's own set-up comes before the
- * business-wide one, and Daraja before a bank. Only a tested connection can take requests.
+ * business-wide one. Only a tested connection can take requests. (Bank Paybill links take
+ * payments customers make themselves; they send no requests.)
  */
 export function mpesaRoute(s: IntegrationsState, termId: number): MpesaRoute {
   let saved = false;
   for (const scope of [termId, "all"] as const) {
     const d = darajaFor(s, scope);
     if (d?.tested) return { ready: true, via: "daraja", to: d.accountType === "paybill" ? `Paybill ${d.paybill}, account ${paybillAccount(d, termId)}` : `Till ${d.tillNumber}` };
-    const b = s.bank.find((c) => c.scope === scope && c.tested);
-    if (b) return { ready: true, via: b.bank, to: `${bankOf(b.bank).name} till ${b.tillNumber}` };
-    saved ||= !!d || s.bank.some((c) => c.scope === scope);
+    saved ||= !!d;
   }
   return { ready: false, reason: saved ? "untested" : "none" };
 }

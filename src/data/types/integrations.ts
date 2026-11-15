@@ -60,46 +60,46 @@ export interface DarajaInput {
 
 export type DarajaField = "scope" | "paybill" | "storeNumber" | "tillNumber" | "accountNumber" | "terminalAccounts" | "consumerKey" | "consumerSecret" | "passkey" | "initiatorPassword";
 
-export type BankId = "ncba";
-
-export interface IntegrationBank {
-  id: BankId;
+/** A payment that reached the business's M-Pesa account (design `UZ_INTEG.mpesa.tx`). */
+export interface MpesaPayment {
+  date: string; // ISO
+  time: string; // "HH:MM"
+  /** M-Pesa transaction code. */
+  code: string;
   name: string;
-  /** The bank's shared paybill; the till number is sent as the account number. */
+  /** Masked, e.g. "0722 *** 410". */
+  phone: string;
+  /** "Paid to Till" or "Payment request (POS)". */
+  via: string;
+  amount: number;
+  /** "INV-0351 · Morningview Bicycles", or "" until matched. */
+  match: string;
+}
+
+/** How payments to a bank's Paybill reach UzaPro. */
+export type BankFeed = "Bank API (instant)" | "Daily statement upload";
+
+/** A bank account linked so M-Pesa payments to the bank's Paybill are recorded (design `UZ_INTEG.bank`). */
+export interface BankLink {
+  bank: string;
   paybill: string;
-  features: readonly string[];
-  envs: readonly IntegrationEnv[];
+  /** Bank account number. */
+  account: string;
+  /** Account name, as shown by the bank. */
+  name: string;
+  /** UzaPro account the payments are recorded in. */
+  deposit: string;
+  feed: BankFeed;
+  status: "Active" | "Waiting for bank";
 }
 
-/** Credentials created for the business to give the bank in its instruction letter. */
-export interface BankGenerated {
-  apiUsername: string;
-  apiSecret: string;
-  notifyUrl: string;
-  notifyUsername: string;
-  notifyPassword: string;
-  notifySecret: string;
+export interface NewBankLink {
+  bank: string;
+  account: string;
+  name: string;
+  deposit: string;
+  feed: BankFeed;
 }
-
-export interface BankConfig {
-  scope: IntegrationScope;
-  bank: BankId;
-  env: IntegrationEnv;
-  tillNumber: string;
-  qrTillCode: string;
-  generated: BankGenerated;
-  tested: boolean;
-}
-
-export interface BankInput {
-  scope: IntegrationScope | null;
-  bank: BankId;
-  env: IntegrationEnv;
-  tillNumber: string;
-  qrTillCode: string;
-}
-
-export type BankField = "scope" | "tillNumber" | "qrTillCode";
 
 /** Record kinds UzaPro can send to QuickBooks. */
 export type QbRecord = "invoices" | "payments" | "customers" | "products" | "expenses";
@@ -129,17 +129,31 @@ export interface QuickbooksSync {
   counts: Partial<Record<QbRecord, number>>;
 }
 
+/** One line of the QuickBooks sync history (design `UZ_INTEG.qb.log`). */
+export interface QuickbooksLog {
+  /** "10 Nov 2026, 14:05" */
+  when: string;
+  title: string;
+  detail: string;
+  /** A record QuickBooks refused; Retry sends it again. */
+  failed?: boolean;
+}
+
 export interface QuickbooksConnection {
   env: IntegrationEnv;
   companyName: string;
   companyId: string;
   settings: QuickbooksSettings;
   lastSync: QuickbooksSync | null;
+  /** Newest first. */
+  log: QuickbooksLog[];
 }
 
 export interface IntegrationsState {
   daraja: DarajaConfig[];
-  bank: BankConfig[];
+  /** Payments received on the business-wide M-Pesa account, newest first. */
+  mpesaPayments: MpesaPayment[];
+  bank: BankLink[];
   /** null until the business connects its QuickBooks company. */
   quickbooks: QuickbooksConnection | null;
 }
@@ -150,4 +164,4 @@ export interface ScopeOption {
 }
 
 /** Where a till's M-Pesa request goes (feature 022). `to` reads "Paybill 522522, account FRONT". */
-export type MpesaRoute = { ready: true; via: "daraja" | BankId; to: string } | { ready: false; reason: "none" | "untested" };
+export type MpesaRoute = { ready: true; via: "daraja"; to: string } | { ready: false; reason: "none" | "untested" };

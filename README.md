@@ -26,7 +26,7 @@ sent anywhere.
 | Group | Modules |
 |---|---|
 | Overview | Dashboard, Products, Stock |
-| Sales | Sales, Point of sale, Customers |
+| Sales | Sales, Point of sale, Field sales, Customers |
 | Procurement | Purchases, Suppliers |
 | Financials | Accounts, Expenses, Receivables, Payables, Reports |
 | People | Team, Permissions |
@@ -50,6 +50,9 @@ Each module was built as a separate feature. Its spec, plan and tasks are in `sp
 | `009-run-reports` | Running individual reports |
 | `010-point-of-sale` | Point of sale |
 | `011-modular-permissions` | Modular role permissions with Read, Write and Delete switches |
+| `024-field-sales-deliveries` | Field sales: orders reps take on the road, and their deliveries (replaces van sales, 021) |
+| `025-stock-counts-design` | Stock counts as in the design: blind counts, categories, recount of differences |
+| `026-integrations-design` | Integrations as in the design: M-Pesa payments and matching, bank Paybill links (NCBA), QuickBooks sync history |
 
 ## How it works
 

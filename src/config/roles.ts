@@ -45,7 +45,7 @@ export const ROLES: Record<RoleId, Role> = {
     role: "Accountant",
     first: "Mary",
     figures: true,
-    mods: ["home", "cal", "task", "sales", "cust", "vend", "buy", "fin", "exp", "rcv", "pay", "rep", "ppl", "docs", "sup"],
+    mods: ["home", "cal", "task", "sales", "field", "cust", "vend", "buy", "fin", "exp", "rcv", "pay", "rep", "ppl", "docs", "sup"],
     tabs: {
       home: ["Overview"],
       sales: ["Overview", "All sales", "Sales orders", "Deliveries", "Invoices", "Voided items", "Sales targets"],
@@ -65,7 +65,7 @@ export const ROLES: Record<RoleId, Role> = {
     name: "Jane Smith",
     role: "Cashier",
     first: "Jane",
-    mods: ["home", "cal", "task", "sales", "pos", "cust", "inv", "sup"],
+    mods: ["home", "cal", "task", "sales", "pos", "field", "cust", "inv", "sup"],
     tabs: {
       home: ["Overview"],
       cust: ["Customers", "Refunds (credit notes)"],
@@ -87,10 +87,11 @@ export const ROLES: Record<RoleId, Role> = {
     name: "Grant Jensen",
     role: "Store keeper",
     first: "Grant",
-    mods: ["home", "cal", "task", "vend", "inv", "prod", "buy", "docs", "sup"],
+    mods: ["home", "cal", "task", "field", "vend", "inv", "prod", "buy", "docs", "sup"],
     tabs: {
       home: ["Overview"],
       buy: ["Purchase orders", "Goods receipts", "Purchase returns", "Rejected items"],
+      field: ["Deliveries"], // design UZ_ROLES (feature 024)
       sup: ["Help Center"], // feature 007: replaces the design's Ask UzaPro and How-to guides (spec › Design deviations)
     },
     tasks: [

@@ -4,7 +4,7 @@
 export const EVENT_ROWS = [
   ["2026-10-31", "", "Road & Travel Tyres bill due", "Accounts", "KES 1,918"],
   ["2026-11-01", "09:00", "Statement reminder email", "Marketing", "Goes to all customers with a balance"],
-  ["2026-11-10", "10:00", "Stock count at Point of Sale", "Stock", "CNT-0015"],
+  ["2026-11-10", "10:00", "Stock count at Point of Sale", "Stock", "SC-0014"],
   ["2026-11-12", "14:00", "Team meeting", "Work", ""],
   ["2026-11-18", "", "Purchase machinery due", "Work", "Store launch project"],
   ["2026-11-20", "", "VAT return due", "Accounts", "KES 164K to pay for October"],

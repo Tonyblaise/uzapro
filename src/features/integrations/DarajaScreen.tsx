@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input, Select } from "@/components/ui/Field";
 import { IconButton } from "@/components/ui/IconButton";
+import { MpesaPayments } from "./MpesaPayments";
 import { FormError, GRID, ScopeSelect, SecretInput, SectionHead } from "./shared";
 
 interface AccountRow {
@@ -67,12 +68,14 @@ export function DarajaScreen() {
   const canWrite = useCan("write");
   const scopes = useIntegrationScopes();
   const terminals = useIntegrationTerminals();
-  const [scopeText, setScopeText] = useState("");
+  // Design: the form opens on the whole business, with its saved set-up.
+  const [scopeText, setScopeText] = useState("all");
   const scope = scopeFrom(scopeText);
   const saved = useDarajaConfig(scope);
-  const [f, setF] = useState<Form>(BLANK);
+  const businessWide = useDarajaConfig("all");
+  const [f, setF] = useState<Form>(() => (businessWide ? fromConfig(businessWide) : BLANK));
   /** True while the form shows a saved config, so switching away clears it. */
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(!!businessWide);
   const [errors, setErrors] = useState<Partial<Record<DarajaField, string>>>({});
   const [busy, setBusy] = useState<"" | "save" | "test" | "register">("");
   /** Edits since the last save: the test and register buttons act on what is saved. */
@@ -236,6 +239,7 @@ export function DarajaScreen() {
           </Button>
         </div>
       )}
+      {scope === "all" && businessWide && <MpesaPayments config={businessWide} />}
     </div>
   );
 }

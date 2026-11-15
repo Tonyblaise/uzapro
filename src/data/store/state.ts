@@ -1,8 +1,8 @@
+import type { FieldRep, FieldSale } from "../types";
 import type {
   IntegrationsState,
   DeliveryNote,
   SalesOrder,
-  Visit,
   PermissionsState,
   ReorderRule,
   StockCount,
@@ -102,8 +102,6 @@ export interface SalesState {
   orders: SalesOrder[];
   /** Delivery notes, newest first (feature 013). */
   deliveries: DeliveryNote[];
-  /** Field-sales visits, in route order (feature 021). */
-  visits: Visit[];
 }
 
 export interface UiState {
@@ -214,6 +212,16 @@ export interface AppState {
   pricing: PricingState;
   /** Payment integration credentials and their status (feature 015). */
   integrations: IntegrationsState;
+  /** Field sales, their reps and deliveries (feature 024). */
+  field: FieldState;
+}
+
+export interface FieldState {
+  reps: FieldRep[];
+  /** Drivers who are not reps. */
+  drivers: string[];
+  /** Newest first. */
+  sales: FieldSale[];
 }
 
 export type AiTab = "chat" | "support" | "features";

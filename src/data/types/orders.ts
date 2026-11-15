@@ -72,23 +72,6 @@ export interface DeliveryNote {
   returns: DeliveryReturn[];
 }
 
-/** A stop on a rep's route for the day (feature 021). */
-export interface Visit {
-  /** VIS-0001 … */
-  id: string;
-  date: string; // ISO
-  customer: string;
-  /** The van (a storage location of the type "Van") the rep sells from. */
-  van: string;
-  rep: string;
-  status: "Planned" | "Sold" | "No sale";
-  /** The sale made on the visit. */
-  sale?: string;
-  /** Why nothing was sold. */
-  reason?: string;
-  /** Time the visit was closed ("14:05"). */
-  at?: string;
-}
 
 export type NewOrderLine = Pick<OrderLine, "product" | "variant" | "unit" | "qty" | "rate" | "taxable">;
 

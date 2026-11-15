@@ -1,13 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  addBankLink,
   connectQuickbooks,
   disconnectQuickbooks,
+  matchMpesaPayment,
   registerDarajaUrls,
-  saveBankCredentials,
+  removeBankLink,
+  retryQuickbooks,
   saveDarajaCredentials,
   saveQuickbooksSettings,
   syncQuickbooks,
-  testBankConnection,
   testDarajaConnection,
 } from "@/data/commands/integrations";
 import { requestMpesa, setPayPhone } from "@/data/commands/pos";
@@ -34,17 +36,20 @@ const input = (over: Partial<DarajaInput> = {}): DarajaInput => ({
   initiatorPassword: "",
   ...over,
 });
-const ncba = { scope: "all" as const, bank: "ncba" as const, env: "production" as const, tillNumber: "000001", qrTillCode: "PAY100D" };
 
 beforeEach(() => {
   store = createAppStore();
   registerStore(store);
 });
+/** Start from nothing set up (the seed has the design's tested Till, feature 026). */
+const clearDaraja = () => store.setState((s) => ({ integrations: { ...s.integrations, daraja: [] } }));
 
 describe("M-Pesa (Daraja) commands (feature 015)", () => {
+  beforeEach(clearDaraja);
+
   it("saves a Paybill and never keeps the secrets", async () => {
     const r = await saveDarajaCredentials(input({ initiatorName: "apiuser", initiatorPassword: "init-pw-000" }));
-    expect(r).toMatchObject({ ok: true, message: "M-Pesa credentials saved." });
+    expect(r).toMatchObject({ ok: true, message: "M-Pesa credentials saved for the whole business." });
     expect(daraja()).toEqual([
       {
         scope: "all",
@@ -63,7 +68,7 @@ describe("M-Pesa (Daraja) commands (feature 015)", () => {
     ]);
     const state = JSON.stringify(store.getState());
     for (const secret of ["ck-live-123", "cs-live-456", "pk-live-789", "init-pw-000"]) expect(state).not.toContain(secret);
-    expect(store.getState().ui.toast).toMatchObject({ text: "M-Pesa credentials saved." });
+    expect(store.getState().ui.toast).toMatchObject({ text: "M-Pesa credentials saved for the whole business." });
   });
 
   it("refuses an incomplete form with the first problem and saves nothing", async () => {
@@ -114,30 +119,38 @@ describe("M-Pesa (Daraja) commands (feature 015)", () => {
   });
 });
 
-describe("bank integration commands (feature 015)", () => {
-  it("creates the bank credentials on the first save and keeps them afterwards", async () => {
-    const first = await saveBankCredentials(ncba);
-    expect(first).toMatchObject({ ok: true, message: "NCBA Bank credentials saved." });
-    const made = bank()[0]!.generated;
-    expect(made.apiUsername).toBe("uzapro-ncba-business");
-    await testBankConnection("ncba", "all");
-    expect(bank()[0]!.tested).toBe(true);
-    await saveBankCredentials({ ...ncba, tillNumber: "000002" });
-    expect(bank()).toHaveLength(1);
-    expect(bank()[0]).toMatchObject({ tillNumber: "000002", qrTillCode: "PAY100D", tested: false, generated: made });
-  });
-
-  it("gives a terminal its own credentials", async () => {
-    await saveBankCredentials(ncba);
-    await saveBankCredentials({ ...ncba, scope: 1 });
-    expect(bank().map((c) => c.generated.apiUsername)).toEqual(["uzapro-ncba-business", "uzapro-ncba-bbl-trm-001"]);
-  });
-
-  it("refuses a missing till number, a test environment the bank lacks, and a test before saving", async () => {
-    expect(await saveBankCredentials({ ...ncba, tillNumber: "" })).toMatchObject({ ok: false, message: "Enter your NCBA till number" });
-    expect(await saveBankCredentials({ ...ncba, env: "sandbox" })).toMatchObject({ ok: false, message: "NCBA Bank has no test environment" });
-    expect(await testBankConnection("ncba", "all")).toMatchObject({ ok: false, message: "Save the credentials first." });
+describe("seed and bank links (feature 026, design UZ_INTEG)", () => {
+  it("seeds the design's tested Till and its payments, and no bank link", () => {
+    expect(daraja()).toEqual([expect.objectContaining({ scope: "all", accountType: "till", tillNumber: "524118", tested: true, urlsRegistered: true })]);
+    const pays = store.getState().integrations.mpesaPayments;
+    expect(pays.map((p) => p.code)).toHaveLength(6);
+    expect(pays.filter((p) => !p.match).map((p) => p.code)).toEqual(["SKM4R8TQ1Z", "SKH6D1VW8E"]);
     expect(bank()).toEqual([]);
+  });
+
+  it("adds and removes a bank link with the design's messages", async () => {
+    const link = { bank: "NCBA", account: "1234 567", name: "Build by Blaise", deposit: "Equity Bank — Main", feed: "Bank API (instant)" as const };
+    expect(await addBankLink(link)).toMatchObject({ ok: false, message: "Enter the bank account number (digits only)." });
+    expect(await addBankLink({ ...link, account: "1234567", name: " " })).toMatchObject({ ok: false, message: "Add the account name." });
+    expect(await addBankLink({ ...link, account: "1234567" })).toMatchObject({ ok: true, message: "NCBA linked. We'll mark it active once the bank turns on alerts." });
+    expect(bank()[0]).toMatchObject({ bank: "NCBA", paybill: "880100", status: "Waiting for bank" });
+    expect(await addBankLink({ ...link, account: "1234567" })).toMatchObject({ ok: false, message: "This account is already linked." });
+    expect(await addBankLink({ ...link, account: "7654321", feed: "Daily statement upload" })).toMatchObject({ ok: true, message: "NCBA linked." });
+    expect(bank()[1]).toMatchObject({ status: "Active" });
+    expect(await removeBankLink("NCBA", "1234567")).toMatchObject({ ok: true, message: "NCBA integration removed." });
+    expect(bank().map((b) => b.account)).toEqual(["7654321"]);
+  });
+
+  it("matches an M-Pesa payment to an open invoice and records the payment", async () => {
+    const open = store.getState().money.receivables.find((r) => !r.voided && r.total > r.paid)!;
+    const before = open.paid;
+    const r = await matchMpesaPayment("SKH6D1VW8E", open.ref);
+    expect(r.ok).toBe(true);
+    const after = store.getState().money.receivables.find((x) => x.ref === open.ref)!;
+    expect(after.paid).toBe(before + Math.min(1026, open.total - before));
+    expect(store.getState().integrations.mpesaPayments.find((p) => p.code === "SKH6D1VW8E")!.match).toContain(open.party);
+    expect((await matchMpesaPayment("SKH6D1VW8E", open.ref)).message).toBe("SKH6D1VW8E is already matched.");
+    expect((await matchMpesaPayment("SKM4R8TQ1Z", "")).message).toBe("Pick the invoice this payment is for.");
   });
 });
 
@@ -150,10 +163,9 @@ describe("QuickBooks commands (feature 015)", () => {
     expect(qb()).toBeNull();
   });
 
-  it("connects once, to the business's company, with the starting settings", async () => {
-    const name = store.getState().settings.biz.name;
-    expect(await connectQuickbooks("sandbox")).toMatchObject({ ok: true, message: `Connected to ${name} in QuickBooks.` });
-    expect(qb()).toMatchObject({ env: "sandbox", companyName: name, lastSync: null, settings: { frequency: "manual", send: { invoices: true, products: false } } });
+  it("connects once, to the company picked for the environment, with the starting settings", async () => {
+    expect(await connectQuickbooks("sandbox")).toMatchObject({ ok: true, message: "Connected to Sandbox Company_KE." });
+    expect(qb()).toMatchObject({ env: "sandbox", companyName: "Sandbox Company_KE", lastSync: null, log: [], settings: { frequency: "manual", send: { invoices: true, products: false } } });
     expect(await connectQuickbooks("production")).toMatchObject({ ok: false, message: "QuickBooks is already connected." });
     expect(qb()!.env).toBe("sandbox");
   });
@@ -171,17 +183,28 @@ describe("QuickBooks commands (feature 015)", () => {
     await connectQuickbooks("production");
     const s = store.getState();
     const r = await syncQuickbooks();
-    expect(r.ok).toBe(true);
-    expect(r.message).toBe(`Sent to QuickBooks: ${s.sales.invoices.length} invoices, ${s.money.rcvPayments.length} payments received, ${s.customers.length - 1} customers.`);
+    expect(r).toMatchObject({ ok: true, message: "QuickBooks sync finished." });
+    const sent = s.sales.invoices.length + s.money.rcvPayments.length + s.customers.length - 1;
     expect(qb()!.lastSync).toMatchObject({ counts: { invoices: s.sales.invoices.length, payments: s.money.rcvPayments.length, customers: s.customers.length - 1 } });
     expect(qb()!.lastSync!.at).toMatch(/^10 Nov 2026, \d\d:\d\d$/);
-    expect(await disconnectQuickbooks()).toMatchObject({ ok: true, message: "QuickBooks disconnected." });
+    // As in the design, the walk-in customer is refused once; Retry sends it under a new name.
+    expect(qb()!.log.map((l) => [l.title, !!l.failed])).toEqual([
+      ['Couldn\'t send customer "Walk-in Customer"', true],
+      [`Sent ${sent} records`, false],
+    ]);
+    expect(qb()!.log[1]!.detail).toBe("Invoices, payments received, customers");
+    expect(await retryQuickbooks(0)).toMatchObject({ ok: true, message: "Sent to QuickBooks." });
+    expect(qb()!.log[0]).toMatchObject({ title: 'Sent customer "Walk-in Customer (UzaPro)"', failed: false });
+    await syncQuickbooks();
+    expect(qb()!.log.filter((l) => l.failed)).toEqual([]);
+    expect(await disconnectQuickbooks()).toMatchObject({ ok: true, message: "QuickBooks disconnected. Nothing was deleted in QuickBooks." });
     expect(qb()).toBeNull();
   });
 });
 
 describe("the till's M-Pesa request (feature 022)", () => {
   const co = () => store.getState().pos.ui.co;
+  beforeEach(clearDaraja);
 
   it("is refused until M-Pesa is saved and tested, then fills in a code", async () => {
     setPayPhone("0712 345 678");
@@ -205,8 +228,8 @@ describe("the till's M-Pesa request (feature 022)", () => {
   });
 
   it("still asks for a Safaricom number once M-Pesa is ready", async () => {
-    await saveBankCredentials(ncba);
-    await testBankConnection("ncba", "all");
+    await saveDarajaCredentials(input());
+    await testDarajaConnection("all");
     setPayPhone("12345");
     requestMpesa();
     expect(co()).toMatchObject({ mpesa: "", err: "Enter the customer's Safaricom number, for example 0712 345 678." });

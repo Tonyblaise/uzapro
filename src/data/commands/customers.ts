@@ -73,8 +73,9 @@ export async function updateCustomer(original: string, input: NewCustomer): Prom
       voids: fix(s.sales.voids),
       orders: fix(s.sales.orders),
       deliveries: fix(s.sales.deliveries),
-      visits: fix(s.sales.visits),
     },
+    // Feature 024: field sales follow a rename.
+    field: { ...s.field, sales: fix(s.field.sales) },
   }));
   const message = `${name} saved.`;
   showToast(message);

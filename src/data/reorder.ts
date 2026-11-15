@@ -88,10 +88,10 @@ export function validateLevels(min: number, max: number): string | null {
 
 /**
  * Stores a product-wide reorder point applies to: every store stock is bought into. Transit
- * locations and vans are filled by transfers, not purchase orders, so they are left out.
+ * locations are filled by transfers, not purchase orders, so they are left out.
  */
 export function reorderStores<T extends { type: string }>(stores: readonly T[]): T[] {
-  return stores.filter((s) => s.type !== "Transfer" && s.type !== "Van");
+  return stores.filter((s) => s.type !== "Transfer");
 }
 
 export function validateRule(rule: ReorderRule, rules: readonly ReorderRule[], products: readonly Product[], editing?: Pick<ReorderRule, "product" | "store">): string | null {

@@ -24,44 +24,42 @@ async function fillKeys(page: Page) {
   await page.getByLabel(/^Lipa na M-Pesa Online passkey/).fill("pk-live-789");
 }
 
-test("M-Pesa (Daraja): the fields follow the account type and Save names what is missing (US1)", async ({ page, errors }) => {
+test("M-Pesa (Daraja): opens on the design's tested Till; the fields follow the account type (US1)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await openIntegrations(page);
-  await expect(page.getByLabel("Paybill number")).toBeVisible();
+  await expect(page.getByLabel("Applies to")).toHaveValue("all");
+  await expect(page.getByLabel("Till number")).toHaveValue("524118");
+  for (const [i, text] of ["Configured: done", "Connection tested: done", "Payment URLs registered: done"].entries()) await expect(status(page).nth(i)).toContainText(text);
+  await expect(page.getByLabel(/^Consumer key/)).toHaveAttribute("placeholder", "Saved. Type a new one to replace it");
+
+  await page.getByLabel("Account type").selectOption("paybill");
+  await expect(page.getByLabel("Till number")).toHaveCount(0);
   await expect(page.getByText("Per-terminal account numbers")).toBeVisible();
-  await expect(button(page, "Test connection")).toBeDisabled();
-  await expect(button(page, "Register payment URLs")).toBeDisabled();
-
-  await page.getByLabel("Account type").selectOption("till");
-  await expect(page.getByLabel("Paybill number")).toHaveCount(0);
-  await expect(page.getByText("Account numbers (optional)")).toHaveCount(0);
-  await expect(page.getByLabel("Store number (head office)")).toBeVisible();
-  await expect(page.getByLabel("Till number")).toBeVisible();
-
   await button(page, "Save credentials").click();
-  await expect(page.getByText("Choose what these credentials apply to")).toBeVisible();
-  await expect(page.getByText("Enter the store number")).toBeVisible();
-  await expect(page.getByText("Enter the till number")).toBeVisible();
+  await expect(page.getByText("Enter the Paybill number")).toBeVisible();
+
+  // A terminal starts empty and needs its own keys.
+  await page.getByLabel("Applies to").selectOption({ label: "Terminal 1 · no credentials yet" });
+  await expect(status(page).nth(0)).toContainText("Configured: not yet");
+  await button(page, "Save credentials").click();
   await expect(page.getByText("Enter the consumer key")).toBeVisible();
-  await expect(status(page).first()).toContainText("Configured: not yet");
 });
 
-test("M-Pesa (Daraja): save, test, then register, and saved keys are not shown again (US1)", async ({ page, errors }) => {
+test("M-Pesa (Daraja): save a Paybill, test, then register; saved keys are not shown again (US1)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await openIntegrations(page);
-  await page.getByLabel("Applies to").selectOption("all");
+  await page.getByLabel("Account type").selectOption("paybill");
   await page.getByLabel("Paybill number").fill("522522");
   await button(page, "Add terminal").click();
   await page.getByLabel("Terminal", { exact: true }).selectOption({ label: "Terminal 1" });
   await page.getByLabel("Terminal account number").fill("FRONT");
   await fillKeys(page);
   await button(page, "Save credentials").click();
-  await expect(toast(page)).toHaveText("M-Pesa credentials saved.");
-  await expect(status(page).nth(0)).toContainText("Configured: done");
+  await expect(toast(page)).toHaveText("M-Pesa credentials saved for the whole business.");
+  await expect(status(page).nth(1)).toContainText("Connection tested: not yet");
   await expect(page.getByLabel(/^Consumer key/)).toHaveValue("");
-  await expect(page.getByLabel(/^Consumer key/)).toHaveAttribute("placeholder", "Saved. Type a new one to replace it");
   await expect(button(page, "Register payment URLs")).toBeDisabled();
 
   await button(page, "Test connection").click();
@@ -71,49 +69,50 @@ test("M-Pesa (Daraja): save, test, then register, and saved keys are not shown a
   await expect(toast(page)).toHaveText("Payment URLs registered.");
   await expect(status(page).nth(2)).toContainText("Payment URLs registered: done");
 
-  // An edit must be saved before it can be tested, and a save needs a fresh test.
+  // An edit must be saved before it can be tested.
   await page.getByLabel("Paybill number").fill("600600");
   await expect(button(page, "Test connection")).toBeDisabled();
   await button(page, "Save credentials").click();
   await expect(status(page).nth(1)).toContainText("Connection tested: not yet");
-
-  // A terminal starts empty and keeps its own credentials.
-  await expect(page.getByLabel("Applies to").locator("option", { hasText: "Terminal 1" })).toHaveText("Terminal 1 · no credentials yet");
-  await page.getByLabel("Applies to").selectOption({ label: "Terminal 1 · no credentials yet" });
-  await expect(page.getByLabel("Paybill number")).toHaveValue("");
-  await expect(page.getByText("Per-terminal account numbers")).toHaveCount(0);
-  await expect(status(page).nth(0)).toContainText("Configured: not yet");
-  await page.getByLabel("Applies to").selectOption("all");
-  await expect(page.getByLabel("Paybill number")).toHaveValue("600600");
   await expect(page.getByLabel("Terminal account number")).toHaveValue("FRONT");
 });
 
-test("M-Pesa bank integrations: saving creates the credentials for the bank letter (US2)", async ({ page, errors, context }) => {
+test("M-Pesa (Daraja): payments received, and matching one to an invoice (feature 026)", async ({ page, errors }) => {
   void errors;
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await loginAs(page, "owner");
+  await openIntegrations(page);
+  const list = page.getByRole("region", { name: "Payments received" });
+  await expect(list.getByRole("row").filter({ hasText: "SKM4R8TQ1Z" })).toContainText("Not matched yet");
+  await page.getByRole("button", { name: /^Not matched/ }).click();
+  await expect(list.getByRole("row").filter({ hasText: /SK/ })).toHaveCount(2);
+  await list.getByRole("row").filter({ hasText: "SKH6D1VW8E" }).getByRole("button", { name: "Match" }).click();
+  const dialog = page.getByRole("dialog", { name: "Match payment" });
+  await dialog.getByRole("button", { name: "Record payment" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Pick the invoice this payment is for.");
+  await dialog.getByRole("radio").first().click();
+  await dialog.getByRole("button", { name: "Record payment" }).click();
+  await expect(toast(page)).toContainText("Payment recorded against");
+  await expect(list.getByRole("row").filter({ hasText: /SK/ })).toHaveCount(1);
+});
+
+test("M-Pesa bank integrations: only NCBA, added and removed (feature 026)", async ({ page, errors }) => {
+  void errors;
   await loginAs(page, "owner");
   await openIntegrations(page);
   await tab(page, "M-Pesa bank integrations");
-  await expect(page.getByRole("button", { name: /NCBA Bank/ })).toContainText("Not configured");
-  await expect(page.getByLabel("Paybill number")).toHaveValue("880100");
-  await expect(button(page, "Copy API username")).toBeDisabled();
-
-  await button(page, "Save credentials").click();
-  await expect(page.getByText("Enter your NCBA till number")).toBeVisible();
-  await page.getByLabel("Applies to").selectOption("all");
-  await page.getByLabel("NCBA till number").fill("000001");
-  await button(page, "Save credentials").click();
-  await expect(toast(page)).toHaveText("NCBA Bank credentials saved.");
-  await expect(page.getByRole("button", { name: /NCBA Bank/ })).toContainText("Configured");
-  await expect(page.getByRole("textbox", { name: "API username", exact: true })).toHaveValue("uzapro-ncba-business");
-  await expect(page.getByRole("textbox", { name: "API secret key", exact: true })).toHaveValue("••••••••••••");
-  await button(page, "Copy API secret key").click();
-  await expect(toast(page)).toHaveText("API secret key copied.");
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(/^[a-z0-9]{32}$/);
-
-  await button(page, "Test connection").click();
-  await expect(toast(page)).toHaveText("Connection works.");
-  await expect(status(page).nth(1)).toContainText("Connection tested: done");
+  await expect(page.getByText("No bank integrations yet.")).toBeVisible();
+  await expect(page.getByLabel("Paybill")).toHaveValue("880100");
+  await button(page, "Add bank integration").click();
+  await expect(page.getByText("Enter the bank account number (digits only).")).toBeVisible();
+  await page.getByLabel("Bank account number").fill("0180294833321");
+  await button(page, "Add bank integration").click();
+  await expect(toast(page)).toHaveText("NCBA linked. We'll mark it active once the bank turns on alerts.");
+  const row = page.getByRole("region", { name: "Linked bank accounts" });
+  await expect(row).toContainText("NCBA · Paybill 880100");
+  await expect(row).toContainText("Waiting for bank");
+  await row.getByRole("button", { name: "Remove NCBA 0180294833321" }).click();
+  await expect(toast(page)).toHaveText("NCBA integration removed.");
+  await expect(page.getByText("No bank integrations yet.")).toBeVisible();
 });
 
 test("QuickBooks: connect, choose what to send, sync and disconnect (US4)", async ({ page, errors }) => {
@@ -123,7 +122,9 @@ test("QuickBooks: connect, choose what to send, sync and disconnect (US4)", asyn
   await tab(page, "QuickBooks");
   await expect(status(page).nth(0)).toContainText("Connected: not yet");
   await button(page, "Connect QuickBooks").click();
-  await expect(toast(page)).toHaveText(/^Connected to .+ in QuickBooks\.$/);
+  await expect(page.getByText("Choose your company")).toBeVisible();
+  await page.getByRole("button", { name: /Build by Blaise/ }).click();
+  await expect(toast(page)).toHaveText("Connected to Build by Blaise.");
   await expect(status(page).nth(0)).toContainText("Connected: done");
   await expect(page.getByText("Not synced yet")).toBeVisible();
   await expect(page.getByLabel("Income account for sales")).toHaveValue("Sales of Product Income");
@@ -139,13 +140,17 @@ test("QuickBooks: connect, choose what to send, sync and disconnect (US4)", asyn
   await expect(toast(page)).toHaveText("QuickBooks settings saved.");
 
   await button(page, "Sync now").click();
-  await expect(toast(page)).toHaveText(/^Sent to QuickBooks: \d+ invoices, \d+ payments received, \d+ customers, \d+ expenses\.$/);
+  await expect(toast(page)).toHaveText("QuickBooks sync finished.");
   await expect(status(page).nth(1)).toContainText("Synced: done");
   await expect(page.getByText("Not synced yet")).toHaveCount(0);
+  await expect(page.getByText('Couldn\'t send customer "Walk-in Customer"')).toBeVisible();
+  await button(page, "Retry").click();
+  await expect(toast(page)).toHaveText("Sent to QuickBooks.");
+  await expect(page.getByText('Sent customer "Walk-in Customer (UzaPro)"')).toBeVisible();
 
   await button(page, "Disconnect").click();
   await page.getByRole("dialog", { name: "Disconnect QuickBooks?" }).getByRole("button", { name: "Disconnect" }).click();
-  await expect(toast(page)).toHaveText("QuickBooks disconnected.");
+  await expect(toast(page)).toHaveText("QuickBooks disconnected. Nothing was deleted in QuickBooks.");
   await expect(button(page, "Connect QuickBooks")).toBeVisible();
 });
 
@@ -177,7 +182,7 @@ test("only the Owner sees Integrations until a role is given it, and Read cannot
   await page.getByLabel("View as").selectOption("store");
   await page.waitForURL("**/dashboard");
   await openIntegrations(page);
-  await expect(page.getByLabel("Paybill number")).toBeDisabled();
+  await expect(page.getByLabel("Till number")).toBeDisabled();
   await expect(button(page, "Save credentials")).toHaveCount(0);
-  await expect(button(page, "Add terminal")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Match", exact: true })).toHaveCount(0);
 });

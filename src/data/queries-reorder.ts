@@ -17,7 +17,7 @@ export function useReorderRows(): ReorderRow[] {
 
 /**
  * A product's reorder point as the product form shows it: the shared variant and levels when every
- * store it applies to has the same rule, "mixed" when they differ (tuned in Stock › Reorder), or
+ * store it applies to has the same rule, "mixed" when they differ by store, or
  * null when it has none.
  */
 export function useProductReorder(product?: string): { variant: string; min: number; max: number } | "mixed" | null {

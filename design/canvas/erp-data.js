@@ -72,6 +72,7 @@ window.UZ_MODS=[
    {t:'Stock management',s:{k:'table',cols:[{t:'Product'},{t:'Store'},N('Quantity'),N('Stock value (KES)')],rows:[]}},
    {t:'Transfer stock',s:{k:'table',cols:[{t:'Ref'},{t:'From'},{t:'To'},N('Items'),{t:'Status'}],rows:[['TRF-0032','Finished Goods','Point of Sale','8',P('In transit','info')],['TRF-0031','Stores','Finished Goods','20',P('Received','good')],['TRF-0030','Main Store','Stores','5',P('Not finished','mut')]]}},
    {t:'Wastage',s:{k:'table',cols:[{t:'Ref'},{t:'Item'},N('Qty'),{t:'Reason'},N('Value')],rows:[['WST-0008','Acrylic Paint','4','Expired','1,868'],['WST-0007','Sole Shoes','1','Damaged','2,219'],['WST-0006','Jersey','2','QC reject','3,100']]}},
+   {t:'Stock counts',s:{k:'table',cols:[{t:'Count'},{t:'Store and scope'},{t:'Counted by'},{t:'Progress'},N('Differences'),N('Net value (KES)'),{t:'Status'}],rows:[]}},
    {t:'Warehouses',s:{k:'table',cols:[{t:'Warehouse'},{t:'Branch'},{t:'Type'},N('Items')],rows:[['Main Store','Nairobi HQ','Store','0'],['Finished Goods','Nairobi HQ','Manufacturing','0'],['Stores','Nairobi HQ','Manufacturing','0'],['Point of Sale','Nairobi HQ','Retail','0'],['Goods in Transit','Import','Transfer','0']]}},
  ]},
  {id:'sales',sec:'Sales',ic:'shopping-cart',n:'Sales',sub:'Record sales, send invoices and give refunds',tabs:[
@@ -85,6 +86,11 @@ window.UZ_MODS=[
  ]},
  {id:'pos',sec:'Sales',ic:'scan-barcode',n:'Point of sale',sub:'Pick a terminal to start selling',tabs:[
    {t:'Terminals',s:{k:'poslaunch'}},
+ ]},
+ {id:'field',sec:'Sales',ic:'truck',n:'Field sales',sub:'Orders your reps take on the road',tabs:[
+   {t:'Field sales',s:{k:'table',cols:[{t:'Sale'},{t:'Rep and route'},{t:'Customer and location'},N('Items'),N('Total (KES)'),{t:'Payment'},{t:'Delivery'}],rows:[]}},
+   {t:'Deliveries',s:{k:'table',cols:[{t:'Delivery'},{t:'Customer and location'},{t:'Delivery date'},{t:'Driver and store'},N('Items'),N('To collect (KES)'),{t:'Status'}],rows:[]}},
+   {t:'Sales reps',s:{k:'table',cols:[{t:'Rep'},{t:'Route'},{t:'Vehicle'},N('Orders today'),N('Sales (KES)'),N('Open deliveries'),{t:'Status'}],rows:[]}},
  ]},
  {id:'cust',sec:'Sales',ic:'users',n:'Customers',sub:'The people and businesses you sell to',tabs:[
    {t:'Customers',s:{k:'table',cols:[{t:'Name'},{t:'Phone'},{t:'Email'},{t:'Address'},{t:'Status'}],rows:[['Morningview Bicycles','+254 712 340 118','orders@morningview.example','Westlands, Nairobi',P('Active','good')],['Mountain Goats','+254 733 208 561','hello@mountaingoats.example','Nyali, Mombasa',P('Active','good')],['Walk-in Customer','—','—','—',P('Active','good')]]}},
@@ -195,8 +201,13 @@ window.UZ_MODS=[
    {t:'Terminals',s:{k:'terminals'}},
    {t:'Staff logins',s:{k:'table',cols:[{t:'User'},{t:'Role'},{t:'Branch'},{t:'Status'}],rows:[['Tony Ashiuma','Owner / Admin','Nairobi HQ',P('Active','good')],['Grant Jensen','Store keeper','Nairobi HQ',P('Active','good')],['Mary Achieng','Accountant','Nairobi HQ',P('Active','good')],['Jane Smith','Cashier','New Jersey',P('Active','good')]]}},
    {t:'Taxes',s:{k:'table',cols:[{t:'Tax'},N('Rate'),{t:'Type'},{t:'Status'}],rows:[['VAT','16%','Sales + purchase',P('Active','good')],['Zero-rated','0%','Sales',P('Active','good')],['Exempt','—','Sales',P('Active','good')]]}},
-   {t:'Connected apps',s:{k:'table',cols:[{t:'Integration'},{t:'Type'},{t:'Status'}],rows:[['M-Pesa','Payments',P('Connected','good')],['Shopify','Sales channel',P('Connected','good')],['SMS gateway','Messaging',P('Connected','good')],['Amazon','Sales channel',P('Connected','good')]]}},
+   {t:'Connected apps',s:{k:'table',cols:[{t:'Integration'},{t:'Type'},{t:'Status'}],rows:[['Shopify','Sales channel',P('Connected','good')],['SMS gateway','Messaging',P('Connected','good')],['Amazon','Sales channel',P('Connected','good')]]}},
    {t:'Import and export',s:{k:'form',fields:[['Action','Import'],['Record type','Products'],['File','products.csv','ph'],['Mapping','Auto-detected'],['Mode','Create & update'],['Notes','Dry run first','ph',1]]}},
+ ]},
+ {id:'integ',sec:'Account',ic:'refresh-cw',n:'Integrations',sub:'Connect M-Pesa, QuickBooks and other services to your business',tabs:[
+   {t:'M-Pesa (Daraja)',s:{k:'igmpesa'}},
+   {t:'M-Pesa bank integrations',s:{k:'igbank'}},
+   {t:'QuickBooks',s:{k:'igqb'}},
  ]},
 ];
 
@@ -219,10 +230,10 @@ window.UZ_ROLES={
  accountant:{label:'Accountant',name:'Mary Achieng',role:'Accountant',first:'Mary',figures:1,mods:['home','cal','sales','cust','vend','buy','fin','exp','rcv','pay','rep','ppl','docs','sup'],tabs:{home:['Overview'],sales:['Overview','All sales','Invoices','Refunds (credit notes)','Voided items','Sales targets'],buy:['Overview','Purchase orders','Purchase returns','Rejected items']},
   tasks:[['Send an invoice','Bill a customer','receipt','sales','Invoices','invoice'],['Pay a supplier','See bills to pay','banknote','fin','Withdrawals'],['Check the bank','Match payments','calculator','fin','Transactions'],['Prepare VAT','October return','file-text','fin','Withdrawals']],
   attention:[ALERTS.bank,ALERTS.vat,ALERTS.owed,ALERTS.bill]},
- cashier:{label:'Cashier',name:'Jane Smith',role:'Cashier',first:'Jane',mods:['home','cal','sales','pos','cust','inv','sup'],tabs:{home:['Overview'],cust:['Customers'],sales:['All sales','Refunds (credit notes)'],inv:['Stock management'],sup:['Ask UzaPro','How-to guides']},
+ cashier:{label:'Cashier',name:'Jane Smith',role:'Cashier',first:'Jane',mods:['home','cal','sales','pos','field','cust','inv','sup'],tabs:{home:['Overview'],cust:['Customers'],sales:['All sales','Refunds (credit notes)'],inv:['Stock management'],sup:['Ask UzaPro','How-to guides']},
   tasks:[['New sale','Record a sale','shopping-cart','sales','All sales','new'],['Give a refund','Return an item','refresh-cw','sales','Refunds (credit notes)','credit'],['Find a customer','Look up details','user','cust','Customers'],['Check stock','See what’s left','boxes','inv','Stock management']],
   attention:[ALERTS.low]},
- store:{label:'Store keeper',name:'Grant Jensen',role:'Store keeper',first:'Grant',mods:['home','cal','vend','inv','prod','buy','docs','sup'],tabs:{home:['Overview'],buy:['Purchase orders','Goods receipts','Purchase returns','Rejected items'],sup:['Ask UzaPro','How-to guides']},
+ store:{label:'Store keeper',name:'Grant Jensen',role:'Store keeper',first:'Grant',mods:['home','cal','field','vend','inv','prod','buy','docs','sup'],tabs:{home:['Overview'],buy:['Purchase orders','Goods receipts','Purchase returns','Rejected items'],field:['Deliveries'],sup:['Ask UzaPro','How-to guides']},
   tasks:[['Stock in','Record a delivery','truck','inv','Stock management','stock'],['Transfer stock','Between stores','boxes','inv','Transfer stock','transfer'],['Record wastage','Damaged, expired or lost','circle-alert','inv','Wastage','waste']],
   attention:[ALERTS.low,ALERTS.part]},
 };
@@ -236,6 +247,38 @@ window.UZ_BUY={
 };
 
 // Home overview. Amounts in KES unless a row says otherwise.
+// Field sales: orders reps take on the road. Each one becomes a delivery.
+window.UZ_FIELD={
+ reps:[{name:'Peter Roadie',phone:'+254 711 402 118',route:'Thika Road',vehicle:'KDA 412M · van'},{name:'Kevin Otieno',phone:'+254 722 918 334',route:'Kiambu Road',vehicle:'KMEA 221Q · motorbike'},{name:'Faith Wanjiku',phone:'+254 733 554 019',route:'Westlands – Kangemi',vehicle:'KCX 908T · pickup'}],
+ drivers:['Sam Mwangi'],
+ sales:[
+  {ref:'FS-0112',date:'2026-11-10',time:'11:05',rep:'Faith Wanjiku',route:'Westlands – Kangemi',cust:'Morningview Bicycles',phone:'+254 712 340 118',loc:'Westlands, Woodvale Grove, Morningview shop',store:'Main Store',lines:[{product:'Helmet',variant:'Medium',qty:6,price:1639},{product:'Bike Pump',variant:'Standard',qty:10,price:345}],pay:{mode:'credit',method:'',ref:''},dlv:{ref:'DLV-0240',date:'2026-11-11',driver:'Faith Wanjiku',status:'Pending',note:'Deliver before 10am',history:[{when:'10 Nov 2026, 11:05',what:'Order taken by Faith Wanjiku on Westlands – Kangemi',who:'Faith Wanjiku'}]}},
+  {ref:'FS-0111',date:'2026-11-10',time:'09:48',rep:'Kevin Otieno',route:'Kiambu Road',cust:'Mountain Goats',phone:'+254 733 208 561',loc:'Ridgeways Mall, ground floor, shop 4',store:'Main Store',lines:[{product:'Carbon Sole Shoes',variant:'Size 42',qty:2,price:4140}],pay:{mode:'delivery',method:'',ref:''},dlv:{ref:'DLV-0239',date:'2026-11-10',driver:'Sam Mwangi',status:'Out for delivery',outAt:'10 Nov 2026, 10:30',note:'',history:[{when:'10 Nov 2026, 09:48',what:'Order taken by Kevin Otieno on Kiambu Road',who:'Kevin Otieno'},{when:'10 Nov 2026, 10:30',what:'Dispatched with Sam Mwangi',who:'Grant Jensen'}]}},
+  {ref:'FS-0110',date:'2026-11-10',time:'08:30',rep:'Peter Roadie',route:'Thika Road',cust:'Walk-in Customer',phone:'0723 118 902',loc:'Kahawa Sukari, Third Avenue, blue gate',store:'Main Store',lines:[{product:'Racing Wheelset',variant:'700c',qty:1,price:13800}],pay:{mode:'now',method:'M-Pesa',ref:'SKJ8T2PL0Q'},dlv:{ref:'DLV-0238',date:'2026-11-10',driver:'Peter Roadie',status:'Pending',note:'Call on arrival',history:[{when:'10 Nov 2026, 08:30',what:'Order taken by Peter Roadie on Thika Road',who:'Peter Roadie'}]}},
+  {ref:'FS-0109',date:'2026-11-09',time:'15:20',rep:'Peter Roadie',route:'Thika Road',cust:'Alpha Systems',phone:'+254 701 555 210',loc:'Ruiru, Kimbo, Alpha Systems warehouse',store:'Main Store',lines:[{product:'Groupset',variant:'Standard',qty:1,price:8452},{product:'Bike Pump',variant:'Standard',qty:4,price:345}],pay:{mode:'delivery',method:'',ref:''},dlv:{ref:'DLV-0237',date:'2026-11-10',driver:'Peter Roadie',status:'Rescheduled',note:'',history:[{when:'9 Nov 2026, 15:20',what:'Order taken by Peter Roadie on Thika Road',who:'Peter Roadie'},{when:'9 Nov 2026, 17:40',what:'Not delivered: shop closed. Rescheduled to 10 Nov 2026',who:'Peter Roadie'}]}},
+  {ref:'FS-0108',date:'2026-11-08',time:'12:10',rep:'Kevin Otieno',route:'Kiambu Road',cust:'Mountain Goats',phone:'+254 733 208 561',loc:'Ridgeways Mall, ground floor, shop 4',store:'Main Store',lines:[{product:'Helmet',variant:'Large',qty:4,price:1739}],pay:{mode:'delivery',method:'',ref:''},dlv:{ref:'DLV-0236',date:'2026-11-08',driver:'Sam Mwangi',status:'Delivered',outAt:'8 Nov 2026, 13:00',doneAt:'8 Nov 2026, 14:25',recv:'Ann Mwende',collected:{method:'M-Pesa',ref:'SKG2W9RT4N',amount:6956},note:'',history:[{when:'8 Nov 2026, 12:10',what:'Order taken by Kevin Otieno on Kiambu Road',who:'Kevin Otieno'},{when:'8 Nov 2026, 13:00',what:'Dispatched with Sam Mwangi',who:'Grant Jensen'},{when:'8 Nov 2026, 14:25',what:'Delivered, received by Ann Mwende. Collected KES 6,956.00 by M-Pesa',who:'Sam Mwangi'}]}},
+  {ref:'FS-0107',date:'2026-11-07',time:'10:00',rep:'Faith Wanjiku',route:'Westlands – Kangemi',cust:'Morningview Bicycles',phone:'+254 712 340 118',loc:'Westlands, Woodvale Grove, Morningview shop',store:'Main Store',lines:[{product:'Aluminium Frame',variant:'56cm',qty:2,price:31050}],pay:{mode:'now',method:'Bank transfer',ref:'FT26311MVB'},dlv:{ref:'DLV-0235',date:'2026-11-07',driver:'Faith Wanjiku',status:'Delivered',outAt:'7 Nov 2026, 11:15',doneAt:'7 Nov 2026, 12:05',recv:'John Kariuki',note:'',history:[{when:'7 Nov 2026, 10:00',what:'Order taken by Faith Wanjiku on Westlands – Kangemi',who:'Faith Wanjiku'},{when:'7 Nov 2026, 11:15',what:'Dispatched with Faith Wanjiku',who:'Grant Jensen'},{when:'7 Nov 2026, 12:05',what:'Delivered, received by John Kariuki',who:'Faith Wanjiku'}]}}
+ ]
+};
+// Stock counts (stocktakes). Lines: expected = system qty when the count started; counted = null until counted.
+window.UZ_COUNTS=[
+ {ref:'SC-0015',store:'Main Store',scope:'Parts',blind:true,created:'2026-11-10',by:'Grant Jensen',status:'Counting',lines:[{product:'Racing Wheelset',cat:'Parts',variant:'700c',expected:8,counted:8,note:''},{product:'Racing Wheelset',cat:'Parts',variant:'650b',expected:8,counted:7,note:'One box damaged'},{product:'Bike Pump',cat:'Parts',variant:'Standard',expected:30,counted:null,note:''},{product:'Groupset',cat:'Parts',variant:'Standard',expected:0,counted:null,note:''}],history:[{when:'10 Nov 2026, 08:15',what:'Count started',who:'Grant Jensen'}]},
+ {ref:'SC-0014',store:'Point of Sale',scope:'Everything',blind:true,created:'2026-11-09',by:'Jane Smith',status:'Waiting approval',submittedAt:'9 Nov 2026, 18:40',lines:[{product:'Carbon Sole Shoes',cat:'Apparel',variant:'Size 42',expected:14,counted:14,note:''},{product:'Carbon Sole Shoes',cat:'Apparel',variant:'Size 43',expected:14,counted:13,note:''},{product:'Bike Pump',cat:'Parts',variant:'Standard',expected:28,counted:28,note:''},{product:'Helmet',cat:'Apparel',variant:'Small',expected:15,counted:15,note:''},{product:'Helmet',cat:'Apparel',variant:'Medium',expected:15,counted:16,note:'Found one in the back'},{product:'Helmet',cat:'Apparel',variant:'Large',expected:14,counted:12,note:''}],history:[{when:'9 Nov 2026, 17:55',what:'Count started',who:'Jane Smith'},{when:'9 Nov 2026, 18:40',what:'Submitted for approval. 3 differences',who:'Jane Smith'}]},
+ {ref:'SC-0013',store:'Main Store',scope:'Everything',blind:false,created:'2026-11-01',by:'Grant Jensen',status:'Approved',approvedAt:'1 Nov 2026, 17:20',approvedBy:'Tony Ashiuma',lines:[{product:'Carbon Road Frame',cat:'Frames',variant:'54cm',expected:18,counted:18,note:''},{product:'Carbon Road Frame',cat:'Frames',variant:'56cm',expected:17,counted:17,note:''},{product:'Aluminium Frame',cat:'Frames',variant:'54cm',expected:83,counted:82,note:'Scratched, moved to wastage'},{product:'Aluminium Frame',cat:'Frames',variant:'56cm',expected:82,counted:82,note:''},{product:'Carbon Sole Shoes',cat:'Apparel',variant:'Size 42',expected:20,counted:20,note:''},{product:'Carbon Sole Shoes',cat:'Apparel',variant:'Size 43',expected:20,counted:20,note:''},{product:'Bike Pump',cat:'Parts',variant:'Standard',expected:31,counted:30,note:''}],history:[{when:'1 Nov 2026, 14:00',what:'Count started',who:'Grant Jensen'},{when:'1 Nov 2026, 16:45',what:'Submitted for approval. 2 differences',who:'Grant Jensen'},{when:'1 Nov 2026, 17:20',what:'Approved. Stock updated for 2 lines',who:'Tony Ashiuma'}]}
+];
+// Integrations: M-Pesa (Daraja) and QuickBooks Online. Keys live on the server in the real app.
+window.UZ_INTEG={
+ mpesa:{connected:true,stk:true,type:'till',short:'524118',creds:{'Whole business':{env:'Production (live)',type:'Till number (Buy Goods)',short:'524118',acct:'',terms:[],init:'',keySet:true,secretSet:true,passSet:true,ipassSet:false,tested:true,urls:true}},tx:[
+  {date:'2026-11-10',time:'12:41',code:'SKM4R8TQ1Z',name:'GRACE WANJIRU',phone:'0722 *** 410',via:'Paid to Till',amount:68400,match:''},
+  {date:'2026-11-10',time:'11:52',code:'SKB7Q2LM0P',name:'JOHN KARIUKI',phone:'0712 *** 118',via:'Payment request (POS)',amount:4858,match:'SAL-POS-0005 · Morningview Bicycles'},
+  {date:'2026-11-10',time:'10:58',code:'SKC3H8TT2R',name:'PAUL OMONDI',phone:'0703 *** 552',via:'Payment request (POS)',amount:4485,match:'SAL-POS-0003 · Walk-in Customer'},
+  {date:'2026-11-10',time:'09:32',code:'SKA1B2C3D4',name:'MERCY ATIENO',phone:'0790 *** 231',via:'Payment request (POS)',amount:467,match:'SAL-POS-0001 · Walk-in Customer'},
+  {date:'2026-11-10',time:'08:30',code:'SKJ8T2PL0Q',name:'SAMUEL KIMANI',phone:'0723 *** 902',via:'Paid to Till',amount:13800,match:'FS-0110 · Walk-in Customer'},
+  {date:'2026-11-09',time:'16:05',code:'SKH6D1VW8E',name:'ALPHA SYSTEMS LTD',phone:'0701 *** 210',via:'Paid to Till',amount:1026,match:''}
+ ]},
+ qb:{connected:false,log:[]},
+ bank:[{bank:'Equity Bank',paybill:'247247',acct:'0180294833321',name:'Build by Blaise',deposit:'Equity Bank — Main',feed:'Bank API (instant)',status:'Active'}]
+};
 window.UZ_HOME={
  banners:[['Today sales','KES 184K','var(--green-600)','file-text'],['This week sales','KES 1.12M','var(--grey-900)','refresh-cw'],['This month sales','KES 4.82M','#C2570C','calendar'],['Annual sales','KES 38.6M','var(--info)','chart-column']],
  kpis:[['Total revenue','KES 4.82M','▲ 12.4% vs last 30 days'],['Total expenses','KES 3.51M','▲ 4.2% vs last 30 days'],['Net profit','KES 1.31M','▲ 8.1% after adjustments'],['Customers','1,233','▲ 2.1% active'],['Suppliers','18','on record'],['Stock value','KES 2.65M','inventory valuation'],['Low stock items','14','restock signals']],

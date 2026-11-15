@@ -20,8 +20,8 @@ export const ROLE_DEFS: readonly RoleDef[] = [
 /** Modules each non-owner role starts at Write on (the rest it sees are Read). */
 export const SEED_WRITE: Record<Exclude<RoleId, "owner">, readonly ModuleId[]> = {
   accountant: ["fin", "exp", "rcv", "pay", "sales", "buy", "cust", "vend", "rep", "docs", "task"],
-  cashier: ["sales", "pos", "cust", "task"],
-  store: ["inv", "prod", "buy", "vend", "docs", "task"],
+  cashier: ["sales", "pos", "field", "cust", "task"], // field: feature 024 (design UZ_ROLES)
+  store: ["inv", "prod", "buy", "vend", "field", "docs", "task"], // field (its Deliveries tab): feature 024 (design UZ_ROLES)
 };
 
 /** Always readable by every role: a home screen and a way to sign out or switch role. */

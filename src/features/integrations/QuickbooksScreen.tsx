@@ -4,12 +4,14 @@ import { useState } from "react";
 import {
   INTEGRATION_ENVS,
   QB_ACCOUNTS,
+  QB_COMPANIES,
   QB_ACCOUNT_LABEL,
   QB_FREQUENCIES,
   QB_RECORDS,
   connectQuickbooks,
   disconnectQuickbooks,
   quickbooksErrors,
+  retryQuickbooks,
   saveQuickbooksSettings,
   syncQuickbooks,
   syncSummary,
@@ -25,6 +27,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Checkbox, Select } from "@/components/ui/Field";
+import { Icon } from "@/components/ui/Icon";
 import { ConfirmDialog } from "@/components/ui/Overlay";
 import { FormError, GRID, SectionHead } from "./shared";
 
@@ -50,11 +53,43 @@ function Connect() {
   const canWrite = useCan("write");
   const [env, setEnv] = useState<IntegrationEnv>("production");
   const [busy, setBusy] = useState(false);
+  /** Signed in to Intuit, choosing the company (design `iq.picking`). */
+  const [picking, setPicking] = useState(false);
   const connect = async () => {
     setBusy(true);
     await connectQuickbooks(env);
     setBusy(false);
   };
+  if (picking) {
+    const co = QB_COMPANIES[env];
+    return (
+      <Card title="Choose your company" subtitle="Signed in to Intuit. Pick the company UzaPro should send to.">
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void connect()}
+            className="flex w-full items-center gap-3 rounded-md border border-border bg-surface p-3 text-left hover:border-green-600 hover:bg-green-50"
+          >
+            <span aria-hidden="true" className="type-label grid size-10 flex-none place-items-center rounded-md bg-green-100 font-bold text-green-800">
+              {co.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="type-label text-text">{co.name}</span>
+              <span className="type-small text-text-muted">{co.sub}</span>
+            </span>
+            <Icon name="chevron-right" size={16} />
+          </button>
+          <p className="type-small m-0 text-text-muted">Simulated sign-in. The live app opens Intuit&apos;s own sign-in page.</p>
+          <div>
+            <Button variant="secondary" disabled={busy} onClick={() => setPicking(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
   return (
     <Card title="Connect your QuickBooks company" subtitle="You sign in to QuickBooks and choose the company. UzaPro never sees your QuickBooks password.">
       <div className={GRID}>
@@ -69,8 +104,8 @@ function Connect() {
       </div>
       {canWrite ? (
         <div className="mt-5">
-          <Button icon="plug" disabled={busy} onClick={() => void connect()}>
-            {busy ? "Connecting" : "Connect QuickBooks"}
+          <Button icon="arrow-up-right" onClick={() => setPicking(true)}>
+            Connect QuickBooks
           </Button>
         </div>
       ) : (
@@ -179,12 +214,36 @@ function Connected({ connection }: { connection: QuickbooksConnection }) {
             </Button>
           )}
           <Button variant="secondary" icon="refresh-cw" disabled={dirty || busy !== ""} onClick={() => void sync()}>
-            {busy === "sync" ? "Syncing" : "Sync now"}
+            {busy === "sync" ? "Syncing…" : "Sync now"}
           </Button>
           <Button icon="check" disabled={busy !== ""} onClick={() => void save()}>
             Save settings
           </Button>
         </div>
+      )}
+
+      {connection.log.length > 0 && (
+        <Card title="Sync history">
+          <ul className="m-0 flex list-none flex-col gap-3 p-0">
+            {connection.log.map((l, i) => (
+              <li key={`${l.when}-${i}`} className="flex items-start gap-3">
+                <span className={l.failed ? "text-danger-text" : "text-green-700"}>
+                  <Icon name={l.failed ? "circle-alert" : "circle-check"} size={16} />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="type-label text-text">{l.title}</span>
+                  <span className="type-small text-text-muted">{l.detail}</span>
+                </span>
+                <span className="type-small whitespace-nowrap text-text-muted">{l.when}</span>
+                {l.failed && canWrite && (
+                  <Button size="sm" variant="secondary" onClick={() => void retryQuickbooks(i)}>
+                    Retry
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
       )}
 
       <ConfirmDialog

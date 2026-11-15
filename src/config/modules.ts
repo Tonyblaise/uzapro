@@ -72,10 +72,8 @@ export const MODULES: Module[] = [
       ["Transfer stock", "table", [C("Ref"), C("From"), C("To"), N("Items"), C("Status")]],
       ["Wastage", "table", [C("Ref"), C("Item"), N("Qty"), C("Reason"), N("Value")]],
       ["Warehouses", "table", [C("Warehouse"), C("Branch"), C("Type"), N("Items")]],
-      // Feature 014 (spec › Design deviations).
-      ["Reorder", "table", [C("Product"), C("Store"), N("On hand"), N("On order"), N("Reorder at"), N("Order up to"), C("Suggested order"), C("Supplier"), C("Status")]],
       // Feature 017 (spec › Design deviations).
-      ["Stock counts", "table", [C("Count"), C("Store"), C("Date"), C("Type"), C("Lines counted"), N("Variance"), N("Variance value (KES)"), C("Status")]],
+      ["Stock counts", "table", [C("Count"), C("Store and scope"), C("Counted by"), C("Progress"), N("Differences"), N("Net value (KES)"), C("Status")]],
     ],
     true,
   ),
@@ -92,8 +90,6 @@ export const MODULES: Module[] = [
       ["Quotations", "table", [C("Quotation #"), C("Customer"), C("Date"), C("Status"), N("Amount (KES)")]],
       // Feature 013 (spec › Design deviations).
       ["Sales orders", "table", [C("Order #"), C("Customer"), C("Order date"), C("Deliver by"), C("Status"), N("Amount (KES)")]],
-      // Feature 021 (spec › Design deviations).
-      ["Field sales", "table", [C("Customer"), C("Phone"), C("Status")]],
       ["Deliveries", "table", [C("Delivery note"), C("Order"), C("Customer"), C("Date"), C("Driver"), C("Vehicle"), N("Items"), C("Status")]],
       [
         "Invoices",
@@ -114,6 +110,21 @@ export const MODULES: Module[] = [
     true,
   ),
   mod("pos", "Sales", "scan-barcode", "Point of sale", "Pick a terminal to start selling", "point-of-sale", [["Terminals", "poslaunch"]], true),
+  // Feature 024 (design `UZ_MODS` field: Field sales, Sales reps, Deliveries).
+  mod(
+    "field",
+    "Sales",
+    "truck",
+    "Field sales",
+    "Orders your reps take on the road",
+    "field-sales",
+    [
+      ["Field sales", "table", [C("Sale"), C("Rep and route"), C("Customer and location"), N("Items"), N("Total (KES)"), C("Payment"), C("Delivery")]],
+      ["Sales reps", "table", [C("Rep"), C("Route"), C("Vehicle"), N("Orders today"), N("Sales (KES)"), N("Open deliveries"), C("Status")]],
+      ["Deliveries", "table", [C("Delivery"), C("Customer and location"), C("Delivery date"), C("Driver and store"), N("Items"), N("To collect (KES)"), C("Status")]],
+    ],
+    true,
+  ),
   mod(
     "cust",
     "Sales",

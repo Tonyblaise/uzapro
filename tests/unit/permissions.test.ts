@@ -35,9 +35,9 @@ describe("seed parity with today's role visibility (SC-002)", () => {
     });
   }
 
-  it("module summaries: 22, 16, 9 and 10 of 22", () => {
-    expect(IDS.map((id) => moduleSummary(seedAccess(id)).open)).toEqual([22, 16, 9, 10]);
-    expect(moduleSummary(seedAccess("owner")).total).toBe(22);
+  it("module summaries: 23, 17, 10 and 11 of 23 (feature 024 adds Field sales)", () => {
+    expect(IDS.map((id) => moduleSummary(seedAccess(id)).open)).toEqual([23, 17, 10, 11]);
+    expect(moduleSummary(seedAccess("owner")).total).toBe(23);
   });
 
   it("seeds Write on working modules, Read elsewhere, Delete only for the owner", () => {

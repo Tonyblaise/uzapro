@@ -25,13 +25,23 @@ async function mpesaCheckout(main: Page) {
   return co;
 }
 
-test("without an M-Pesa set-up the till takes a typed code only (US1)", async ({ page, errors }) => {
+test("the seeded, tested Till takes requests; once re-saved and untested, only a typed code (US1)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  const co = await mpesaCheckout(page);
-  await expect(co.getByText("M-Pesa requests are not set up for this terminal.")).toBeVisible();
+  // The design seeds a live Till, tested (feature 026).
+  let co = await mpesaCheckout(page);
+  await expect(co.getByText("Payments go to Till 524118.")).toBeVisible();
+  await expect(co.getByRole("button", { name: "Send request" })).toBeVisible();
+  await co.page().close();
+
+  // Saving again needs a fresh test, so the till falls back to a typed code.
+  await nav(page).getByRole("link", { name: "Integrations", exact: true }).click();
+  await page.waitForURL("**/integrations/m-pesa-daraja");
+  await button(page, "Save credentials").click();
+  await expect(toast(page)).toHaveText("M-Pesa credentials saved for the whole business.");
+  co = await mpesaCheckout(page);
+  await expect(co.getByText("its connection has not been tested")).toBeVisible();
   await expect(co.getByRole("button", { name: "Send request" })).toHaveCount(0);
-  await expect(co.getByLabel("Customer's phone")).toHaveCount(0);
   await co.getByLabel("M-Pesa code").fill("SKTEST1234");
   await co.getByRole("button", { name: /^Complete sale/ }).click();
   await expect(co.page().getByRole("dialog", { name: "Sale complete" })).toBeVisible();
@@ -42,7 +52,7 @@ test("a saved and tested Paybill lets the till send a request to the terminal's 
   await loginAs(page, "owner");
   await nav(page).getByRole("link", { name: "Integrations", exact: true }).click();
   await page.waitForURL("**/integrations/m-pesa-daraja");
-  await page.getByLabel("Applies to").selectOption("all");
+  await page.getByLabel("Account type").selectOption("paybill");
   await page.getByLabel("Paybill number").fill("522522");
   await button(page, "Add terminal").click();
   await page.getByLabel("Terminal", { exact: true }).selectOption({ label: "Terminal 1" });
@@ -51,7 +61,7 @@ test("a saved and tested Paybill lets the till send a request to the terminal's 
   await page.getByLabel(/^Consumer secret/).fill("cs-live-456");
   await page.getByLabel(/^Lipa na M-Pesa Online passkey/).fill("pk-live-789");
   await button(page, "Save credentials").click();
-  await expect(toast(page)).toHaveText("M-Pesa credentials saved.");
+  await expect(toast(page)).toHaveText("M-Pesa credentials saved for the whole business.");
   await button(page, "Test connection").click();
   await expect(toast(page)).toHaveText("Connection works.");
 

@@ -133,7 +133,7 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
       toast(res.message);
       return;
     }
-    // Only touch reorder points when the fields changed, so a store tuned in Stock › Reorder survives
+    // Only touch reorder points when the fields changed, so stores whose points differ keep them on
     // an unrelated product edit.
     if (showReorder && reorderKey !== initialReorderKey) {
       // Purchase orders need a variant to order: keep the one already set when it still exists, else the first.
@@ -277,10 +277,10 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
               <Input label="Order up to" type="number" min={1} step={1} hint="Order enough to reach this." value={reMax} onChange={(e) => setReMax(e.target.value)} />
             </div>
             <span className="type-caption text-text-muted">
-              For the whole product, in the base unit, at every store you buy stock into. Leave both blank for no reorder point. Change one store, the variant to order, the order unit or the supplier in Stock › Reorder.
+              For the whole product, in the base unit, at every store you buy stock into. Leave both blank for no reorder point.
             </span>
             {savedReorder === "mixed" && reorderKey === initialReorderKey && (
-              <span className="type-caption text-text-muted">Reorder points differ by store. Edit them in Stock › Reorder, or enter values here to set every store the same.</span>
+              <span className="type-caption text-text-muted">Reorder points differ by store. Enter values here to set every store the same.</span>
             )}
             {reorderError && (
               <span role="alert" className="type-small text-danger-text">

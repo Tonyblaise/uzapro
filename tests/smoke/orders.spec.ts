@@ -188,7 +188,7 @@ test("a role with Read on Sales can view orders; Dispatch follows its own right 
   await nav(page).getByRole("link", { name: "Permissions" }).click();
   await page.getByRole("button", { name: "Edit role: Accountant" }).click();
   const edit = page.getByRole("dialog", { name: /Edit role/ });
-  await edit.getByRole("button", { name: "Sales: Write" }).click();
+  await edit.getByRole("button", { name: "Sales: Write", exact: true }).click();
   await edit.getByRole("button", { name: "Save" }).click();
   await page.getByRole("button", { name: /Tony Blaise/ }).click();
   await page.getByLabel("View as").selectOption("accountant");
@@ -262,7 +262,8 @@ test("goods returned from a delivery go back into stock and onto the order (feat
   await expect(line.getByRole("cell").nth(3)).toHaveText("1");
   await expect(line.getByRole("cell").nth(4)).toHaveText("3");
   await drawer(page).getByRole("button", { name: "Close" }).click();
-  await nav(page).getByRole("link", { name: "Stock" }).click();
-  await tab(page, "Reorder");
-  await expect(row(page, "Bike Pump")).toContainText("42");
+  await nav(page).getByRole("link", { name: "Stock", exact: true }).click();
+  await tab(page, "Stock management");
+  await page.getByLabel("Search this list").fill("Bike Pump");
+  await expect(row(page, "Main Store").first()).toContainText("42");
 });

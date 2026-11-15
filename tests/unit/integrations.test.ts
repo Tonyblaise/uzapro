@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { QB_DEFAULT_SETTINGS, bankErrors, darajaErrors, generateBankCredentials, mpesaRoute, mpesaRouteNote, quickbooksCounts, quickbooksErrors, scopeFrom, scopeOptions, scopeValue, seedIntegrations, syncSummary } from "@/data/integrations";
+import { QB_DEFAULT_SETTINGS, bankLinkError, darajaErrors, mpesaRoute, mpesaRouteNote, paybillOf, quickbooksCounts, quickbooksErrors, scopeFrom, scopeOptions, scopeValue, seedIntegrations, syncSummary } from "@/data/integrations";
 import { createSeed } from "@/data/store/seed";
-import type { BankConfig, DarajaConfig, DarajaInput, IntegrationsState, Terminal } from "@/data/types";
+import type { DarajaConfig, DarajaInput, IntegrationsState, Terminal } from "@/data/types";
 
 const terminals: Terminal[] = createSeed().settings.terminals.list;
 const T1 = terminals[0]!;
@@ -39,9 +39,13 @@ const saved: DarajaConfig = {
 };
 
 describe("integrations rules (feature 015)", () => {
-  it("starts with nothing configured", () => {
-    expect(seedIntegrations()).toEqual({ daraja: [], bank: [], quickbooks: null });
-    expect(createSeed().integrations).toEqual({ daraja: [], bank: [], quickbooks: null });
+  it("starts as the design does: a tested Till and its payments; no bank link, no QuickBooks (feature 026)", () => {
+    const seed = seedIntegrations();
+    expect(seed.daraja).toHaveLength(1);
+    expect(seed.mpesaPayments).toHaveLength(6);
+    expect(seed.bank).toEqual([]);
+    expect(seed.quickbooks).toBeNull();
+    expect(createSeed().integrations).toEqual(seed);
   });
 
   it("lists business-wide first, then each terminal with whether it has its own credentials", () => {
@@ -96,23 +100,15 @@ describe("integrations rules (feature 015)", () => {
     expect(darajaErrors(rows([T1.id, "A"], [T1.id, "B"]), undefined, terminals)).toEqual({ terminalAccounts: `${T1.name} is listed twice` });
   });
 
-  it("checks a bank form", () => {
-    const input = { scope: "all" as const, bank: "ncba" as const, env: "production" as const, tillNumber: "000001", qrTillCode: "" };
-    expect(bankErrors(input, terminals)).toEqual({});
-    expect(bankErrors({ ...input, scope: null, tillNumber: "" }, terminals)).toEqual({ scope: "Choose what these credentials apply to", tillNumber: "Enter your NCBA till number" });
-    expect(bankErrors({ ...input, tillNumber: "TILL1" }, terminals)).toEqual({ tillNumber: "Use digits only" });
-  });
-
-  it("creates the same bank credentials for the same owner, and different ones for another", () => {
-    const a = generateBankCredentials("ncba", "business");
-    expect(generateBankCredentials("ncba", "business")).toEqual(a);
-    expect(a.apiUsername).toBe("uzapro-ncba-business");
-    expect(a.apiSecret).toHaveLength(32);
-    expect(a.notifyUrl).toMatch(/^https:\/\/pay\.uzapro\.example\/ncba\/notify\/[a-z0-9]{12}$/);
-    const b = generateBankCredentials("ncba", "BBL-TRM-001");
-    expect(b.apiUsername).toBe("uzapro-ncba-bbl-trm-001");
-    expect(b.apiSecret).not.toBe(a.apiSecret);
-    expect(new Set([a.apiSecret, a.notifyPassword, a.notifySecret]).size).toBe(3);
+  it("checks a bank link and knows each bank's Paybill (feature 026)", () => {
+    const link = { bank: "NCBA", account: "0180294833321", name: "Build by Blaise", deposit: "Equity Bank — Main", feed: "Bank API (instant)" as const };
+    const linked = [{ ...link, paybill: "880100", status: "Active" as const }];
+    expect(bankLinkError({ ...link, account: "1234567" }, linked)).toBeUndefined();
+    expect(bankLinkError({ ...link, account: "12 34" }, linked)).toBe("Enter the bank account number (digits only).");
+    expect(bankLinkError({ ...link, account: "1234567", name: "" }, linked)).toBe("Add the account name.");
+    expect(bankLinkError(link, linked)).toBe("This account is already linked.");
+    // Only NCBA can be added for now.
+    expect([paybillOf("NCBA"), paybillOf("Equity Bank")]).toEqual(["880100", ""]);
   });
 });
 
@@ -156,13 +152,11 @@ describe("where a till's M-Pesa request goes (feature 022)", () => {
     urlsRegistered: false,
     ...over,
   });
-  const ncba = (over: Partial<BankConfig> = {}): BankConfig => ({ scope: "all", bank: "ncba", env: "production", tillNumber: "000001", qrTillCode: "", generated: generateBankCredentials("ncba", "business"), tested: true, ...over });
-  const state = (d: DarajaConfig[] = [], b: BankConfig[] = []): IntegrationsState => ({ ...seedIntegrations(), daraja: d, bank: b });
+  const state = (d: DarajaConfig[] = []): IntegrationsState => ({ ...seedIntegrations(), daraja: d });
 
   it("is not ready with nothing saved, or with nothing tested", () => {
     expect(mpesaRoute(state(), T1.id)).toEqual({ ready: false, reason: "none" });
     expect(mpesaRoute(state([daraja({ tested: false })]), T1.id)).toEqual({ ready: false, reason: "untested" });
-    expect(mpesaRoute(state([], [ncba({ tested: false })]), T1.id)).toEqual({ ready: false, reason: "untested" });
     // Another terminal's own set-up is not this terminal's.
     expect(mpesaRoute(state([daraja({ scope: T1.id + 1 })]), T1.id)).toEqual({ ready: false, reason: "none" });
   });
@@ -174,14 +168,10 @@ describe("where a till's M-Pesa request goes (feature 022)", () => {
     expect(mpesaRoute(state([daraja()]), T1.id)).toMatchObject({ to: "Paybill 522522, account the sale number" });
   });
 
-  it("puts the terminal's own set-up first, and Daraja before a bank", () => {
+  it("puts the terminal's own set-up first, and passes over an untested one", () => {
     const till = daraja({ scope: T1.id, accountType: "till", paybill: "", storeNumber: "700700", tillNumber: "300300" });
-    expect(mpesaRoute(state([daraja(), till], [ncba()]), T1.id)).toEqual({ ready: true, via: "daraja", to: "Till 300300" });
-    expect(mpesaRoute(state([daraja()], [ncba({ scope: T1.id })]), T1.id)).toEqual({ ready: true, via: "ncba", to: "NCBA Bank till 000001" });
-    expect(mpesaRoute(state([daraja()], [ncba()]), T1.id)).toMatchObject({ via: "daraja" });
-    // An untested set-up is passed over for a tested one.
+    expect(mpesaRoute(state([daraja(), till]), T1.id)).toEqual({ ready: true, via: "daraja", to: "Till 300300" });
     expect(mpesaRoute(state([daraja(), { ...till, tested: false }]), T1.id)).toMatchObject({ to: "Paybill 522522, account the sale number" });
-    expect(mpesaRoute(state([daraja({ tested: false })], [ncba()]), T1.id)).toMatchObject({ via: "ncba" });
   });
 
   it("tells the cashier what to do in each case", () => {

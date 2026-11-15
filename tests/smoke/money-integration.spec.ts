@@ -38,7 +38,7 @@ test("a credit sale creates RCV-0013 and voiding the sale closes it", async ({ p
   await expect(row).toContainText("Sale on credit");
   await expect(row).toContainText("690");
 
-  await nav(page).getByRole("link", { name: "Sales" }).click();
+  await nav(page).getByRole("link", { name: "Sales", exact: true }).click();
   await tab(page, "All sales");
   await page.getByRole("row").nth(1).click();
   await drawer(page).getByRole("button", { name: "Void", exact: true }).click();

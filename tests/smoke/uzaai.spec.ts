@@ -186,7 +186,7 @@ test("chat list groups, filters and reopens past chats (quickstart 6)", async ({
 test("a reported problem becomes a ticket; Support lists, replies and raises requests (quickstart 7–8)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
-  await nav(page).getByRole("link", { name: "Sales" }).click();
+  await nav(page).getByRole("link", { name: "Sales", exact: true }).click();
   await openPanel(page);
   await panel(page).getByRole("button", { name: "Report a problem" }).click();
   await expect(lastReply(page)).toContainText("Sorry about that. Tell me what went wrong");

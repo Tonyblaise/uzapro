@@ -64,7 +64,7 @@ test("a store keeper given the dispatch right can dispatch but not edit or invoi
   void errors;
   await loginAs(page, "owner");
   const edit = await editRole(page, "Store keeper");
-  await edit.getByRole("button", { name: "Sales: Read" }).click();
+  await edit.getByRole("button", { name: "Sales: Read", exact: true }).click();
   await right(page, "Dispatch sales orders").click();
   await edit.getByRole("button", { name: "Save" }).click();
   await viewAs(page, "store");

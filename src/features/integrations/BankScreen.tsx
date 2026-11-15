@@ -1,207 +1,108 @@
 "use client";
-/** Integrations › M-Pesa bank integrations: collect M-Pesa through a bank till (feature 015, contracts/ui.md). */
+/**
+ * Integrations › M-Pesa bank integrations (design `ib`, feature 026): customers pay with M-Pesa to a
+ * bank's Paybill; the money lands in the business's bank account and UzaPro records it. Lists the
+ * linked accounts and adds new ones.
+ */
 import { useState } from "react";
-import {
-  INTEGRATION_BANKS,
-  INTEGRATION_ENVS,
-  bankErrors,
-  saveBankCredentials,
-  scopeFrom,
-  testBankConnection,
-  useBankConfig,
-  useBankConfigs,
-  useCan,
-  useIntegrationScopes,
-  useIntegrationTerminals,
-  type BankField,
-  type BankId,
-  type IntegrationBank,
-  type IntegrationEnv,
-} from "@/data";
+import { BANK_FEEDS, BANK_PAYBILLS, addBankLink, paybillOf, removeBankLink, useAccountNames, useBankLinks, useBusinessProfile, useCan, type BankFeed } from "@/data";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Input, Select } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
+import { IconButton } from "@/components/ui/IconButton";
+import { SearchSelect } from "@/components/ui/SearchSelect";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { CopyField, GRID, ScopeSelect, SectionHead } from "./shared";
+import { FormError, GRID, SectionHead } from "./shared";
 
 export function BankScreen() {
-  const [bankId, setBankId] = useState<BankId>(INTEGRATION_BANKS[0]!.id);
-  const bank = INTEGRATION_BANKS.find((b) => b.id === bankId) ?? INTEGRATION_BANKS[0]!;
-  return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="type-title m-0 text-text">M-Pesa bank integrations</h2>
-        <p className="type-body m-0 mt-1 text-text-muted">
-          Collect M-Pesa payments through your bank. Pick a bank, enter the till details the bank gave you, and save. UzaPro then creates the credentials you give the bank in your instruction letter.
-        </p>
-      </div>
-      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr))]">
-        {INTEGRATION_BANKS.map((b) => (
-          <BankTile key={b.id} bank={b} active={b.id === bankId} onPick={() => setBankId(b.id)} />
-        ))}
-      </div>
-      <BankForm key={bank.id} bank={bank} />
-    </div>
-  );
-}
-
-function BankTile({ bank, active, onPick }: { bank: IntegrationBank; active: boolean; onPick: () => void }) {
-  const configured = useBankConfigs(bank.id).length > 0;
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onPick}
-      className={`flex items-center gap-3 rounded-md border bg-surface px-4 py-3 text-left ${active ? "border-action bg-action-soft" : "border-border-strong hover:bg-surface-hover"}`}
-    >
-      <span className="grid size-9 flex-none place-items-center rounded-sm bg-grey-100 text-text-secondary">
-        <Icon name="landmark" size={18} />
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="type-label text-text">{bank.name}</span>
-        <span className="type-caption text-text-muted">{configured ? "Configured" : "Not configured"}</span>
-      </span>
-    </button>
-  );
-}
-
-function BankForm({ bank }: { bank: IntegrationBank }) {
   const canWrite = useCan("write");
-  const scopes = useIntegrationScopes(bank.id);
-  const terminals = useIntegrationTerminals();
-  const configs = useBankConfigs(bank.id);
-  const [scopeText, setScopeText] = useState("");
-  const scope = scopeFrom(scopeText);
-  const saved = useBankConfig(bank.id, scope);
-  const [env, setEnv] = useState<IntegrationEnv>(bank.envs[0] ?? "production");
-  const [till, setTill] = useState("");
-  const [qr, setQr] = useState("");
-  const [loaded, setLoaded] = useState(false);
-  const [dirty, setDirty] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<BankField, string>>>({});
-  const [busy, setBusy] = useState<"" | "save" | "test">("");
-  const short = bank.name.replace(/ Bank$/, "");
-
-  const pickScope = (value: string) => {
-    setScopeText(value);
-    setErrors({});
-    const next = configs.find((c) => String(c.scope) === value);
-    if (next) {
-      setEnv(next.env);
-      setTill(next.tillNumber);
-      setQr(next.qrTillCode);
-    } else if (loaded) {
-      setTill("");
-      setQr("");
-    }
-    setLoaded(!!next);
-    setDirty(false);
-  };
+  const canDelete = useCan("delete");
+  const links = useBankLinks();
+  const accounts = useAccountNames();
+  const biz = useBusinessProfile();
+  const [bank, setBank] = useState(BANK_PAYBILLS[0]!.bank);
+  const [account, setAccount] = useState("");
+  const [name, setName] = useState(biz.name);
+  const [deposit, setDeposit] = useState(accounts[0] ?? "");
+  const [feed, setFeed] = useState<BankFeed>("Bank API (instant)");
+  const [error, setError] = useState("");
+  const paybill = paybillOf(bank);
+  const active = links.filter((l) => l.status === "Active").length;
+  const clear = () => setError("");
 
   const save = async () => {
-    const input = { scope, bank: bank.id, env, tillNumber: till, qrTillCode: qr };
-    const found = bankErrors(input, terminals);
-    setErrors(found);
-    if (Object.values(found).some(Boolean)) return;
-    setBusy("save");
-    const r = await saveBankCredentials(input);
-    setBusy("");
-    if (!r.ok) return setErrors({ scope: r.message });
-    setLoaded(true);
-    setDirty(false);
+    const r = await addBankLink({ bank, account, name, deposit, feed });
+    if (!r.ok) return setError(r.message);
+    setAccount("");
+    setError("");
   };
-
-  const test = async () => {
-    if (scope === null) return;
-    setBusy("test");
-    await testBankConnection(bank.id, scope);
-    setBusy("");
-  };
-
-  const off = !canWrite || busy !== "";
-  const g = saved?.generated;
-  const letter = `Put it in your ${short} letter`;
-  const envs = INTEGRATION_ENVS.filter((e) => bank.envs.includes(e.value));
 
   return (
-    <>
-      <ScopeSelect value={scopeText} options={scopes} error={errors.scope} onChange={pickScope} />
-
+    <div className="flex flex-col gap-4">
       <SectionHead
-        title={bank.name}
+        title="M-Pesa bank integrations"
         steps={[
-          { label: "Configured", done: !!saved },
-          { label: "Connection tested", done: !!saved?.tested },
+          { label: `${links.length} linked`, done: links.length > 0 },
+          { label: `${active} active`, done: active > 0 },
         ]}
       >
-        Collect M-Pesa payments on your {short} till (paybill {bank.paybill}) with STK push and payment notifications.
+        Customers pay with M-Pesa to your bank&apos;s Paybill. The money lands in your bank account and UzaPro records it against the sale.
       </SectionHead>
-      <ul aria-label={`What ${bank.name} supports`} className="m-0 flex list-none flex-wrap gap-2 p-0">
-        {bank.features.map((x) => (
-          <li key={x}>
-            <StatusPill dot={false}>{x}</StatusPill>
-          </li>
+
+      <section aria-label="Linked bank accounts" className="overflow-hidden rounded-lg border border-border bg-surface">
+        {links.map((b) => (
+          <div key={`${b.bank}|${b.account}`} className="flex flex-wrap items-center gap-4 border-b border-border px-5 py-4 last:border-b-0">
+            <span className="grid size-10 flex-none place-items-center rounded-md bg-green-50 text-green-700">
+              <Icon name="landmark" size={20} />
+            </span>
+            <div className="min-w-[200px] flex-1">
+              <div className="type-label text-text">
+                {b.bank} <span className="font-normal text-text-muted">· Paybill {b.paybill}</span>
+              </div>
+              <div className="type-small text-text-muted">
+                Account {b.account} · {b.name}
+              </div>
+            </div>
+            <div className="type-small min-w-[200px] text-text-secondary">
+              Customers pay: <strong className="text-text">Paybill {b.paybill}</strong>, account <strong className="text-text">{b.account}#SALE NO.</strong>
+            </div>
+            <div className="type-small text-text-secondary">
+              Recorded in
+              <br />
+              <strong className="text-text">{b.deposit}</strong>
+            </div>
+            <StatusPill tone={b.status === "Active" ? "success" : "warning"}>{b.status}</StatusPill>
+            {canDelete && <IconButton icon="trash-2" size="sm" label={`Remove ${b.bank} ${b.account}`} onClick={() => void removeBankLink(b.bank, b.account)} />}
+          </div>
         ))}
-      </ul>
-
-      <Card title="Environment" subtitle={bank.envs.includes("sandbox") ? "Live uses real money. Use the sandbox to try things out first." : `Live uses real money. ${short} has no test environment.`}>
-        <div className={GRID}>
-          <Select label="Environment" disabled={off || envs.length < 2} value={env} options={envs} onChange={(e) => (setEnv(e.target.value as IntegrationEnv), setDirty(true))} />
-        </div>
-      </Card>
-
-      <Card title="STK push API" subtitle={`UzaPro signs in to ${short} with these to send STK pushes and create QR codes. Both are created for your business when you save; give them to ${short} in your instruction letter.`}>
-        <div className={GRID}>
-          <CopyField label="API username" value={g?.apiUsername} hint={`Created for your business by UzaPro. ${letter}.`} />
-          <CopyField label="API secret key" secret value={g?.apiSecret} hint={`Created for your business by UzaPro and never shown. Copy it straight into your ${short} letter.`} />
-          <Input label="Paybill number" readOnly value={bank.paybill} boxClassName="bg-grey-50" hint={`${short} till payments go through paybill ${bank.paybill}.`} />
-          <Input
-            label={`${short} till number`}
-            required
-            inputMode="numeric"
-            disabled={off}
-            value={till}
-            error={errors.tillNumber}
-            hint={`Your till number under ${bank.paybill}, for example 000001. Sent as the account number.`}
-            onChange={(e) => (setTill(e.target.value), setDirty(true), setErrors((x) => ({ ...x, tillNumber: undefined })))}
-          />
-        </div>
-      </Card>
-
-      <Card title="Payment notifications" subtitle={`Give these to ${short} in your instruction letter. All four are created for your business when you save. ${short} must send notifications as JSON.`}>
-        <div className={GRID}>
-          <CopyField label="Notification URL" value={g?.notifyUrl} hint="Unique to your business." />
-          <CopyField label="Notification username" value={g?.notifyUsername} hint={`${letter}; ${short} sends it with every payment notification.`} />
-          <CopyField label="Notification password" secret value={g?.notifyPassword} hint={`Never shown. Copy it straight into your ${short} letter; ${short} sends it with every payment notification.`} />
-          <CopyField label="Notification secret key" secret value={g?.notifySecret} hint={`Never shown. Copy it straight into your ${short} letter; it verifies every notification.`} />
-        </div>
-      </Card>
-
-      <Card title="QR code" subtitle="Optional. Needed only to show dynamic payment QR codes.">
-        <div className={GRID}>
-          <Input
-            label="QR till code"
-            disabled={off}
-            value={qr}
-            error={errors.qrTillCode}
-            hint={`The till code ${short} gave you for QR payments, for example PAY100D.`}
-            onChange={(e) => (setQr(e.target.value), setDirty(true), setErrors((x) => ({ ...x, qrTillCode: undefined })))}
-          />
-        </div>
-      </Card>
+        {links.length === 0 && <div className="type-body p-6 text-center text-text-muted">No bank integrations yet.</div>}
+      </section>
 
       {canWrite && (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {saved && dirty && <span className="type-small mr-auto text-text-muted">Save your changes before you test them.</span>}
-          <Button variant="secondary" icon="plug" disabled={!saved || dirty || busy !== ""} onClick={() => void test()}>
-            {busy === "test" ? "Testing" : "Test connection"}
-          </Button>
-          <Button icon="check" disabled={busy !== ""} onClick={() => void save()}>
-            Save credentials
-          </Button>
-        </div>
+        <Card title="Add a bank integration" subtitle="Link a bank account so M-Pesa payments made to the bank's Paybill are recorded in UzaPro.">
+          <div className="flex flex-col gap-4">
+            <div className={GRID}>
+              <SearchSelect label="Bank" noun="bank" options={BANK_PAYBILLS.map((b) => b.bank)} value={bank} onChange={(v) => (setBank(v), clear())} />
+              <Input label="Paybill" value={paybill} disabled readOnly />
+              <Input label="Bank account number" inputMode="numeric" placeholder="For example, 0180294833321" value={account} onChange={(e) => (setAccount(e.target.value.replace(/\s/g, "")), clear())} />
+              <Input label="Account name" placeholder="As shown by the bank" value={name} onChange={(e) => (setName(e.target.value), clear())} />
+              <SearchSelect label="Record payments in" noun="account" options={accounts} value={deposit} onChange={setDeposit} />
+              <SearchSelect label="How payments reach UzaPro" noun="option" options={[...BANK_FEEDS]} value={feed} onChange={(v) => setFeed(v as BankFeed)} />
+            </div>
+            <div className="type-small rounded-md bg-canvas p-3 text-text-secondary">
+              Customers will pay to Paybill {paybill}, account {account || "your account number"}#SALE NO.{" "}
+              {feed === "Bank API (instant)" ? `Payments show in UzaPro within seconds once ${bank} turns on alerts for your account.` : "Upload the bank statement each day and UzaPro matches the payments."}
+            </div>
+            <FormError text={error} />
+            <div>
+              <Button icon="plus" onClick={() => void save()}>
+                Add bank integration
+              </Button>
+            </div>
+          </div>
+        </Card>
       )}
-    </>
+    </div>
   );
 }

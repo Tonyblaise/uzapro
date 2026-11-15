@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { approvalsFor, discountBlock, discountGiven, myApprovals, seedApprovals, validDiscountMax } from "@/data/approvals";
-import { approveCount, cancelCount, saveCount, sendBackCount, startCount, submitCount } from "@/data/commands/counts";
+import { approveCount, cancelCount, sendBackCount } from "@/data/commands/counts";
 import { dispatchOrder, markDelivered } from "@/data/commands/orders";
 import { addRole, deleteRole, duplicateRole, saveRoleAccess } from "@/data/commands/permissions";
 import { addVariantToCart, charge, chooseVariant, completePosSale, launchTill, pressPin, setDiscount, tapProduct, toggleDiscountType } from "@/data/commands/pos";
@@ -93,16 +93,14 @@ describe("the rights decide who can act (feature 018, US2, SC-002)", () => {
   });
 
   it("stock count approval follows its right, not Delete on Stock", async () => {
-    await startCount("Main Store", ["Bike Pump"]);
-    await saveCount("CNT-0002", { "Bike Pump": 29 });
-    await submitCount("CNT-0002");
+    // SC-0014 is seeded waiting for approval (design UZ_COUNTS).
     as("store");
-    for (const act of [approveCount, sendBackCount, cancelCount]) expect((await act("CNT-0002")).message).toBe("Your role can't approve stock counts.");
-    expect(s().stock.counts[0]!.status).toBe("Waiting approval");
+    for (const act of [approveCount, sendBackCount, cancelCount]) expect((await act("SC-0014")).message).toBe("Your role can't approve stock counts.");
+    expect(s().stock.counts.find((c) => c.ref === "SC-0014")!.status).toBe("Waiting approval");
     as("owner");
     await grant("store", { counts: true });
     as("store");
-    expect((await approveCount("CNT-0002")).message).toBe("CNT-0002 approved. Stock updated.");
+    expect((await approveCount("SC-0014")).message).toBe("SC-0014 approved. Stock updated.");
   });
 
   it("dispatch follows its right, not Write on Sales", async () => {

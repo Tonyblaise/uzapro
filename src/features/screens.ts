@@ -12,6 +12,7 @@ import { permissionsScreens } from "./permissions/screens";
 import { profileScreens } from "./profile/screens";
 import { settingsScreens } from "./settings/screens";
 import { customersScreens } from "./customers/screens";
+import { fieldScreens } from "./field/screens";
 import { dashboardScreens } from "./dashboard/screens";
 import { expensesScreens } from "./expenses/screens";
 import { productsScreens } from "./products/screens";
@@ -32,6 +33,7 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   inv: stockScreens,
   sales: salesScreens,
   pos: posScreens,
+  field: fieldScreens,
   cust: customersScreens,
   buy: purchasesScreens,
   vend: suppliersScreens,

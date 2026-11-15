@@ -100,25 +100,41 @@ export interface ReorderRule {
   supplier: string;
 }
 
+/**
+ * One product on a stock count (design `UZ_COUNTS` lines). The design counts each variant; UzaPro
+ * keeps stock per product and store, so a line is a product with its variants listed (feature 025).
+ */
 export interface CountLine {
   product: string;
+  category: string;
+  /** The product's variants, shown under its name. */
+  variants: string[];
   /** Stock on hand when the count started, in base units. */
   system: number;
   /** null until the line is counted. */
   counted: number | null;
+  note: string;
 }
 
-/** A stock count (feature 017). Only approving it changes stock. */
+export type CountStatus = "Counting" | "Waiting approval" | "Approved" | "Cancelled";
+
+/** A stock count (design `UZ_COUNTS`). Only approving it changes stock. */
 export interface StockCount {
-  /** CNT-0001 … */
+  /** SC-0001 … */
   ref: string;
   store: string;
-  date: string; // ISO
+  /** "Everything" or a category name. */
+  scope: string;
+  /** Hide the system quantity while counting. */
+  blind: boolean;
+  /** Started on, ISO. */
+  date: string;
+  /** Who is counting. */
   by: string;
-  status: "In progress" | "Waiting approval" | "Approved" | "Cancelled";
-  /** Every product in stock at the store was included. */
-  full: boolean;
+  status: CountStatus;
   lines: CountLine[];
+  history: { when: string; what: string; who: string }[];
+  submittedAt?: string;
   approvedBy?: string;
   approvedAt?: string;
 }

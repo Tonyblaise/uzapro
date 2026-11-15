@@ -20,6 +20,7 @@ export type ModuleId =
   | "inv"
   | "sales"
   | "pos"
+  | "field"
   | "cust"
   | "buy"
   | "vend"

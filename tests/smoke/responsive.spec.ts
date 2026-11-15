@@ -248,12 +248,12 @@ test.describe("permissions on phones (feature 011)", () => {
     await scan(page, "main", "role cards");
     await page.getByRole("button", { name: "Edit role: Cashier" }).click();
     const dialog = page.getByRole("dialog", { name: "Edit role" });
-    await expect(dialog.getByRole("group")).toHaveCount(22);
+    await expect(dialog.getByRole("group")).toHaveCount(23);
     await noSideways(page);
     const save = await dialog.getByRole("button", { name: "Save" }).boundingBox();
     expect(save!.y + save!.height).toBeLessThanOrEqual(700);
-    const read = await dialog.getByRole("button", { name: "Sales: Read" }).boundingBox();
-    const del = await dialog.getByRole("button", { name: "Sales: Delete" }).boundingBox();
+    const read = await dialog.getByRole("button", { name: "Sales: Read", exact: true }).boundingBox();
+    const del = await dialog.getByRole("button", { name: "Sales: Delete", exact: true }).boundingBox();
     expect(del!.x + del!.width).toBeLessThanOrEqual(320);
     expect(read!.y).toBe(del!.y);
     await scan(page, '[role="dialog"]', "Edit role");
@@ -317,20 +317,24 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "delivery note");
   });
 
-  test("field sales and a visit fit 320px and pass the scan (feature 021)", async ({ page, errors }) => {
+  test("the field sale form and a delivery fit 320px and pass the scan (feature 024)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");
-    await page.goto("/sales/field-sales");
-    await expect(page.getByRole("button", { name: "Start visit: Mountain Goats" })).toBeVisible();
+    await page.goto("/field-sales/field-sales");
+    await expect(page.getByRole("row").filter({ hasText: "FS-0112" })).toBeVisible();
     await noSideways(page, "field sales");
     await scan(page, "main", "field sales");
-    await page.getByRole("button", { name: "Start visit: Mountain Goats" }).click();
-    await pick(page, "Add item", "Aluminium Frame · 54cm");
-    const form = page.getByRole("dialog", { name: "Mountain Goats" });
-    const done = await form.getByRole("button", { name: "Complete sale" }).boundingBox();
-    expect(done!.x + done!.width).toBeLessThanOrEqual(320);
-    await noSideways(page, "visit");
-    await scan(page, '[role="dialog"]', "visit");
+    await page.goto("/field-sales/field-sales?action=new");
+    const form = page.getByRole("dialog", { name: "New field sale" });
+    const save = await form.getByRole("button", { name: "Save and send to deliveries" }).boundingBox();
+    expect(save!.x + save!.width).toBeLessThanOrEqual(320);
+    await noSideways(page, "field sale form");
+    await scan(page, '[role="dialog"]', "field sale form");
+    await page.goto("/field-sales/deliveries?view=DLV-0239");
+    const view = page.getByRole("dialog", { name: "Delivery DLV-0239" });
+    await expect(view.getByRole("button", { name: "Mark as delivered" })).toBeVisible();
+    await noSideways(page, "delivery");
+    await scan(page, '[role="dialog"]', "delivery");
   });
 
   test("the WhatsApp dialog fits 320px and passes the scan (feature 020)", async ({ page, errors }) => {
@@ -348,43 +352,31 @@ test.describe("pricing and credit on phones (feature 012)", () => {
     await scan(page, '[role="dialog"]', "WhatsApp dialog");
   });
 
-  test("the stock count list, form and view fit 320px and pass the scan (feature 017)", async ({ page, errors }) => {
+  test("the stock count list, new count and count screen fit 320px and pass the scan (feature 025)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");
     await page.goto("/stock/stock-counts");
-    await expect(page.getByRole("row").filter({ hasText: "CNT-0001" })).toBeVisible();
+    await expect(page.getByRole("row").filter({ hasText: "SC-0015" })).toBeVisible();
     await noSideways(page, "count list");
     await scan(page, "main", "count list");
-    await page.goto("/stock/stock-counts?view=CNT-0001");
-    await expect(page.getByRole("dialog", { name: "CNT-0001" })).toBeVisible();
+    await page.goto("/stock/stock-counts?view=SC-0014");
+    await expect(page.getByRole("dialog", { name: "Stock count SC-0014" })).toBeVisible();
     await noSideways(page, "count view");
     await scan(page, '[role="dialog"]', "count view");
     await page.goto("/stock/stock-counts?action=new");
-    await pick(page, "Store", "Main Store");
     const form = page.getByRole("dialog", { name: "New stock count" });
-    await expect(form.getByText("Full count")).toBeVisible();
+    await expect(form.getByText("Blind count", { exact: true })).toBeVisible();
     await noSideways(page, "new count");
     await scan(page, '[role="dialog"]', "new count");
-    await form.getByRole("button", { name: "Start count" }).click();
-    await expect(page.getByRole("dialog", { name: "CNT-0002" }).getByLabel("Counted: Bike Pump")).toBeVisible();
+    await page.goto("/stock/stock-counts?view=SC-0015");
+    await expect(page.getByRole("dialog", { name: "Stock count SC-0015" }).getByLabel("Counted quantity for Bike Pump")).toBeVisible();
     await noSideways(page, "count in progress");
     await scan(page, '[role="dialog"]', "count in progress");
   });
 
-  test("the reorder list and form fit 320px and pass the scan (feature 014, SC-006)", async ({ page, errors }) => {
+  test("the product form with bulk units and a reorder point fits 320px (feature 014, SC-006)", async ({ page, errors }) => {
     void errors;
     await loginAs(page, "owner");
-    await page.goto("/stock/reorder");
-    await expect(page.getByRole("row").filter({ hasText: "Muthokinju Paint" })).toBeVisible();
-    await noSideways(page, "reorder list");
-    await scan(page, "main", "reorder list");
-    await page.goto("/stock/reorder?edit=Muthokinju%20Paint%7CMain%20Store");
-    const form = page.getByRole("dialog", { name: "Edit reorder point" });
-    await expect(form.getByLabel("Reorder at")).toHaveValue("24");
-    await noSideways(page, "reorder form");
-    const save = await form.getByRole("button", { name: "Save" }).boundingBox();
-    expect(save!.x + save!.width).toBeLessThanOrEqual(320);
-    await scan(page, '[role="dialog"]', "reorder form");
     await page.goto("/products/all-products?action=new");
     await expect(page.getByRole("dialog").last().getByText("Contains", { exact: true })).toBeVisible();
     await noSideways(page, "product form");
