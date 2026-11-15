@@ -83,17 +83,17 @@ test("the reorder list suggests orders and turns them into draft purchase orders
   await expect(page.getByRole("row").filter({ hasText: "Draft" })).toHaveCount(2);
 });
 
-test("set a reorder point on a product variant, then edit and remove one store's line (US2)", async ({ page, errors }) => {
+test("set a reorder point on a product, then edit and remove one store's line (US2)", async ({ page, errors }) => {
   void errors;
   await loginAs(page, "owner");
   await page.goto("/products/all-products?edit=Carbon%20Sole%20Shoes");
   const form = page.getByRole("dialog", { name: "Edit product" });
-  // Size 42 is the first variant row; its Reorder at / Order up to are the first of each.
-  await form.getByLabel("Reorder at").first().fill("50");
-  await form.getByLabel("Order up to").first().fill("40");
+  // One reorder point for the whole product; purchase orders order its first variant (Size 42).
+  await form.getByLabel("Reorder at").fill("50");
+  await form.getByLabel("Order up to").fill("40");
   await expect(form.getByRole("alert")).toHaveText("Order up to must be above the reorder point");
   await expect(form.getByRole("button", { name: "Save" })).toBeDisabled();
-  await form.getByLabel("Order up to").first().fill("80");
+  await form.getByLabel("Order up to").fill("80");
   await form.getByRole("button", { name: "Save" }).click();
   await expect(form).toHaveCount(0);
 

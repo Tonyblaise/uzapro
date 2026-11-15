@@ -97,7 +97,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
         blocks: [
           { kind: "faq", q: "Can I refund only part of a sale?", a: ["Yes. Choose **Partial** and set the credit quantity on each line. You cannot credit more than is still open on the sale."] },
           { kind: "faq", q: "What if the customer never paid?", a: ["The credit note reduces what the customer owes instead of paying money out."] },
-          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Customers › Customer credits, once the credit note is approved."] },
+          { kind: "faq", q: "Where do I see the customer credit?", a: ["In Customers › Refunds (credit notes), on the credit note’s line under **Credit left**, once the credit note is approved."] },
         ],
       },
       NEED_HELP,
@@ -1164,9 +1164,9 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
             kind: "ol",
             items: [
               "Go to Products › All products and choose **New product**, or open a product and choose **Edit**.",
-              "On the variant you order, enter **Reorder at** and **Order up to**, both in the base unit.",
+              "Under **Reorder point**, enter **Reorder at** and **Order up to** for the product, both in the base unit.",
               "Choose **Save**. The reorder point applies at every store you buy stock into (not transit locations or vans).",
-              "To change one store, or to set the **Order unit** and the **Supplier** for purchase orders, go to Stock › Reorder and choose **Edit** on that line.",
+              "To change one store, or to set the **Variant to order**, the **Order unit** and the **Supplier** for purchase orders, go to Stock › Reorder and choose **Edit** on that line.",
             ],
           },
           {
@@ -1179,7 +1179,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
               ["On order", "Stock is low, but purchase orders already cover it."],
             ],
           },
-          { kind: "note", tone: "info", text: "Stock is counted per product, not per variant, so a product has one reorder point per store. If you enter one on more than one variant, the first is used." },
+          { kind: "note", tone: "info", text: "Stock is counted per product, not per variant, so the reorder point is for the whole product. Purchase orders order its first variant unless you choose another in Stock › Reorder." },
           { kind: "links", screens: [{ label: "Open Products › All products", module: "prod", tab: "all-products" }, { label: "Open Stock › Reorder", module: "inv", tab: "reorder" }] },
         ],
       },

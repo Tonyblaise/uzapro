@@ -9,7 +9,7 @@ const Plans = () => <PlanList side="pay" />;
 
 /**
  * Tab slug → screen (feature 003). Header actions follow the design's `headerActions` for `pay`:
- * "Record payment" by default, "New bulk payment", "Create plan" (Supplier credits moved to Suppliers), none on Supplier ageing.
+ * "Record payment" by default, "New bulk payment", "Create plan" (supplier credits are listed with Purchases › Purchase returns), none on Supplier ageing.
  */
 export const payablesScreens: ScreenMap = {
   payables: { Body: PayableList, Actions: RecordPaymentAction },

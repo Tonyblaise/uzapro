@@ -8,8 +8,8 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
     // 21 with Point of sale (feature 010), 22 with Integrations (feature 015).
     expect(visibleModules(ROLES.owner)).toHaveLength(22);
     expect(tabs("owner", "sales")).toHaveLength(9); // + Sales orders and Deliveries (013), Field sales (021); credit notes moved to Customers
-    expect(tabs("owner", "cust")).toEqual(["customers", "refunds-credit-notes", "customer-credits", "customer-groups"]);
-    expect(tabs("owner", "vend")).toEqual(["suppliers", "supplier-credits"]); // Supplier credits moved from Payables
+    expect(tabs("owner", "cust")).toEqual(["customers", "refunds-credit-notes", "customer-groups"]); // customer credits are listed with credit notes
+    expect(tabs("owner", "vend")).toEqual(["suppliers"]); // supplier credits are listed with purchase returns
   });
   it("accountant: sales without quotations, no products or stock", () => {
     expect(tabs("accountant", "sales")).toEqual(["overview", "all-sales", "sales-orders", "deliveries", "invoices", "voided-items", "sales-targets"]);
@@ -28,7 +28,6 @@ describe("roles (contracts/routes.md › Role visibility)", () => {
   });
   it("store keeper: products and stock, no sales or customers", () => {
     expect(tabs("store", "prod")).toHaveLength(5); // + Price lists (feature 012)
-    expect(tabs("store", "vend")).toEqual(["suppliers"]); // no supplier credits without Payables
     expect(tabs("store", "inv")).toHaveLength(7); // + Reorder (014), Stock counts (017); Expiry (016) removed
     expect(canSee(ROLES.store, "sales")).toBe(false);
     expect(canSee(ROLES.store, "cust")).toBe(false);

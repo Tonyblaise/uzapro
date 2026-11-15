@@ -1,12 +1,16 @@
 "use client";
-/** Sales › Quotations, Invoices and Voided items, and Customers › Refunds (credit notes), with their overlays. */
-import { useCallback, useState } from "react";
+/**
+ * Sales › Quotations, Invoices and Voided items, and Customers › Refunds (credit notes), with their
+ * overlays. The credit notes list also shows customer credits (store credit balances).
+ */
+import { useCallback, useMemo, useState } from "react";
 import {
   approveCreditNote,
   approveDocument,
   deleteDocument,
   downloadPdf,
   useCreditNotes,
+  useCredits,
   useInvoices,
   useQuotations,
 
@@ -14,6 +18,7 @@ import {
   invoiceMessage,
   useBusinessProfile,
   type CreditNote,
+  type CreditRow,
   type Invoice,
   type Quotation,
   type VoidRecord, useCan } from "@/data";
@@ -28,6 +33,7 @@ import { OrderForm } from "./OrderForm";
 import { WhatsAppDialog } from "@/components/ui/WhatsAppDialog";
 import { InvoicePayment, useInvoicePayable } from "./InvoicePayment";
 import { RecordView } from "./RecordView";
+import { CreditOverlays, IssueCreditButton, creditLeftOf, creditStatusOf, useCreditAccess, useCreditActions } from "@/features/receivables";
 import { VoidForm } from "./VoidForm";
 import { Lead, amount, docDate, useOverlay, useStatusFilter } from "./shared";
 
@@ -69,7 +75,12 @@ function HeaderButton({ label, action }: { label: string; action: string }) {
 }
 export const NewQuotationAction = () => <HeaderButton label="New quotation" action="quote" />;
 export const NewInvoiceAction = () => <HeaderButton label="New invoice" action="invoice" />;
-export const NewCreditNoteAction = () => <HeaderButton label="New credit note" action="credit" />;
+export const NewCreditNoteAction = () => (
+  <span className="inline-flex flex-wrap gap-2">
+    <IssueCreditButton side="rcv" />
+    <HeaderButton label="New credit note" action="credit" />
+  </span>
+);
 
 /** Delete confirmation (design `rowConfirm`). */
 function useDelete(kind: "quote" | "invoice" | "credit") {
@@ -220,30 +231,57 @@ export function InvoiceList() {
   );
 }
 
+/** A credit note (with its store credit, when refunded that way) or a credit given directly. */
+type CreditLine = { key: string; note?: CreditNote; credit?: CreditRow; when: number };
+
+const REFUND_AS: Record<NonNullable<CreditNote["moneyBack"]>, string> = { cash: "Cash", credit: "Store credit", original: "" };
+const refundedAs = (r: CreditLine) =>
+  !r.note ? "Store credit" : r.note.moneyBack === "original" ? r.note.refundMethod || "Original method" : r.note.moneyBack ? REFUND_AS[r.note.moneyBack] : r.note.refundMethod || "—";
+const lineStatus = (r: CreditLine) => (r.note ? r.note.status : creditStatusOf(r.credit!));
+
+/**
+ * Customers › Refunds (credit notes): credit notes and customer credits in one list, newest first.
+ * A credit note refunded as store credit shows that credit's balance; credits given directly
+ * (goodwill, overpayment …) are their own lines. Credit columns and actions need Receivables access.
+ */
 export function CreditNoteList() {
-  const rows = useCreditNotes();
+  const notes = useCreditNotes();
+  const credits = useCredits("rcv");
+  const can = useCreditAccess("rcv");
+  const creditItems = useCreditActions("rcv");
   const canDel = useCan("delete");
   const { params, open, close } = useOverlay();
   const del = useDelete("credit");
-  const pill = useCallback((r: CreditNote) => r.status.label, []);
+  const rows = useMemo<CreditLine[]>(() => {
+    const linked = new Map(credits.map((c) => [c.reason, c]));
+    const fromNotes = notes.map((n) => ({ key: n.number, note: n, credit: linked.get(`Credit note ${n.number}`), when: Date.parse(n.date) || 0 }));
+    const used = new Set(fromNotes.map((r) => r.credit?.ref).filter(Boolean));
+    const direct = can.see ? credits.filter((c) => !used.has(c.ref)).map((c) => ({ key: c.ref, credit: c, when: Date.parse(c.issued) || 0 })) : [];
+    return [...fromNotes, ...direct].sort((x, y) => y.when - x.when);
+  }, [notes, credits, can.see]);
+  const pill = useCallback((r: CreditLine) => lineStatus(r).label, []);
   const filter = useStatusFilter(rows, pill);
-  const items = docActions("credit", false, canDel, open, del.ask);
-  const columns: DataColumn<CreditNote>[] = [
-    { key: "number", title: "Credit note", render: (r) => <Lead>{r.number}</Lead> },
-    { key: "customer", title: "Customer" },
-    { key: "date", title: "Date", text: (r) => docDate(r.date) },
-    { key: "source", title: "Invoice" },
-    { key: "reason", title: "Reason" },
-    { key: "amount", title: "Amount (KES)", numeric: true, text: (r) => amount(r.amount) },
-    pillCol((r) => r.status),
+  const noteItems = docActions("credit", false, canDel, open, del.ask);
+  const items = (r: CreditLine): MenuItem[] => [...(r.note ? noteItems(r.note) : []), ...(r.credit && can.see ? creditItems(r.credit) : [])];
+  const columns: DataColumn<CreditLine>[] = [
+    { key: "number", title: "Ref", text: (r) => r.key, render: (r) => <span className="whitespace-nowrap"><Lead>{r.key}</Lead></span> },
+    { key: "customer", title: "Customer", text: (r) => r.note?.customer ?? r.credit!.party },
+    { key: "date", title: "Date", text: (r) => (r.note ? docDate(r.note.date) : r.credit!.issued) },
+    { key: "source", title: "From", text: (r) => r.note?.source ?? "Direct credit", render: (r) => <span className="whitespace-nowrap">{r.note?.source ?? "Direct credit"}</span> },
+    { key: "reason", title: "Reason", text: (r) => r.note?.reason ?? r.credit!.reason },
+    { key: "refund", title: "Refunded as", text: refundedAs },
+    { key: "amount", title: "Amount (KES)", numeric: true, text: (r) => amount(r.note?.amount ?? r.credit!.amount) },
+    ...(can.see ? [{ key: "left", title: "Credit left (KES)", numeric: true, text: (r: CreditLine) => (r.credit ? amount(creditLeftOf(r.credit)) : "—") }] : []),
+    pillCol(lineStatus),
     actionsCol(items),
   ];
   const view = params.get("view");
   return (
     <>
-      <DataTable columns={columns} rows={filter.shown} rowKey={(r) => r.number} onRowClick={(r) => open({ view: r.number })} filters={filter.control} />
+      <DataTable columns={columns} rows={filter.shown} rowKey={(r) => r.key} onRowClick={(r) => r.note && open({ view: r.note.number })} filters={filter.control} />
       {params.get("action") === "credit" && <DocumentForm kind={"credit" as DocKind} onClose={close} />}
       {view && <RecordView kind="credit" refId={view} onClose={close} />}
+      <CreditOverlays side="rcv" />
       {del.dialog}
     </>
   );

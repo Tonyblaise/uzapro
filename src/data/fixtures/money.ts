@@ -41,7 +41,7 @@ export const UZ_PAYDETAIL: Record<string, { account: string; payRef: string; all
 /** rcv › Payment plans: [Ref, Customer, Receivable, Total, (instalments), Each, (next due), Status] */
 export const RCV_PLAN_ROWS = [["PLN-0003", "Morningview Bicycles", "RCV-0012", "45,600", "", "15,200", "", P("Active", "good")]] as const;
 
-/** Customers › Customer credits (rcv side): [Ref, Customer, Reason, Issued, Amount, Used, (left), (status)] */
+/** Customer credits (rcv side, listed with Customers › Refunds (credit notes)): [Ref, Customer, Reason, Issued, Amount, Used, (left), (status)] */
 export const CUSTOMER_CREDIT_ROWS = [
   ["CRD-0004", "Mountain Goats", "Returned faulty inner tubes", "3 Nov 2026", "4,800", "0"],
   ["CRD-0003", "Morningview Bicycles", "Goodwill discount", "12 Sep 2026", "2,000", "2,000"],
@@ -62,7 +62,7 @@ export const PAY_PAYMENT_ROWS = [
   ["VPMT-0007", "20 Oct 2026", "Eastside Bicycle Supplies", "PYB-0010, PYB-0011", "Bank transfer", "Bulk", "53,000", P("Verified", "good")],
 ] as const;
 
-/** Suppliers › Supplier credits (pay side): [Ref, Supplier, Source, Issued, Amount, Used, (left), (status)] */
+/** Supplier credits (pay side, listed with Purchases › Purchase returns): [Ref, Supplier, Source, Issued, Amount, Used, (left), (status)] */
 export const SUPPLIER_CREDIT_ROWS = [["SCR-0002", "Magaliesburg Wheels", "Returned damaged wheels (PRT-0005)", "4 Nov 2026", "684", "0"]] as const;
 
 export const UZ_SCDETAIL: Record<string, { expires: string; notes: string }> = {

@@ -36,29 +36,16 @@ interface Row {
   unit: string;
   /** Feature 014: base units in this unit, for a row that prices the variant in another unit. */
   contains: string;
-  /** Reorder at / Order up to for this variant, in base units, at every store (variant rows only). */
-  min: string;
-  max: string;
 }
 
-type ProductReorder = { variant: string; min: number; max: number } | "mixed" | null;
-
 let rowSeq = 0;
-const blank = (unit: string, name = ""): Row => ({ id: ++rowSeq, name, cost: "", price: "", unit, contains: "", min: "", max: "" });
+const blank = (unit: string, name = ""): Row => ({ id: ++rowSeq, name, cost: "", price: "", unit, contains: "" });
 
 /** Design `prodEdit`: one row per variant, then one row per extra unit price under it. */
-function rowsFor(p: Product, base: string, reorder: ProductReorder): Row[] {
+function rowsFor(p: Product, base: string): Row[] {
   const rows: Row[] = [];
   for (const v of p.variants) {
-    const point = reorder && reorder !== "mixed" && reorder.variant === v.name ? reorder : undefined;
-    rows.push({
-      ...blank(base),
-      name: v.name,
-      price: v.price ? String(v.price) : "",
-      cost: v.cost ? String(v.cost) : "",
-      unit: v.unit || base,
-      ...(point ? { min: String(point.min), max: String(point.max) } : {}),
-    });
+    rows.push({ ...blank(base), name: v.name, price: v.price ? String(v.price) : "", cost: v.cost ? String(v.cost) : "", unit: v.unit || base });
     for (const u of v.extraUnits) rows.push({ ...blank(base), name: v.name, unit: u.unit, price: String(u.price), cost: u.cost ? String(u.cost) : "", contains: String(u.contains) });
   }
   return rows.length ? rows : [blank(base)];
@@ -85,10 +72,13 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
   const [name, setName] = useState(edit?.name ?? "");
   const [cat, setCat] = useState(edit ? (editCat?.parent ? editCat.parent : edit.category === "—" ? "" : edit.category) : "");
   const [sub, setSub] = useState(edit && editCat?.parent ? edit.category : "");
-  // Reorder points (set per variant, applied at every store) need Write on Stock as well.
+  const [rows, setRows] = useState<Row[]>(() => (edit ? rowsFor(edit, baseUnit) : [blank(baseUnit)]));
+  // Reorder point: one per product (stock is counted per product), at every store; needs Write on Stock.
   const showReorder = useCan("write", "inv");
   const savedReorder = useProductReorder(edit?.name);
-  const [rows, setRows] = useState<Row[]>(() => (edit ? rowsFor(edit, baseUnit, savedReorder) : [blank(baseUnit)]));
+  const saved = savedReorder && savedReorder !== "mixed" ? savedReorder : undefined;
+  const [reMin, setReMin] = useState(saved ? String(saved.min) : "");
+  const [reMax, setReMax] = useState(saved ? String(saved.max) : "");
   const hasVar = edit ? (edit.hasVariants ?? !(edit.variants.length === 1 && edit.variants[0]?.name === "Standard")) : true;
   const initialTax: ProductTax = edit?.tax ?? {
     sales: edit && !edit.taxable ? "No tax" : DEFAULT_PRODUCT_TAX,
@@ -109,15 +99,9 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
   const isExtra = (r: Row, at: number) => rows.slice(0, at).some((x) => rowDone(x) && (!hasVar || x.name.trim() === r.name.trim()));
   const basePrice = (r: Row) => Number(rows.find((x) => rowDone(x) && (!hasVar || x.name.trim() === r.name.trim()))?.price) || 0;
   const containsBad = (r: Row) => r.contains !== "" && !(Number.isInteger(Number(r.contains)) && Number(r.contains) >= 1);
-  // Reorder point: the first variant row with values is used (stock is counted per product, not per variant).
-  const reorderRows = showReorder ? rows.filter((r, i) => !isExtra(r, i) && (r.min !== "" || r.max !== "")) : [];
-  const reorderRow = reorderRows[0];
-  const reorderError = reorderRows.reduce<string | null>(
-    (e, r) => e ?? (r.min === "" || r.max === "" ? "Enter both Reorder at and Order up to, or leave both blank" : validateLevels(Number(r.min), Number(r.max))),
-    null,
-  );
-  const variantName = (r: Row) => (hasVar ? r.name.trim() : "Standard");
-  const reorderKey = reorderRow ? `${variantName(reorderRow)}|${Number(reorderRow.min)}|${Number(reorderRow.max)}` : "";
+  const reorderSet = reMin !== "" || reMax !== "";
+  const reorderError = !showReorder || !reorderSet ? null : reMin === "" || reMax === "" ? "Enter both Reorder at and Order up to, or leave both blank" : validateLevels(Number(reMin), Number(reMax));
+  const reorderKey = reorderSet ? `${Number(reMin)}|${Number(reMax)}` : "";
   const [initialReorderKey] = useState(reorderKey);
   const blocked =
     !name.trim() || !cat || !rows.some(rowDone) || rows.some((r) => !rowBlank(r) && !rowDone(r)) || rows.some((r, i) => isExtra(r, i) && containsBad(r)) || !!reorderError;
@@ -152,7 +136,9 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
     // Only touch reorder points when the fields changed, so a store tuned in Stock › Reorder survives
     // an unrelated product edit.
     if (showReorder && reorderKey !== initialReorderKey) {
-      const point = reorderRow ? { variant: variantName(reorderRow), min: Number(reorderRow.min), max: Number(reorderRow.max) } : null;
+      // Purchase orders need a variant to order: keep the one already set when it still exists, else the first.
+      const keep = savedReorder && savedReorder !== "mixed" && variants.some((v) => v.name === savedReorder.variant) ? savedReorder.variant : variants[0]!.name;
+      const point = reorderSet ? { variant: keep, min: Number(reMin), max: Number(reMax) } : null;
       const r = await setProductReorder(res.value.name, point);
       if (!r.ok) toast(r.message);
     }
@@ -186,9 +172,7 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
     );
   }
 
-  const grid = showReorder
-    ? "grid grid-cols-[minmax(130px,1fr)_130px_140px_88px_130px_58px_96px_96px_30px_30px] items-center gap-2"
-    : "grid grid-cols-[minmax(130px,1fr)_140px_150px_96px_140px_58px_30px_30px] items-center gap-2";
+  const grid = "grid grid-cols-[minmax(130px,1fr)_140px_150px_96px_140px_58px_30px_30px] items-center gap-2";
 
   return (
     <Drawer open title={edit ? "Edit product" : "New product"} subtitle={CRUMB} width={9999} onClose={onClose}>
@@ -221,7 +205,7 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
         <div className="flex flex-col gap-2">
           <span className="type-label text-text">Product variants</span>
           <div className="overflow-x-auto">
-            <div className={`flex ${showReorder ? "min-w-[900px]" : "min-w-[700px]"} flex-col gap-2`}>
+            <div className="flex min-w-[700px] flex-col gap-2">
               <div className={`${grid} type-table-head border-b border-border pb-2 text-text-muted`}>
                 <span>Variant</span>
                 <span className="text-right">Base buying price</span>
@@ -229,12 +213,6 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
                 <span className="text-right">Contains</span>
                 <span className="text-right">Base selling price</span>
                 <span className="text-right">Margin</span>
-                {showReorder && (
-                  <>
-                    <span className="text-right">Reorder at</span>
-                    <span className="text-right">Order up to</span>
-                  </>
-                )}
                 <span />
                 <span />
               </div>
@@ -263,18 +241,6 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
                   )}
                   <Input size="sm" aria-label="Price in KES" type="number" min={0} value={r.price} onChange={(e) => setRow(r.id, "price", e.target.value)} />
                   <span className="type-small u-num text-right text-text-muted">{marginText(Number(r.cost), Number(r.price))}</span>
-                  {showReorder &&
-                    (isExtra(r, at) ? (
-                      <>
-                        <span />
-                        <span />
-                      </>
-                    ) : (
-                      <>
-                        <Input size="sm" aria-label="Reorder at" type="number" min={0} step={1} value={r.min} onChange={(e) => setRow(r.id, "min", e.target.value)} />
-                        <Input size="sm" aria-label="Order up to" type="number" min={1} step={1} value={r.max} onChange={(e) => setRow(r.id, "max", e.target.value)} />
-                      </>
-                    ))}
                   <IconButton
                     icon="plus"
                     size="sm"
@@ -301,23 +267,28 @@ function ProductFormBody({ edit, onClose }: { edit?: Product; onClose: () => voi
             </div>
           )}
           <span className="type-caption text-text-muted">Each product needs at least one price. Use + to price it in another unit, and say how many base units it contains: stock is counted in the base unit.</span>
-          {showReorder && (
-            <span className="type-caption text-text-muted">
-              Reorder at and Order up to are in the base unit and apply at every store you buy stock into. Leave them blank for no reorder point. Change one store, the order unit or the supplier in Stock › Reorder.
-            </span>
-          )}
-          {showReorder && savedReorder === "mixed" && reorderKey === initialReorderKey && (
-            <span className="type-caption text-text-muted">Reorder points differ by store. Edit them in Stock › Reorder, or enter values here to set every store the same.</span>
-          )}
-          {reorderRows.length > 1 && !reorderError && (
-            <span className="type-caption text-warning-text">Stock is counted per product, so only {variantName(reorderRows[0]!) || "the first variant"}’s reorder point is used.</span>
-          )}
-          {reorderError && (
-            <span role="alert" className="type-small text-danger-text">
-              {reorderError}
-            </span>
-          )}
         </div>
+
+        {showReorder && (
+          <div className="flex flex-col gap-2">
+            <span className="type-label text-text">Reorder point (optional)</span>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,260px))] gap-3">
+              <Input label="Reorder at" type="number" min={0} step={1} hint="Reorder when stock is at or below this." value={reMin} onChange={(e) => setReMin(e.target.value)} />
+              <Input label="Order up to" type="number" min={1} step={1} hint="Order enough to reach this." value={reMax} onChange={(e) => setReMax(e.target.value)} />
+            </div>
+            <span className="type-caption text-text-muted">
+              For the whole product, in the base unit, at every store you buy stock into. Leave both blank for no reorder point. Change one store, the variant to order, the order unit or the supplier in Stock › Reorder.
+            </span>
+            {savedReorder === "mixed" && reorderKey === initialReorderKey && (
+              <span className="type-caption text-text-muted">Reorder points differ by store. Edit them in Stock › Reorder, or enter values here to set every store the same.</span>
+            )}
+            {reorderError && (
+              <span role="alert" className="type-small text-danger-text">
+                {reorderError}
+              </span>
+            )}
+          </div>
+        )}
 
         <ImageDrop label="Product image (optional)" image={image} onChange={setImage} mode="dataUrl" />
 
