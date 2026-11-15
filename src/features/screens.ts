@@ -5,8 +5,9 @@
 import type { ModuleId } from "@/data";
 import { accountsScreens } from "./accounts/screens";
 import { calendarScreens } from "./calendar/screens";
+import { tasksScreens } from "./tasks/screens";
 import { filesScreens } from "./files/screens";
-import { genericSettingsScreens, messagesScreens, reportsScreens, teamScreens } from "./generic/screens";
+import { genericSettingsScreens, reportsScreens, teamScreens } from "./generic/screens";
 import { permissionsScreens } from "./permissions/screens";
 import { profileScreens } from "./profile/screens";
 import { settingsScreens } from "./settings/screens";
@@ -43,7 +44,7 @@ const SCREENS: Partial<Record<ModuleId, ScreenMap>> = {
   ppl: teamScreens,
   perm: permissionsScreens,
   cal: calendarScreens,
-  comm: messagesScreens,
+  task: tasksScreens,
   docs: filesScreens,
   prof: profileScreens,
   intg: integrationsScreens,

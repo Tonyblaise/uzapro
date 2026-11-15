@@ -1,7 +1,7 @@
 "use client";
 /** Office, People and Settings read hooks (specs/005-office-people-settings/contracts/data-access.md). */
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AiState } from "./store/state";
 import { viewingLabel } from "./uzaai";
 import { receivableRows } from "./money";
@@ -10,6 +10,8 @@ import { tillProducts } from "./commands/pos";
 import type { AppState } from "./store/state";
 import { comingUp, visibleEvents } from "./calendar";
 import { storageTotals } from "./docs";
+import { dueReminders, visibleTasks } from "./tasks";
+import { taskUser } from "./commands/tasks";
 import { currentUserFirst, currentUserName } from "./profile";
 import { bizCompletion, storageCode } from "./settings";
 import { useAppStore } from "./store/StoreProvider";
@@ -30,11 +32,13 @@ import type {
   Profile,
   StorageLocationRow,
   StorageTotals,
+  Task,
   TerminalsState,
 } from "./types";
 
 // Read-only reference lists the forms need.
 export { CAL_TYPES } from "./fixtures/calendar";
+export { REMINDER_REPEATS, SNOOZE_OPTIONS, TASK_PRIORITIES, TASK_STATUSES } from "./fixtures/tasks";
 export { DOC_QUOTA_KB, DOC_SORT_OPTIONS, DOC_TYPE_OPTIONS } from "./fixtures/docs";
 export {
   BIZ_CHANNELS,
@@ -53,6 +57,7 @@ export {
 export { GENERIC_FORMS, NEW_RECORD_STATUSES, REPORT_CARDS } from "./fixtures/generic";
 export * from "./calendar";
 export * from "./docs";
+export * from "./tasks";
 export * from "./settings";
 export { currentUserFirst, currentUserName, nameInitials } from "./profile";
 
@@ -81,6 +86,45 @@ export function useComingUp(): CalEvent[] {
 
 export function useCalendarTypes(): string[] {
   return useAppStore((s) => s.calendar.types);
+}
+
+// ---- Tasks (feature 023) ---------------------------------------------------------------------
+
+/** The current person's name as tasks record it. */
+export function useTaskUser(): string {
+  return useAppStore(taskUser);
+}
+
+/** Tasks this person may see, open ones first (the owner sees all). */
+export function useTasks(): Task[] {
+  const tasks = useAppStore((s) => s.tasks.tasks);
+  const role = useAppStore((s) => s.session.role);
+  const me = useTaskUser();
+  return useMemo(() => visibleTasks(tasks, role, me), [tasks, role, me]);
+}
+
+export function useTask(id: string | null | undefined): Task | undefined {
+  const tasks = useTasks();
+  return useMemo(() => (id ? tasks.find((t) => t.id === id) : undefined), [tasks, id]);
+}
+
+/** Reminders that are due now for the tasks this person sees. */
+export function useDueReminders(): Task[] {
+  const tasks = useTasks();
+  // Re-check every minute so snoozed and timed reminders come due without a store change.
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => dueReminders(tasks), [tasks, tick]);
+}
+
+/** Names for the "Assigned to" picker: the Team list. */
+export function useTeamNames(): string[] {
+  const rows = useAppStore((s) => s.generic["ppl/team"]);
+  return useMemo(() => (rows ?? []).map((r) => (typeof r[0] === "string" ? r[0] : r[0]?.label ?? "")).filter(Boolean), [rows]);
 }
 
 // ---- File Manager -----------------------------------------------------------------------------

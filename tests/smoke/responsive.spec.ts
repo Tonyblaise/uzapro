@@ -26,6 +26,7 @@ const PAGES = [
   "/expenses/overview",
   "/expenses/expenses",
   "/calendar/calendar",
+  "/tasks/tasks",
   "/file-manager/all-documents",
   "/settings/business-profile",
   "/settings/terminals",

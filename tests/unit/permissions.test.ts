@@ -35,8 +35,8 @@ describe("seed parity with today's role visibility (SC-002)", () => {
     });
   }
 
-  it("module summaries: 22, 15, 8 and 9 of 22", () => {
-    expect(IDS.map((id) => moduleSummary(seedAccess(id)).open)).toEqual([22, 15, 8, 9]);
+  it("module summaries: 22, 16, 9 and 10 of 22", () => {
+    expect(IDS.map((id) => moduleSummary(seedAccess(id)).open)).toEqual([22, 16, 9, 10]);
     expect(moduleSummary(seedAccess("owner")).total).toBe(22);
   });
 

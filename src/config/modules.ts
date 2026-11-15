@@ -276,22 +276,8 @@ export const MODULES: Module[] = [
     true,
   ),
   mod("cal", "Office", "calendar", "Calendar", "What’s coming up for the business", "calendar", [["Calendar", "calendar"]], true),
-  mod(
-    "comm",
-    "Office",
-    "mail",
-    "Messages",
-    "Send SMS, email and WhatsApp",
-    "messages",
-    [
-      ["Send message", "form"],
-      ["Saved messages", "table", [C("Template"), C("Channel"), C("Variables"), C("Status")]],
-      ["Sent messages", "table", [C("Sent"), C("Channel"), C("Audience"), N("Delivered"), C("Status")]],
-      ["Campaigns", "table", [C("Campaign"), C("Segment"), N("Sent"), N("Clicks"), C("Status")]],
-      ["Scheduled", "table", [C("Scheduled for"), C("Channel"), C("Template"), C("Status")]],
-    ],
-    true,
-  ),
+  // Feature 023: Tasks (with reminders) replaces Messages.
+  mod("task", "Office", "list-checks", "Tasks", "Work to do and reminders for the team", "tasks", [["Tasks", "tasks"]], true),
   mod("docs", "Office", "folder", "File Manager", "Company files, organised by folder", "file-manager", [["All documents", "docs"]], true),
   mod(
     "sup",

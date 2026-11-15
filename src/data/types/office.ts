@@ -45,6 +45,49 @@ export interface MonthCell {
   isToday: boolean;
 }
 
+// ---- Tasks (feature 023) ----------------------------------------------------------------------
+
+export type TaskStatus = "To do" | "In progress" | "Done";
+export type TaskPriority = "Low" | "Medium" | "High";
+export type ReminderRepeat = "None" | "Daily" | "Weekly" | "Monthly";
+
+/** A reminder on a task. It is due once its date and time have passed (demo clock) and the task is not Done. */
+export interface Reminder {
+  date: string; // ISO
+  /** "HH:MM" or "" (start of the day). */
+  time: string;
+  repeat: ReminderRepeat;
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  /** Due date, ISO or "". */
+  due: string;
+  /** A team member's name. */
+  assignee: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  notes: string;
+  reminder: Reminder | null;
+  /** Who created it. */
+  createdBy: string;
+}
+
+/** Task drawer values. */
+export interface TaskInput {
+  title: string;
+  due: string;
+  assignee: string;
+  priority: TaskPriority;
+  status: TaskStatus;
+  notes: string;
+  reminder: Reminder | null;
+}
+
+/** Snooze choices on a due reminder. */
+export type SnoozeFor = "1 hour" | "Tomorrow" | "Next week";
+
 // ---- File Manager -----------------------------------------------------------------------------
 
 export interface Folder {

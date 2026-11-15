@@ -45,6 +45,7 @@ import { EXPENSE_ROWS, RECURRING_ROWS, UZ_EXPCAT, UZ_EXPDETAIL, UZ_RECDETAIL, VO
 import type { AccountType, ExpenseStatus, LedgerKind } from "../types";
 import { ROLE_IDS, ROLES } from "@/config/roles";
 import { CAL_TYPES, EVENT_ROWS } from "../fixtures/calendar";
+import { TASK_ROWS } from "../fixtures/tasks";
 import { FILE_ROWS, FOLDER_ROWS } from "../fixtures/docs";
 import { GENERIC_ROWS } from "../fixtures/generic";
 import { PROFILE_DEFAULTS, PROFILE_EMAIL_DOMAIN, UZ_BIZ_FULL, UZ_BRANCHES, UZ_GROUPS, UZ_LOC_BRANCHES, UZ_LOC_TYPES, UZ_LOCPOS, UZ_TERMS } from "../fixtures/settings";
@@ -54,7 +55,7 @@ import type { AiState } from "./state";
 import { POS_SEED_DOCS, POS_SEED_SHIFT, POS_SETTINGS_DEFAULT } from "../fixtures/pos";
 import type { PosState, PosUi } from "../types";
 import type { Branch, Profile, RoleId } from "../types";
-import type { CalendarState, DocsState, SettingsState } from "./state";
+import type { CalendarState, DocsState, SettingsState, TasksState } from "./state";
 
 const MONTHS: Record<string, string> = {
   Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12",
@@ -269,6 +270,7 @@ export function createSeed(): AppState {
     accounts: seedAccounts(),
     expenses: seedExpenses(),
     calendar: seedCalendar(),
+    tasks: seedTasks(),
     docs: seedDocs(),
     settings: seedSettings(),
     profiles: seedProfiles(),
@@ -487,6 +489,22 @@ function seedCalendar(): CalendarState {
   return {
     events: EVENT_ROWS.map(([date, time, title, type, notes], i) => ({ id: `e${i}`, date, time, endDate: "", endTime: "", address: "", title, type, notes })),
     types: [...CAL_TYPES],
+  };
+}
+
+function seedTasks(): TasksState {
+  return {
+    tasks: TASK_ROWS.map(([title, due, assignee, priority, status, notes, reminder], i) => ({
+      id: `t${i}`,
+      title,
+      due,
+      assignee,
+      priority,
+      status,
+      notes,
+      reminder: reminder ? { ...reminder } : null,
+      createdBy: "Tony Blaise",
+    })),
   };
 }
 

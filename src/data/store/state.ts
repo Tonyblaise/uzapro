@@ -17,6 +17,7 @@ import type {
   BusinessProfile,
   Branch,
   CalEvent,
+  Task,
   DocFile,
   Folder,
   GenericRow,
@@ -164,6 +165,10 @@ export interface CalendarState {
   types: string[];
 }
 
+export interface TasksState {
+  tasks: Task[];
+}
+
 export interface DocsState {
   folders: Folder[];
   files: DocFile[];
@@ -194,6 +199,7 @@ export interface AppState {
   accounts: AccountsState;
   expenses: ExpensesState;
   calendar: CalendarState;
+  tasks: TasksState;
   docs: DocsState;
   settings: SettingsState;
   /** Per-role profile (design `_profiles`); the session role's profile is the current user. */

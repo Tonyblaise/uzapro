@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, ArrowLeftRight, FolderLock, UserCog, ArrowRight, ArrowUpRight, CreditCard, Maximize, Minimize, ScanBarcode, Lightbulb, MessageSquare, Paperclip, Send, Sparkles, ThumbsUp, Wrench, Ban, Banknote, Bell, BookOpen, Boxes, Calculator, Calendar, Camera, ChartColumn, Check, ChevronDown, ChevronLeft,
+  AlarmClock, ListChecks, ArrowLeft, ArrowLeftRight, FolderLock, UserCog, ArrowRight, ArrowUpRight, CreditCard, Maximize, Minimize, ScanBarcode, Lightbulb, MessageSquare, Paperclip, Send, Sparkles, ThumbsUp, Wrench, Ban, Banknote, Bell, BookOpen, Boxes, Calculator, Calendar, Camera, ChartColumn, Check, ChevronDown, ChevronLeft,
   ChevronRight, ChevronUp, CircleAlert, CircleCheck, CircleHelp, ClipboardList, Clock, Copy, Download, Ellipsis, Eye, EyeOff, FileText, Filter, Folder, House,
   Image, Info, Landmark, LayoutGrid, Link, List, Lock, LogOut, Mail, MapPin, Menu, Minus, Package, PackageX, Pencil, Phone, Plug, Plus, Printer, Receipt, RefreshCw, Ruler, Search, Settings,
   Sheet, ShoppingCart, Smartphone, SlidersHorizontal, Store, Tag, Trash2, TrendingUp, Truck, Undo2, Upload, User, Users, Wallet, Warehouse, X,
@@ -8,6 +8,7 @@ import {
 
 /** Design icon names (Lucide names used in the canvas and erp-data.js) → components (research R4). */
 const ICONS: Record<string, LucideIcon> = {
+  "alarm-clock": AlarmClock, "list-checks": ListChecks,
   "folder-lock": FolderLock, "user-cog": UserCog, "arrow-left": ArrowLeft, "arrow-left-right": ArrowLeftRight, "arrow-right": ArrowRight, "arrow-up-right": ArrowUpRight, "credit-card": CreditCard, maximize: Maximize, minimize: Minimize, "scan-barcode": ScanBarcode,
   sparkles: Sparkles, "message-square": MessageSquare, lightbulb: Lightbulb, wrench: Wrench, paperclip: Paperclip, send: Send, "thumbs-up": ThumbsUp, ban: Ban, banknote: Banknote, bell: Bell, boxes: Boxes,
   calculator: Calculator, calendar: Calendar, camera: Camera, "chart-column": ChartColumn, check: Check, "chevron-down": ChevronDown,

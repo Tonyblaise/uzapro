@@ -7,7 +7,7 @@ import { GenericTable } from "./GenericTable";
 import { ReportCards } from "./ReportCards";
 
 /**
- * Generic list, form and card screens (feature 005, US5): rep, ppl, comm, the Settings tabs
+ * Generic list, form and card screens (feature 005, US5): rep, ppl, the Settings tabs
  * Staff logins and Taxes. The screen kind and the columns
  * come from the module registry; every tab gets the header "New" button (design `headerActions`
  * last fallback).
@@ -30,6 +30,5 @@ export function screensFor(moduleId: ModuleId, only?: readonly string[]): Screen
 
 export const reportsScreens: ScreenMap = screensFor("rep");
 export const teamScreens: ScreenMap = screensFor("ppl");
-export const messagesScreens: ScreenMap = screensFor("comm");
 /** Settings tabs served by the generic screens; merged into the Settings map in src/features/screens.ts. */
 export const genericSettingsScreens: ScreenMap = screensFor("set", ["staff-logins", "taxes"]);

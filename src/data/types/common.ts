@@ -31,7 +31,7 @@ export type ModuleId =
   | "ppl"
   | "perm"
   | "cal"
-  | "comm"
+  | "task"
   | "docs"
   | "sup"
   | "prof"

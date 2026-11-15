@@ -1,6 +1,6 @@
 /**
  * Verbatim port of the `UZ_MODS` rows, form fields and card items for the standard list, form and
- * card screens (design/canvas/erp-data.js): Reports, Team, Messages and Settings ›
+ * card screens (design/canvas/erp-data.js): Reports, Team and Settings ›
  * Staff logins and Taxes. Keys are "{moduleId}/{tabSlug}".
  * Permissions moved to role cards in feature 011 (canvas rows: Owner / Admin 1 Full, Accountant 2
  * Edit, Cashier 4 Limited, Store / Inventory 3 Edit — see src/data/fixtures/permissions.ts).
@@ -21,23 +21,6 @@ export const GENERIC_ROWS: Readonly<Record<string, readonly GenericRow[]>> = {
     ["Grant Jensen", "Store keeper", "Nairobi HQ", P("Active", "good")],
     ["Mary Achieng", "Accountant", "Nairobi HQ", P("Active", "good")],
     ["Jane Smith", "Cashier", "New Jersey", P("Active", "good")],
-  ],
-  "comm/saved-messages": [
-    ["Order ready", "SMS", "name, ref", P("Active", "good")],
-    ["Invoice due", "Email", "name, amount, due", P("Active", "good")],
-    ["Welcome", "WhatsApp", "name", P("Not finished", "mut")],
-  ],
-  "comm/sent-messages": [
-    ["31 Oct 09:12", "SMS", "248", "242", P("Delivered", "good")],
-    ["30 Oct 16:40", "Email", "1,204", "1,180", P("Delivered", "good")],
-  ],
-  "comm/campaigns": [
-    ["Back to school", "All customers", "4,200", "312", P("Done", "good")],
-    ["Black Friday", "Gold + Silver", "—", "—", P("Scheduled", "info")],
-  ],
-  "comm/scheduled": [
-    ["24 Nov 08:00", "SMS", "Black Friday", P("Queued", "warn")],
-    ["01 Nov 09:00", "Email", "Statement reminder", P("Queued", "warn")],
   ],
   "set/staff-logins": [
     ["Tony Blaise", "Owner / Admin", "Nairobi HQ", P("Active", "good")],
@@ -66,13 +49,6 @@ export const GENERIC_FORMS: Readonly<Record<string, readonly GenericField[]>> = 
     ["Group by", "Sales rep"],
     ["Date range", "This month"],
     ["Schedule", "Every Monday 8am"],
-  ]),
-  "comm/send-message": F([
-    ["Channel", "SMS"],
-    ["Audience", "Customers · 248 recipients"],
-    ["Template", "Order ready"],
-    ["Send", "Now"],
-    ["Message", "Hi {{name}}, your order {{ref}} is ready for pickup.", "ph", 1],
   ]),
 };
 

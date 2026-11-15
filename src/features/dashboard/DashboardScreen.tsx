@@ -10,6 +10,7 @@ import { InvoiceAnalytics } from "./InvoiceAnalytics";
 import { KpiGrid } from "./KpiGrid";
 import { Narrow, Wide } from "./parts";
 import { QuickTasks } from "./QuickTasks";
+import { RemindersPanel } from "./RemindersPanel";
 import { StockPerformance } from "./StockPerformance";
 import { SuppliersPanel } from "./SuppliersPanel";
 import { TopProducts } from "./TopProducts";
@@ -29,6 +30,7 @@ export function DashboardScreen() {
   if (!homeDash) {
     return (
       <div className="flex flex-col gap-6">
+        <RemindersPanel />
         {tasks.length > 0 && <QuickTasks tasks={tasks} />}
         {attention.length > 0 && <AttentionList items={attention} />}
       </div>
@@ -39,6 +41,7 @@ export function DashboardScreen() {
     <div className="flex flex-col gap-4">
       <BannerRow />
       <KpiGrid />
+      <RemindersPanel />
       <ComparePanel />
       <div className="flex flex-wrap gap-4">
         <Wide>

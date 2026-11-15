@@ -1,7 +1,7 @@
 "use client";
 /**
- * The design's generic form (`isForm`, design lines 826–840) for Reports › Build a report,
- * and Messages › Send message. Each field shows either its value or
+ * The design's generic form (`isForm`, design lines 826–840) for Reports › Build a report.
+ * Each field shows either its value or
  * its placeholder; full-width fields span the row. Save shows "Changes saved."; Cancel resets the
  * fields. Nothing is stored or sent (Clarification Q1).
  */

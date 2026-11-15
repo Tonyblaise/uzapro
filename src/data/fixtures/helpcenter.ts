@@ -194,7 +194,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
               ["Procurement", "Purchases and Suppliers"],
               ["Financials", "Accounts, Expenses, Receivables, Payables and Reports"],
               ["People", "Team and Permissions"],
-              ["Office", "Calendar, Messages, File Manager and Help"],
+              ["Office", "Calendar, Tasks, File Manager and Help"],
               ["Account", "Profile and Settings"],
             ],
           },

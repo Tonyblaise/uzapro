@@ -13,6 +13,7 @@ export type ScreenKind =
   | "cards"
   | "form"
   | "calendar"
+  | "tasks"
   | "docs"
   | "chat"
   | "helpcenter"

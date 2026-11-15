@@ -242,7 +242,7 @@ describe("commands", () => {
   it("deletes generic rows for the owner only", async () => {
     expect(canDeleteGeneric("owner")).toBe(true);
     expect(canDeleteGeneric("accountant")).toBe(false);
-    expect((await deleteGenericRow("comm", "saved-messages", "Welcome")).message).toBe("Welcome deleted.");
-    expect(store.getState().generic["comm/saved-messages"]).toHaveLength(2);
+    expect((await deleteGenericRow("set", "taxes", "Exempt")).message).toBe("Exempt deleted.");
+    expect(store.getState().generic["set/taxes"]).toHaveLength(2);
   });
 });

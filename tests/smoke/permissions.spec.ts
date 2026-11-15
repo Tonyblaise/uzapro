@@ -51,9 +51,9 @@ test("four role cards with users, avatars and module summaries (US1)", async ({ 
   await expect(cashier).toContainText("Total 4 users");
   await expect(cashier).toContainText("JS");
   await expect(cashier).toContainText("+3");
-  await expect(cashier).toContainText("Can open 8 of 22 modules");
-  await expect(card(page, "Accountant")).toContainText("Can open 15 of 22 modules");
-  await expect(card(page, "Store keeper")).toContainText("Can open 9 of 22 modules");
+  await expect(cashier).toContainText("Can open 9 of 22 modules");
+  await expect(card(page, "Accountant")).toContainText("Can open 16 of 22 modules");
+  await expect(card(page, "Store keeper")).toContainText("Can open 10 of 22 modules");
   await expect(page.getByRole("columnheader", { name: "Scope" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add new role" })).toBeVisible();
 });
@@ -79,7 +79,7 @@ test("Edit role: 22 modules, any mix of Read, Write and Delete, save and cancel 
   await expect(dialog.getByRole("button", { name: "Purchases: Read" })).toHaveAttribute("aria-pressed", "true");
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Cashier access saved.")).toBeVisible();
-  await expect(card(page, "Cashier")).toContainText("Can open 9 of 22 modules");
+  await expect(card(page, "Cashier")).toContainText("Can open 10 of 22 modules");
 
   // Several switches on one module: Read, Write and Delete together.
   await trigger.click();
@@ -112,7 +112,7 @@ test("Read controls what a role sees: Stock removed from the Cashier (US3)", asy
   void errors;
   await loginAs(page, "owner");
   await setLevel(page, "Cashier", [["Stock", "Read"]]); // Read off turns the module off
-  await expect(card(page, "Cashier")).toContainText("Can open 7 of 22 modules");
+  await expect(card(page, "Cashier")).toContainText("Can open 8 of 22 modules");
   await viewAs(page, "cashier");
   const nav = page.getByRole("complementary", { name: "Main" });
   await expect(nav.getByRole("link", { name: "Stock", exact: true })).toHaveCount(0);

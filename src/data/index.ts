@@ -24,6 +24,7 @@ export * from "./commands/money";
 export * from "./commands/accounts";
 export * from "./commands/expenses";
 export * from "./commands/calendar";
+export * from "./commands/tasks";
 export * from "./commands/docs";
 export * from "./commands/settings";
 export * from "./commands/profile";

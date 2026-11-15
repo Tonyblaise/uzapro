@@ -8,8 +8,9 @@ import { accountManager, nameInitials, setSearch, signOut, switchRole, useCurren
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
+import { RemindersBell } from "./RemindersBell";
 
-/** The canvas AppHeader: search, help, bell (with dot), divider, user chip + account menu. */
+/** The canvas AppHeader: search, help, bell (dot while task reminders are due), divider, user chip + account menu. */
 export function AppHeader({ onMenu }: { onMenu: () => void }) {
   const role = useRole();
   const name = useCurrentUserName();
@@ -56,7 +57,7 @@ export function AppHeader({ onMenu }: { onMenu: () => void }) {
       </div>
       <div className="hidden flex-1 md:block" />
       <IconButton icon="circle-help" label="Help" onClick={() => go(hrefFor("sup"))} />
-      <IconButton icon="bell" label="Notifications" badge />
+      <RemindersBell />
       <div aria-hidden="true" className="hidden h-7 w-px bg-border sm:block" />
       <button
         ref={chip}

@@ -30,7 +30,7 @@ sent anywhere.
 | Procurement | Purchases, Suppliers |
 | Financials | Accounts, Expenses, Receivables, Payables, Reports |
 | People | Team, Permissions |
-| Office | Calendar, Messages, File Manager, Help |
+| Office | Calendar, Tasks, File Manager, Help |
 | Account | Profile, Settings |
 
 Uza AI, the in-app assistant, is also included.
