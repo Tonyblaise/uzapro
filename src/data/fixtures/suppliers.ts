@@ -1,4 +1,5 @@
 /** Suppliers seed, ported verbatim from design/canvas/erp-data.js (UZ_MODS › vend › Suppliers). */
+import type { SupplierCredit } from "../types";
 import { P } from "./_helpers";
 
 /** [Name, Type, Phone, Email, Town or city, Status] */
@@ -10,3 +11,9 @@ export const SUPPLIER_ROWS = [
 
 /** UZ_NATIONS — the supplier form's Nationality list (default Kenya). */
 export const UZ_NATIONS = ["Kenya", "Uganda", "Tanzania", "Rwanda", "Ethiopia", "South Africa", "China", "India", "United Arab Emirates"];
+
+/** Suppliers › Supplier credits: the credit each supplier gives (not in the design). Road & Travel Tyres wants cash. */
+export const SUPPLIER_CREDIT: Record<string, SupplierCredit> = {
+  "Eastside Bicycle Supplies": { limit: 250000, terms: "30 days" },
+  "Magaliesburg Wheels": { limit: 60000, terms: "14 days" },
+};

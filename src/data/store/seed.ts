@@ -19,7 +19,7 @@ import { CREDIT_NOTE_ROWS, INVOICE_ROWS, QUOTATION_ROWS, SALE_NO_START, SALE_ROW
 import { STOCK_LINES, STOCK_MOVES, TRANSFER_DETAILS, TRANSFER_ROWS, WAREHOUSE_ROWS, WASTAGE_ROWS } from "../fixtures/stock";
 import type { Product, Sale, SalesTarget, Store, TransferStatus, Variant } from "../types";
 import { GRN_ROWS, PO_ROWS, PRT_ROWS, REJ_ROWS } from "../fixtures/purchases";
-import { SUPPLIER_ROWS, UZ_NATIONS } from "../fixtures/suppliers";
+import { SUPPLIER_CREDIT, SUPPLIER_ROWS, UZ_NATIONS } from "../fixtures/suppliers";
 import type { GoodsReceipt, PurchaseOrder, Supplier } from "../types";
 import {
   CUSTOMER_CREDIT_ROWS,
@@ -245,6 +245,7 @@ export function createSeed(): AppState {
         county: "",
         postal: "",
         status: { ...status },
+        credit: SUPPLIER_CREDIT[name] ? { ...SUPPLIER_CREDIT[name] } : null,
       }),
     ),
     purchases: seedPurchases(),

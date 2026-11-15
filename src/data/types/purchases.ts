@@ -14,6 +14,31 @@ export interface Supplier {
   county: string;
   postal: string;
   status: Pill; // Active / Inactive
+  /** Credit this supplier gives the business: buy now, pay within the terms. null when they want cash. */
+  credit: SupplierCredit | null;
+}
+
+/** Payment terms a supplier gives (Suppliers › Supplier credits). */
+export type SupplierTerms = "7 days" | "14 days" | "30 days" | "60 days" | "90 days";
+
+export interface SupplierCredit {
+  /** Most the business may owe this supplier, KES. */
+  limit: number;
+  terms: SupplierTerms;
+}
+
+/** A line of Suppliers › Supplier credits. */
+export interface SupplierCreditRow {
+  supplier: string;
+  limit: number;
+  terms: SupplierTerms;
+  /** Open bills (Payables) not yet paid. */
+  owing: number;
+  /** Unpaid purchase orders sent to the supplier, for what is still to be received. */
+  onOrder: number;
+  /** limit − owing − on order; below 0 when over the limit. */
+  left: number;
+  status: Pill;
 }
 
 export interface NewSupplier {

@@ -1,6 +1,6 @@
 "use client";
 /**
- * Customers › Customer credits / Suppliers › Supplier credits: Ref, Customer/Supplier, Reason/Source, Issued (with
+ * Customers › Customer credits / Suppliers › Supplier credit notes: Ref, Customer/Supplier, Reason/Source, Issued (with
  * "Expires …"), Amount, Used, Left, Status. Row actions Use to pay (opens the payment form with
  * the credit method) and Void credit (only while unused).
  */

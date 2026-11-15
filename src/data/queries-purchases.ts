@@ -5,10 +5,24 @@ import { parseAmount } from "@/lib/format";
 import { GRN_ROWS, PO_ROWS, PRT_ROWS, REJ_ROWS, UZ_BUY } from "./fixtures/purchases";
 import { SUPPLIER_ROWS } from "./fixtures/suppliers";
 import { useAppStore } from "./store/StoreProvider";
+import { overSupplierCredit, supplierCreditRows } from "./supplierCredit";
 import type { GoodsReceipt } from "./types";
 
 export function useSupplierList() {
   return useAppStore((s) => s.suppliers);
+}
+
+/** Suppliers › Supplier credits: suppliers that give credit, with what is used and left. */
+export function useSupplierCredits() {
+  const suppliers = useAppStore((s) => s.suppliers);
+  const payables = useAppStore((s) => s.money.payables);
+  const orders = useAppStore((s) => s.purchases.orders);
+  return useMemo(() => supplierCreditRows(suppliers, payables, orders), [suppliers, payables, orders]);
+}
+
+/** KES an unpaid purchase order of `total` would go over the supplier's credit (0 when within it). */
+export function useOverSupplierCredit(supplier: string, total: number, except?: string) {
+  return useAppStore((s) => overSupplierCredit({ suppliers: s.suppliers, payables: s.money.payables, orders: s.purchases.orders }, supplier, total, except));
 }
 
 export function useNations() {

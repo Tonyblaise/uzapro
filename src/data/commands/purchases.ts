@@ -28,6 +28,7 @@ import {
 } from "../types";
 import { getStore, showToast } from "../store";
 import { addPayable, peekRef } from "./money";
+import { overSupplierCredit } from "../supplierCredit";
 import type { AppState } from "../store/state";
 import { KIND, applyStockChanges, findShortfall, type StockChange } from "../store/stockOps";
 
@@ -104,11 +105,13 @@ export async function savePurchaseOrder(input: NewPurchaseOrder, opts: { approve
     activity,
     grns: prev?.grns ?? [],
   };
+  // Credit from the supplier (Suppliers › Supplier credits): warn, don't stop, when an unpaid order goes over it.
+  const over = opts.approve && !input.paid ? overSupplierCredit({ suppliers: state.suppliers, payables: state.money.payables, orders: state.purchases.orders }, order.supplier, order.total, prev?.ref) : 0;
   store.setState((s) => {
     const orders = prev ? s.purchases.orders.map((o) => (o.ref === ref ? order : o)) : [order, ...s.purchases.orders];
     return { purchases: { ...s.purchases, orders } };
   });
-  const message = `${ref} saved.`;
+  const message = over ? `${ref} saved. It is KES ${over.toLocaleString("en-US")} over the credit ${order.supplier} gives you.` : `${ref} saved.`;
   showToast(message);
   return ok(order, message);
 }

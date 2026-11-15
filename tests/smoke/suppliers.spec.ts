@@ -85,3 +85,39 @@ test("Send to Purchases adds a Waiting goods receipt and leaves stock unchanged"
   await expect(grn).toContainText("Eastside Bicycle Supplies");
   await expect(grn).toContainText("Waiting");
 });
+
+test("Supplier credits: credit suppliers give, added and edited; credit notes are their own tab", async ({ page, errors }) => {
+  void errors;
+  await loginAs(page, "owner");
+  await nav(page).getByRole("link", { name: "Suppliers" }).click();
+  await tab(page, "Supplier credits");
+  const eastside = page.getByRole("row").filter({ hasText: "Eastside Bicycle Supplies" });
+  await expect(eastside).toContainText("250,000");
+  await expect(eastside).toContainText("79,560");
+  await expect(eastside).toContainText("Within limit");
+  await expect(page.getByRole("row").filter({ hasText: "Road & Travel Tyres" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Add supplier credit" }).click();
+  const form = page.getByRole("dialog", { name: "Add supplier credit" });
+  await form.getByRole("button", { name: "Save credit" }).click();
+  await expect(form.getByRole("alert")).toHaveText("Pick the supplier.");
+  await choose(form, "Supplier", "Road & Travel Tyres");
+  await form.getByLabel("Credit limit (KES)").fill("10000");
+  await choose(form, "Payment terms", "14 days");
+  await form.getByRole("button", { name: "Save credit" }).click();
+  await expect(page.getByRole("status")).toContainText("Credit from Road & Travel Tyres saved: KES 10,000, 14 days.");
+  await expect(form).toBeHidden();
+  const road = page.getByRole("row").filter({ hasText: "Road & Travel Tyres" });
+  await expect(road).toContainText("Over limit"); // owes 12,800 on BILL-2231
+
+  await road.click();
+  const edit = page.getByRole("dialog", { name: "Credit from Road & Travel Tyres" });
+  await edit.getByLabel("Credit limit (KES)").fill("50000");
+  await edit.getByRole("button", { name: "Save credit" }).click();
+  await expect(edit).toBeHidden();
+  await expect(road).toContainText("Within limit");
+
+  await tab(page, "Supplier credit notes");
+  await expect(page.getByRole("row").filter({ hasText: "SCR-0002" })).toContainText("Magaliesburg Wheels");
+  await expect(page.getByRole("button", { name: "Issue credit" })).toBeVisible();
+});

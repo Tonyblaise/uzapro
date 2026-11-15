@@ -5,7 +5,7 @@
  * Opens with `?action=new` or `?edit=<ref>` (contracts/routes.md).
  */
 import { useMemo, useState, type ReactNode } from "react";
-import { PO_ACCOUNTS, PO_TERMS, UZ_PAYMETHODS, savePurchaseOrder, usePurchaseOrder, useProducts, useSuppliers, variantNames, type PurchaseOrder } from "@/data";
+import { PO_ACCOUNTS, PO_TERMS, UZ_PAYMETHODS, savePurchaseOrder, useOverSupplierCredit, usePurchaseOrder, useProducts, useSuppliers, variantNames, type PurchaseOrder } from "@/data";
 import { SupplierForm } from "@/features/suppliers";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Input } from "@/components/ui/Field";
@@ -87,6 +87,7 @@ function Form({ order, onClose }: { order?: PurchaseOrder; onClose: () => void }
   const set = (id: string, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   const total = lines.reduce((a, l) => a + (Number(l.qty) || 0) * (Number(l.cost) || 0), 0);
+  const over = useOverSupplierCredit(supplier, paid ? 0 : Math.round(total), order?.ref);
   const blocked = !supplier || !store || lines.length === 0 || lines.some((l) => !(Number(l.qty) > 0));
   const summary = [
     { label: "Supplier", value: supplier || "Not set" },
@@ -157,6 +158,11 @@ function Form({ order, onClose }: { order?: PurchaseOrder; onClose: () => void }
                   <SearchSelect label="Pay from account (optional)" options={PO_ACCOUNTS} value={account} onChange={setAccount} />
                 </div>
                 <Checkbox checked={paid} onChange={setPaid} label="Already paid" />
+                {!paid && over > 0 && (
+                  <div role="status" className="type-small rounded-md bg-warning-soft p-3 text-warning-text">
+                    This order is KES {over.toLocaleString("en-US")} over the credit {supplier} gives you (Suppliers › Supplier credits). You can still save it.
+                  </div>
+                )}
               </Section>
 
               <Section icon="list" title="Line items" extra={<span className="type-caption text-text-muted">{lines.length + (lines.length === 1 ? " item" : " items")}</span>}>

@@ -63,6 +63,7 @@ export { ALL_TERMINALS, bankLinkError, darajaErrors, mpesaRouteNote, paybillOf, 
 export { BANK_FEEDS, BANK_PAYBILLS, DARAJA_ACCOUNT_TYPES, INTEGRATION_ENVS, QB_ACCOUNTS, QB_ACCOUNT_LABEL, QB_COMPANIES, QB_FREQUENCIES, QB_RECORDS } from "./fixtures/integrations";
 export * from "./commands/pricing";
 export { GROUP_NAME_MAX, RETAIL_GROUP, groupName, priceNote, standardPrice, unitsOf } from "./pricing";
+export { NEAR_LIMIT, SUPPLIER_TERMS, overSupplierCredit, supplierCreditError, supplierCreditRows, supplierOnOrder, supplierOwing } from "./supplierCredit";
 export { APPROVAL_MIN, PAY_TERMS, approvalReasonOk, creditFlag, termDays } from "./credit";
 export { ACCESS_LEVELS, FULL_ACCESS, LEVEL_LABEL, NO_ACCESS, ROLE_NAME_MAX, has, lockedAccess, rowActionNeed, sameAccess, toggleRight } from "./permissions";
 export { AI_PROMPTS } from "./fixtures/uzaai";

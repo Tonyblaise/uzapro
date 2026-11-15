@@ -172,8 +172,10 @@ export const MODULES: Module[] = [
     "suppliers",
     [
       ["Suppliers", "table", [C("Name"), C("Type"), C("Phone"), C("Email"), C("Town or city"), C("Status")]],
-      // Supplier credits moved here from Payables.
-      ["Supplier credits", "table", [C("Ref"), C("Supplier"), C("Source"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
+      // Credit suppliers give the business: limit, terms, what is used and left.
+      ["Supplier credits", "table", [C("Supplier"), N("Credit limit (KES)"), C("Terms"), N("Owing (KES)"), N("On order (KES)"), N("Left (KES)"), C("Status")]],
+      // Credit notes suppliers owe the business back (returns, overpayments), moved here from Payables.
+      ["Supplier credit notes", "table", [C("Ref"), C("Supplier"), C("Source"), C("Issued"), N("Amount (KES)"), N("Used (KES)"), N("Left (KES)"), C("Status")]],
     ],
     true,
   ),

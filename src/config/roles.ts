@@ -91,7 +91,7 @@ export const ROLES: Record<RoleId, Role> = {
     tabs: {
       home: ["Overview"],
       buy: ["Purchase orders", "Goods receipts", "Purchase returns", "Rejected items"],
-      vend: ["Suppliers"], // Supplier credits are money, as when they sat in Payables
+      vend: ["Suppliers"], // Supplier credits and credit notes are money, as when they sat in Payables
       field: ["Deliveries"], // design UZ_ROLES (feature 024)
       sup: ["Help Center"], // feature 007: replaces the design's Ask UzaPro and How-to guides (spec › Design deviations)
     },
